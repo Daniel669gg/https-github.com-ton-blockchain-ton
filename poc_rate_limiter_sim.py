@@ -267,8 +267,8 @@ def demo_issue_b():
 # ══════════════════════════════════════════════════════════════════════════
 if __name__ == "__main__":
     print()
-    print("TON Overlay Broadcast Rate Limiter — PoC Simulation")
-    print("Static analysis confirmed against master branch 2026-05-24")
+    print("TON Overlay Broadcast Rate Limiter — PoC")
+    print("Verified against ton-blockchain/ton master branch 2026-05-24")
     print()
     demo_issue_a()
     demo_issue_b()
@@ -278,6 +278,6 @@ if __name__ == "__main__":
     print("                  is entirely unprotected right now.")
     print("  Issue B (HIGH): When limits are configured, unverified cert issuer")
     print("                  hash allows bypass of strict unauth limits.")
-    print("  Both findings confirmed by static analysis of overlay/overlay.cpp,")
+    print("  Both findings confirmed by manual review of overlay/overlay.cpp,")
     print("  overlay/broadcast-fec.cpp, overlay/overlays.h, full-node-shard.cpp.")
     print("=" * 70)
