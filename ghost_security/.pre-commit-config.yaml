@@ -1,0 +1,37 @@
+# Ghost Security Platform — Pre-commit hooks
+# Install: pip install pre-commit && pre-commit install
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-yaml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-ast          # Python syntax
+
+  - repo: https://github.com/psf/black
+    rev: 24.3.0
+    hooks:
+      - id: black
+        language_version: python3
+        args: [--line-length, "100"]
+
+  - repo: https://github.com/pycqa/bandit
+    rev: 1.7.7
+    hooks:
+      - id: bandit
+        args: ["-c", "pyproject.toml", "--severity-level", "high"]
+        exclude: tests/
+
+  - repo: local
+    hooks:
+      - id: syntax-check
+        name: Python syntax verification
+        entry: python3 -m compileall
+        language: system
+        args: ["-q"]
+        types: [python]
+        pass_filenames: false

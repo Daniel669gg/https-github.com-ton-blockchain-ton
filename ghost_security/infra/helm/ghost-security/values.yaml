@@ -1,0 +1,29 @@
+replicaCount: 2
+image:
+  repository: ghost-security/platform
+  tag: "3.0"
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 8000
+ingress:
+  enabled: false
+resources:
+  limits:
+    cpu: "1"
+    memory: 1Gi
+  requests:
+    cpu: "200m"
+    memory: 256Mi
+env:
+  OPENAI_API_KEY: ""
+  ANTHROPIC_API_KEY: ""
+  GEMINI_API_KEY: ""
+  OLLAMA_BASE_URL: "http://ollama:11434"
+  QDRANT_URL: "http://qdrant:6333"
+redis:
+  enabled: true
+qdrant:
+  enabled: false
+ollama:
+  enabled: false

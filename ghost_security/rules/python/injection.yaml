@@ -1,0 +1,44 @@
+- id: GHOST-PY-SQL-001
+  name: SQL Injection via f-string
+  description: SQL query built with f-string allows user input to flow into query
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages: [python]
+  confidence: 0.92
+  patterns:
+    - type: regex
+      pattern: 'execute\s*\(f["\']'
+      confidence: 0.92
+  fix: "Use parameterized queries: cursor.execute('SELECT...', (value,))"
+  tags: [injection, sql, database]
+
+- id: GHOST-PY-CMD-001
+  name: Command injection via shell=True
+  description: subprocess called with shell=True — potential command injection
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A03:2021
+  languages: [python]
+  confidence: 0.88
+  patterns:
+    - type: regex
+      pattern: 'subprocess\.(run|call|Popen|check_output)\s*\([^)]*shell\s*=\s*True'
+      confidence: 0.88
+  fix: "Use shell=False and pass arguments as a list"
+  tags: [injection, shell]
+
+- id: GHOST-PY-PICKLE-001
+  name: Unsafe deserialization via pickle
+  description: pickle.loads() on untrusted data enables arbitrary code execution
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A08:2021
+  languages: [python]
+  confidence: 0.90
+  patterns:
+    - type: regex
+      pattern: 'pickle\.loads?\s*\('
+      confidence: 0.90
+  fix: "Use JSON or msgpack for untrusted data. Never pickle user input."
+  tags: [deserialization, pickle]

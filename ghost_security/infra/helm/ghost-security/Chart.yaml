@@ -1,0 +1,6 @@
+apiVersion: v2
+name: ghost-security
+description: AI-native AppSec Platform
+type: application
+version: 3.0.0
+appVersion: "3.0"

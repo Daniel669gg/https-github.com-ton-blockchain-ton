@@ -1,0 +1,147 @@
+name: Ghost Security CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  security-events: write   # for SARIF upload
+  pull-requests: write      # for PR annotations
+
+jobs:
+  # ── 1. Syntax & import verification ────────────────────────────────────────
+  syntax:
+    name: Syntax Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile all Python files
+        run: python3 -m compileall . -q
+      - name: Import check (stdlib-only modules)
+        run: |
+          python3 -c "from runtime.trace import TraceLogger; print('trace OK')"
+          python3 -c "from runtime.watchdog import RuntimeWatchdog; print('watchdog OK')"
+          python3 -c "from core.metrics.prometheus_metrics import MetricsRegistry; print('metrics OK')"
+          python3 -c "from verifier.confidence_engine import score_finding; print('confidence OK')"
+
+  # ── 2. Unit & integration tests ─────────────────────────────────────────────
+  tests:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    needs: syntax
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install test dependencies
+        run: |
+          pip install pytest pytest-asyncio pytest-cov
+      - name: Run tests with coverage
+        run: |
+          python3 -m pytest tests/test_runtime.py tests/test_api.py tests/test_orchestration.py \
+            -v --tb=short \
+            --cov=runtime --cov=core --cov=verifier \
+            --cov-report=xml:coverage.xml \
+            --cov-report=term-missing \
+            --ignore=tests/test_ton_analyzer.py \
+            --ignore=tests/test_all_scanners.py
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          file: coverage.xml
+        continue-on-error: true
+
+  # ── 3. Bandit SAST ──────────────────────────────────────────────────────────
+  bandit:
+    name: Bandit SAST
+    runs-on: ubuntu-latest
+    needs: syntax
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install bandit
+        run: pip install bandit[sarif]
+      - name: Run bandit
+        run: |
+          bandit -r . \
+            --exclude ./.git,./tests,./node_modules \
+            -f sarif \
+            -o bandit-results.sarif \
+            --severity-level medium \
+            || true
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: bandit-results.sarif
+          category: bandit
+        continue-on-error: true
+
+  # ── 4. Dependency audit ─────────────────────────────────────────────────────
+  deps:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: pip-audit
+        run: |
+          pip install pip-audit
+          pip-audit -r requirements.txt --format json -o pip-audit.json || true
+      - name: Upload audit results
+        uses: actions/upload-artifact@v4
+        with:
+          name: pip-audit-results
+          path: pip-audit.json
+        continue-on-error: true
+
+  # ── 5. Semgrep ──────────────────────────────────────────────────────────────
+  semgrep:
+    name: Semgrep
+    runs-on: ubuntu-latest
+    container:
+      image: returntocorp/semgrep
+    if: github.actor != 'dependabot[bot]'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Semgrep CI
+        run: |
+          semgrep ci \
+            --config auto \
+            --sarif \
+            --output semgrep.sarif \
+            || true
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep
+        continue-on-error: true
+
+  # ── 6. Docker build validation ──────────────────────────────────────────────
+  docker:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: tests
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: |
+          if [ -f Dockerfile ]; then
+            docker build -t ghost-security:ci .
+            echo "Docker build succeeded"
+          else
+            echo "No Dockerfile found — skipping"
+          fi
+        continue-on-error: true

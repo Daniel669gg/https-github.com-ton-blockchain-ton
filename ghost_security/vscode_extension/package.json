@@ -1,0 +1,143 @@
+{
+  "name": "ghost-security",
+  "displayName": "Ghost Security",
+  "description": "AI-native AppSec scanner — inline vulnerability detection as you type",
+  "version": "1.0.0",
+  "publisher": "ghost-security",
+  "icon": "images/ghost_icon.png",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Linters", "Other"],
+  "keywords": ["security", "appsec", "vulnerability", "sast", "owasp"],
+  "repository": { "type": "git", "url": "https://github.com/ghost-security/vscode-extension" },
+  "activationEvents": [
+    "onLanguage:python",
+    "onLanguage:javascript",
+    "onLanguage:typescript",
+    "onLanguage:solidity"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Ghost Security",
+      "properties": {
+        "ghost.serverUrl": {
+          "type": "string",
+          "default": "http://localhost:8000",
+          "description": "Ghost Security API server URL"
+        },
+        "ghost.scanOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically scan file on save"
+        },
+        "ghost.scanOnType": {
+          "type": "boolean",
+          "default": false,
+          "description": "Scan while typing (debounced, may slow editor)"
+        },
+        "ghost.minSeverity": {
+          "type": "string",
+          "enum": ["INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL"],
+          "default": "MEDIUM",
+          "description": "Minimum severity to show inline"
+        },
+        "ghost.showInlineHints": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show inline code lens with finding details"
+        },
+        "ghost.autoFix": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show quick-fix suggestions (requires Ollama)"
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "ghost.scanFile",
+        "title": "Ghost: Scan Current File",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "ghost.scanWorkspace",
+        "title": "Ghost: Scan Workspace",
+        "icon": "$(search)"
+      },
+      {
+        "command": "ghost.showFindingsPanel",
+        "title": "Ghost: Show Findings",
+        "icon": "$(list-unordered)"
+      },
+      {
+        "command": "ghost.clearDiagnostics",
+        "title": "Ghost: Clear Diagnostics"
+      },
+      {
+        "command": "ghost.explainFinding",
+        "title": "Ghost: Explain This Finding"
+      },
+      {
+        "command": "ghost.generateFix",
+        "title": "Ghost: Generate Fix (AI)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "ghost.scanFile",
+          "group": "navigation",
+          "when": "resourceLangId == python || resourceLangId == javascript || resourceLangId == typescript"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "ghost.explainFinding",
+          "group": "ghost",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "ghost.generateFix",
+          "group": "ghost",
+          "when": "editorHasSelection"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "ghost-security",
+          "title": "Ghost Security",
+          "icon": "images/ghost_icon_sm.svg"
+        }
+      ]
+    },
+    "views": {
+      "ghost-security": [
+        {
+          "id": "ghost.findingsView",
+          "name": "Findings",
+          "icon": "$(shield)"
+        },
+        {
+          "id": "ghost.historyView",
+          "name": "Scan History",
+          "icon": "$(history)"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch":   "tsc -watch -p ./",
+    "lint":    "eslint src --ext ts",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/vscode":  "^1.85.0",
+    "@types/node":    "^20.0.0",
+    "typescript":     "^5.3.0",
+    "@vscode/vsce":   "^2.24.0"
+  }
+}

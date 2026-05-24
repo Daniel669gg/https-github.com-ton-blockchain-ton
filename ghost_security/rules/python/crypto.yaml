@@ -1,0 +1,29 @@
+- id: GHOST-PY-HASH-001
+  name: Weak hash algorithm MD5
+  description: MD5 is cryptographically broken — not safe for passwords or integrity checks
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A02:2021
+  languages: [python]
+  confidence: 0.93
+  patterns:
+    - type: regex
+      pattern: 'hashlib\.md5\s*\('
+      confidence: 0.93
+  fix: "Use hashlib.sha256() or argon2 for passwords"
+  tags: [crypto, hash, md5]
+
+- id: GHOST-PY-HASH-002
+  name: Weak hash algorithm SHA-1
+  description: SHA-1 is broken for collision resistance
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A02:2021
+  languages: [python]
+  confidence: 0.92
+  patterns:
+    - type: regex
+      pattern: 'hashlib\.sha1\s*\('
+      confidence: 0.92
+  fix: "Use hashlib.sha256() or hashlib.sha3_256()"
+  tags: [crypto, hash, sha1]

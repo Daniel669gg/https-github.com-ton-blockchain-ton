@@ -1,0 +1,64 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "ghost-security"
+version = "3.0.0"
+description = "AI-native AppSec platform — 250+ rules, TON/Web3, K8s, Multi-LLM"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [{name = "Ghost Security Team"}]
+keywords = ["security", "appsec", "sast", "vulnerability", "TON", "blockchain", "k8s"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Security",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.27.0",
+    "pydantic>=2.0.0",
+    "python-dotenv>=1.0.0",
+    "PyYAML>=6.0.1",
+    "requests>=2.31.0",
+    "click>=8.1.0",
+    "rich>=13.0.0",
+]
+
+[project.optional-dependencies]
+ai = ["openai>=1.30.0"]
+memory = ["chromadb>=0.4.24"]
+full = ["openai>=1.30.0", "chromadb>=0.4.24", "httpx>=0.27.0"]
+dev = ["pytest>=8.0.0", "pytest-asyncio>=0.23.0", "black", "mypy"]
+
+[project.scripts]
+ghost = "ghost_cli_main:main"
+
+[project.urls]
+Homepage = "https://github.com/ghost-security/platform"
+Documentation = "https://docs.ghost-security.io"
+Repository = "https://github.com/ghost-security/platform"
+"Bug Tracker" = "https://github.com/ghost-security/platform/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+exclude = ["tests*", "docs*"]
+
+[tool.setuptools.package-data]
+"*" = ["rules/**/*.yaml", "rules/**/*.yml"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310", "py311"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+ignore_missing_imports = true

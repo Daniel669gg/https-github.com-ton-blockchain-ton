@@ -1,0 +1,195 @@
+version: "3.9"
+
+# Ghost Security Platform v3.0 — Full Production Stack
+# Профили:
+#   docker compose up                          — минимум (ghost + redis)
+#   docker compose --profile ai up            — + Ollama local LLM
+#   docker compose --profile memory up        — + Qdrant vector DB
+#   docker compose --profile telemetry up     — + Prometheus + Grafana
+#   docker compose --profile full up          — всё
+
+x-ghost-env: &ghost-env
+  OPENAI_API_KEY:      ${OPENAI_API_KEY:-}
+  ANTHROPIC_API_KEY:   ${ANTHROPIC_API_KEY:-}
+  GEMINI_API_KEY:      ${GEMINI_API_KEY:-}
+  OLLAMA_BASE_URL:     http://ollama:11434
+  QDRANT_URL:          http://qdrant:6333
+  REDIS_URL:           redis://redis:6379
+  LOG_LEVEL:           ${LOG_LEVEL:-INFO}
+  WORKERS:             ${WORKERS:-2}
+  GITHUB_TOKEN:        ${GITHUB_TOKEN:-}
+  GITHUB_APP_ID:       ${GITHUB_APP_ID:-}
+  GITHUB_WEBHOOK_SECRET: ${GITHUB_WEBHOOK_SECRET:-}
+  ENV:                 ${ENV:-production}
+
+services:
+
+  # ── Ghost Security API ─────────────────────────────────────────
+  ghost:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ghost-security
+    ports:
+      - "${API_PORT:-8000}:8000"
+    environment:
+      <<: *ghost-env
+    volumes:
+      - ghost_data:/app/data
+      - ghost_reports:/app/ghost_reports
+      - ghost_memory:/app/memory
+      - ${SCAN_TARGET:-/tmp}:/scan:ro
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    networks: [ghost-net]
+    labels:
+      com.ghost.service: "api"
+      com.ghost.version: "3.0"
+
+  # ── Redis ─────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: ghost-redis
+    command: >
+      redis-server
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --save ""
+      --appendonly no
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks: [ghost-net]
+
+  # ── Qdrant Vector DB ───────────────────────────────────────────
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: ghost-qdrant
+    ports:
+      - "${QDRANT_PORT:-6333}:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks: [ghost-net]
+    profiles: ["memory", "full"]
+
+  # ── Ollama Local LLM ──────────────────────────────────────────
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ghost-ollama
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks: [ghost-net]
+    profiles: ["ai", "full"]
+
+  # ── Ollama model bootstrap ─────────────────────────────────────
+  ollama-bootstrap:
+    image: curlimages/curl:latest
+    container_name: ghost-ollama-bootstrap
+    depends_on:
+      ollama:
+        condition: service_healthy
+    entrypoint: >
+      sh -c "
+        echo 'Pulling qwen3...' &&
+        curl -sf -X POST http://ollama:11434/api/pull
+          -d '{\"name\":\"qwen3\"}' &&
+        echo 'Pulling deepseek-r1...' &&
+        curl -sf -X POST http://ollama:11434/api/pull
+          -d '{\"name\":\"deepseek-r1\"}' &&
+        echo 'Pulling nomic-embed-text...' &&
+        curl -sf -X POST http://ollama:11434/api/pull
+          -d '{\"name\":\"nomic-embed-text\"}' &&
+        echo 'Bootstrap complete'
+      "
+    restart: "no"
+    networks: [ghost-net]
+    profiles: ["ai", "full"]
+
+  # ── Prometheus ────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: ghost-prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./infra/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=30d
+      - --web.enable-lifecycle
+    restart: unless-stopped
+    depends_on: [ghost]
+    networks: [ghost-net]
+    profiles: ["telemetry", "full"]
+
+  # ── Grafana ───────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:latest
+    container_name: ghost-grafana
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-ghost_admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./infra/grafana:/etc/grafana/provisioning:ro
+    restart: unless-stopped
+    depends_on: [prometheus]
+    networks: [ghost-net]
+    profiles: ["telemetry", "full"]
+
+  # ── Semgrep scanner sidecar ───────────────────────────────────
+  semgrep:
+    image: semgrep/semgrep:latest
+    container_name: ghost-semgrep
+    volumes:
+      - ${SCAN_TARGET:-/tmp}:/scan:ro
+    entrypoint: ["tail", "-f", "/dev/null"]
+    restart: "no"
+    networks: [ghost-net]
+    profiles: ["full"]
+
+volumes:
+  ghost_data:
+  ghost_reports:
+  ghost_memory:
+  qdrant_data:
+  ollama_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  ghost-net:
+    driver: bridge
