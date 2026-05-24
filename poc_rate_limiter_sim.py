@@ -38,10 +38,19 @@ class RateLimiterWindow:
         self._total  = 0
 
     def check(self, weight: int = 1) -> bool:
-        """Returns True if the request fits within the limit."""
-        # ── Issue A: default {} means limit=0 → always pass ──────────────
-        if self.params.limit == 0 or self.params.duration == 0.0:
-            return True            # ← unlimited / disabled limiter
+        """
+        Exact mirror of tdutils/td/utils/RateLimiterWindow.h:
+          if (duration_ == 0) return true;   ← UNLIMITED
+          if (limit_    == 0) return false;  ← REJECT ALL
+          gc(time); return weight <= limit_ && total_weight_ + weight <= limit_;
+        """
+        # ── Issue A confirmed from real source ─────────────────────────────
+        # Params{} → duration=0, limit=0 → first branch fires → return true
+        if self.params.duration == 0.0:
+            return True   # ← unlimited; this is the default for both auth/unauth
+
+        if self.params.limit == 0:
+            return False  # reject all (limit explicitly 0 with non-zero duration)
 
         now = time.monotonic()
         cutoff = now - self.params.duration
