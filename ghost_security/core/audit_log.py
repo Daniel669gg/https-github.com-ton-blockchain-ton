@@ -293,19 +293,74 @@ class AuditLogger:
 
         return {"valid": True, "checked": checked, "message": "Audit log integrity verified"}
 
-    def stats(self) -> dict:
+    def tail(self, n: int = 50) -> List[dict]:
+        """Return the last N audit events, most-recent first."""
         with self._conn() as c:
-            total  = c.execute("SELECT COUNT(*) FROM audit_events").fetchone()[0]
+            rows = c.execute(
+                "SELECT * FROM audit_events ORDER BY id DESC LIMIT ?", (n,)
+            ).fetchall()
+        return [dict(r) for r in rows]
+
+    def export_csv(self, output_path: str) -> str:
+        """
+        Export the full audit log to a CSV file.
+
+        Returns the absolute path of the written file.
+        """
+        import csv as _csv
+
+        with self._conn() as c:
+            rows = c.execute(
+                "SELECT * FROM audit_events ORDER BY id ASC"
+            ).fetchall()
+
+        out = str(Path(output_path).expanduser().resolve())
+        Path(out).parent.mkdir(parents=True, exist_ok=True)
+
+        fieldnames = [
+            "id", "event_id", "timestamp", "event_type",
+            "actor_id", "actor_email", "org_id", "resource",
+            "action", "outcome", "metadata", "ip_address",
+            "user_agent", "chain_hash", "prev_hash",
+        ]
+        with open(out, "w", newline="", encoding="utf-8") as fh:
+            writer = _csv.DictWriter(fh, fieldnames=fieldnames)
+            writer.writeheader()
+            for row in rows:
+                writer.writerow(dict(row))
+
+        return out
+
+    def stats(self) -> dict:
+        """
+        Return aggregate statistics:
+          - total_events
+          - failures
+          - by_type   (event_type → count)
+          - by_user   (actor_id  → count)
+          - last_24h  (count of events in past 24 hours)
+        """
+        since_24h = time.time() - 86400
+        with self._conn() as c:
+            total = c.execute("SELECT COUNT(*) FROM audit_events").fetchone()[0]
             by_type = dict(c.execute(
                 "SELECT event_type, COUNT(*) FROM audit_events GROUP BY event_type"
             ).fetchall())
+            by_user = dict(c.execute(
+                "SELECT actor_id, COUNT(*) FROM audit_events GROUP BY actor_id"
+            ).fetchall())
             failures = c.execute(
                 "SELECT COUNT(*) FROM audit_events WHERE outcome='failure'"
+            ).fetchone()[0]
+            last_24h = c.execute(
+                "SELECT COUNT(*) FROM audit_events WHERE timestamp >= ?", (since_24h,)
             ).fetchone()[0]
         return {
             "total_events": total,
             "failures":     failures,
             "by_type":      by_type,
+            "by_user":      by_user,
+            "last_24h":     last_24h,
         }
 
 

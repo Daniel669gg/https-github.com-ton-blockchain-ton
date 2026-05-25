@@ -3,6 +3,9 @@ Tests for Ghost Security Platform — new CLI commands:
   notify, sla, audit-log, and the extended rules CDN commands.
 
 No real network calls — all external I/O is mocked.
+
+Run:
+    python3 -m pytest tests/test_new_cli_commands.py -v
 """
 from __future__ import annotations
 
@@ -18,11 +21,13 @@ from unittest.mock import MagicMock, patch, call
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
+# ── Helpers ───────────────────────────────────────────────────────────────────
+
 SAMPLE_FINDINGS = [
-    {"severity": "CRITICAL", "type": "sqli",     "message": "SQL injection",     "file": "app.py",   "line": 42, "rule_id": "GH-001"},
-    {"severity": "HIGH",     "type": "xss",      "message": "XSS vulnerability", "file": "view.py",  "line": 10, "rule_id": "GH-002"},
-    {"severity": "MEDIUM",   "type": "info-leak","message": "Info disclosure",  "file": "api.py",   "line": 5,  "rule_id": "GH-003"},
-    {"severity": "LOW",      "type": "log",      "message": "Sensitive log",     "file": "utils.py", "line": 99, "rule_id": "GH-004"},
+    {"severity": "CRITICAL", "type": "sqli",    "message": "SQL injection",     "file": "app.py",    "line": 42,  "rule_id": "GH-001"},
+    {"severity": "HIGH",     "type": "xss",     "message": "XSS vulnerability", "file": "view.py",   "line": 10,  "rule_id": "GH-002"},
+    {"severity": "MEDIUM",   "type": "info-leak","message": "Info disclosure",  "file": "api.py",    "line": 5,   "rule_id": "GH-003"},
+    {"severity": "LOW",      "type": "log",     "message": "Sensitive log",     "file": "utils.py",  "line": 99,  "rule_id": "GH-004"},
 ]
 
 
@@ -33,13 +38,28 @@ def _write_findings(tmpdir: str, findings=None) -> str:
 
 
 def _args(**kw) -> SimpleNamespace:
-    defaults = {"findings": "findings.json", "jira": False, "slack": False,
-                "min_severity": "HIGH", "test_connection": False, "open_findings": False,
-                "overdue": False, "report": False, "fmt": "table", "policy": "default",
-                "tail": 50, "stats": False, "export_path": None}
+    defaults = {
+        "findings": "findings.json",
+        "jira": False,
+        "slack": False,
+        "min_severity": "HIGH",
+        "test_connection": False,
+        "open_findings": False,
+        "overdue": False,
+        "report": False,
+        "fmt": "table",
+        "policy": "default",
+        "tail": 50,
+        "stats": False,
+        "export_path": None,
+    }
     defaults.update(kw)
     return SimpleNamespace(**defaults)
 
+
+# ══════════════════════════════════════════════════════════════════════════════
+# TestCmdNotify
+# ══════════════════════════════════════════════════════════════════════════════
 
 class TestCmdNotify(unittest.TestCase):
 
@@ -131,6 +151,7 @@ class TestCmdNotify(unittest.TestCase):
         instance.send_scan_summary.assert_called_once()
 
     def test_min_severity_filters_findings(self):
+        """Only CRITICAL+HIGH findings should be sent when min_severity=HIGH."""
         cmd = self._import_cmd()
         captured = {}
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -138,25 +159,34 @@ class TestCmdNotify(unittest.TestCase):
             mock_cls = MagicMock()
             instance = mock_cls.return_value
             instance.is_configured.return_value = True
+
             def capture_batch(findings, **kw):
                 captured["findings"] = findings
                 return []
+
             instance.create_issues_batch.side_effect = capture_batch
             mock_module = MagicMock()
             mock_module.JiraIntegration = mock_cls
             with patch.dict("sys.modules", {"integrations.jira.jira_integration": mock_module}):
                 cmd(_args(findings=fp, jira=True, min_severity="HIGH"))
+
         sent = captured.get("findings", [])
         severities = {f["severity"] for f in sent}
-        self.assertTrue(all(s in {"CRITICAL", "HIGH"} for s in severities))
+        self.assertTrue(all(s in {"CRITICAL", "HIGH"} for s in severities),
+                        f"Unexpected severities passed: {severities}")
 
     def test_no_backend_specified_returns_0(self):
+        """Without --jira or --slack, command prints a hint and returns 0."""
         cmd = self._import_cmd()
         with tempfile.TemporaryDirectory() as tmpdir:
             fp = _write_findings(tmpdir)
             rc = cmd(_args(findings=fp, jira=False, slack=False))
         self.assertEqual(rc, 0)
 
+
+# ══════════════════════════════════════════════════════════════════════════════
+# TestCmdSla
+# ══════════════════════════════════════════════════════════════════════════════
 
 class TestCmdSla(unittest.TestCase):
 
@@ -169,7 +199,10 @@ class TestCmdSla(unittest.TestCase):
         tracker.track_batch.return_value = {"total": 2}
         tracker.overdue.return_value = []
         tracker.report.return_value = "SLA report text"
-        tracker.summary.return_value = {"sla_score": 95.0, "total": 10, "on_track": 9, "at_risk": 1, "overdue": 0}
+        tracker.summary.return_value = {
+            "sla_score": 95.0, "total": 10, "on_track": 9,
+            "at_risk": 1, "overdue": 0,
+        }
         for k, v in overrides.items():
             setattr(tracker, k, v)
         return tracker
@@ -211,7 +244,9 @@ class TestCmdSla(unittest.TestCase):
 
     def test_overdue_no_items_returns_0(self):
         cmd = self._import_cmd()
-        mock_mod = self._mock_sla_module()
+        tracker = self._mock_tracker()
+        tracker.overdue.return_value = []
+        mock_mod = self._mock_sla_module(tracker=tracker)
         with patch.dict("sys.modules", {"core.enterprise.sla_tracker": mock_mod}):
             rc = cmd(_args(overdue=True))
         self.assertEqual(rc, 0)
@@ -252,6 +287,7 @@ class TestCmdSla(unittest.TestCase):
         mock_mod.SLAPolicy.soc2.assert_called_once()
 
     def test_summary_color_green_for_high_score(self):
+        """High SLA score (95) → function completes without error."""
         cmd = self._import_cmd()
         mock_mod = self._mock_sla_module()
         with patch.dict("sys.modules", {"core.enterprise.sla_tracker": mock_mod}):
@@ -260,13 +296,20 @@ class TestCmdSla(unittest.TestCase):
 
     def test_summary_color_red_for_low_score(self):
         tracker = self._mock_tracker()
-        tracker.summary.return_value = {"sla_score": 55.0, "total": 10, "on_track": 5, "at_risk": 2, "overdue": 3}
+        tracker.summary.return_value = {
+            "sla_score": 55.0, "total": 10, "on_track": 5,
+            "at_risk": 2, "overdue": 3,
+        }
         cmd = self._import_cmd()
         mock_mod = self._mock_sla_module(tracker=tracker)
         with patch.dict("sys.modules", {"core.enterprise.sla_tracker": mock_mod}):
             rc = cmd(_args())
         self.assertEqual(rc, 0)
 
+
+# ══════════════════════════════════════════════════════════════════════════════
+# TestCmdAuditLog
+# ══════════════════════════════════════════════════════════════════════════════
 
 class TestCmdAuditLog(unittest.TestCase):
 
@@ -293,8 +336,10 @@ class TestCmdAuditLog(unittest.TestCase):
         self.assertEqual(rc, 0)
 
     def test_tail_shows_events(self):
-        events = [{"timestamp": 1700000000.0, "event_type": "scan_started", "detail": "app/"},
-                  {"timestamp": 1700000001.0, "event_type": "scan_complete", "detail": "app/"}]
+        events = [
+            {"timestamp": 1700000000.0, "event_type": "scan_started", "detail": "app/"},
+            {"timestamp": 1700000001.0, "event_type": "scan_complete", "detail": "app/"},
+        ]
         cmd = self._import_cmd()
         log = self._mock_log(events=events)
         with patch.dict("sys.modules", {"core.audit_log": self._mock_mod(log=log)}):
@@ -327,6 +372,7 @@ class TestCmdAuditLog(unittest.TestCase):
         self.assertEqual(rc, 0)
 
     def test_events_with_action_key(self):
+        """Audit log events may use 'action' instead of 'event_type'."""
         events = [{"timestamp": 1700000000.0, "action": "user_login", "message": "admin"}]
         cmd = self._import_cmd()
         log = self._mock_log(events=events)
@@ -335,6 +381,10 @@ class TestCmdAuditLog(unittest.TestCase):
         self.assertEqual(rc, 0)
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# TestCmdRulesCDN (extended rules command)
+# ══════════════════════════════════════════════════════════════════════════════
+
 class TestCmdRulesCDN(unittest.TestCase):
 
     def _import_cmd(self):
@@ -342,8 +392,10 @@ class TestCmdRulesCDN(unittest.TestCase):
         return ghost_cli_main.cmd_rules
 
     def _rules_ns(self, path=".", **kw):
+        """Build SimpleNamespace matching the rules argparse spec."""
         ns = SimpleNamespace(path=path, rules_dir=None, output="table",
-                             save=None, create_example=False, check_only=False, force=False)
+                             save=None, create_example=False,
+                             check_only=False, force=False)
         for k, v in kw.items():
             setattr(ns, k, v)
         return ns
@@ -351,8 +403,12 @@ class TestCmdRulesCDN(unittest.TestCase):
     def test_rules_update_calls_download(self):
         cmd = self._import_cmd()
         mock_cdn = MagicMock()
-        mock_cdn.return_value.check_updates.return_value = {"has_update": True, "current": "1.0.0", "latest": "2.0.0", "new_rules": []}
-        mock_cdn.return_value.download_rules.return_value = {"downloaded": 3, "skipped": 0, "errors": 0, "version": "2.0.0"}
+        mock_cdn.return_value.check_updates.return_value = {
+            "has_update": True, "current": "1.0.0", "latest": "2.0.0", "new_rules": []
+        }
+        mock_cdn.return_value.download_rules.return_value = {
+            "downloaded": 3, "skipped": 0, "errors": 0, "version": "2.0.0"
+        }
         mock_mod = MagicMock()
         mock_mod.RulesCDN = mock_cdn
         with patch.dict("sys.modules", {"integrations.rules_cdn": mock_mod}):
@@ -363,12 +419,15 @@ class TestCmdRulesCDN(unittest.TestCase):
     def test_rules_update_no_update_available(self):
         cmd = self._import_cmd()
         mock_cdn = MagicMock()
-        mock_cdn.return_value.check_updates.return_value = {"has_update": False, "current": "1.0.0", "latest": "1.0.0", "new_rules": []}
+        mock_cdn.return_value.check_updates.return_value = {
+            "has_update": False, "current": "1.0.0", "latest": "1.0.0", "new_rules": []
+        }
         mock_mod = MagicMock()
         mock_mod.RulesCDN = mock_cdn
         with patch.dict("sys.modules", {"integrations.rules_cdn": mock_mod}):
             rc = cmd(self._rules_ns(path="update"))
         self.assertEqual(rc, 0)
+        # When no update available, download_rules should NOT be called
         mock_cdn.return_value.download_rules.assert_not_called()
 
     def test_rules_list_empty(self):
@@ -397,7 +456,26 @@ class TestCmdRulesCDN(unittest.TestCase):
         self.assertEqual(rc, 0)
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# TestCLIArgParsing — verify subparsers are registered
+# ══════════════════════════════════════════════════════════════════════════════
+
 class TestCLIArgParsing(unittest.TestCase):
+
+    def _build_parser(self):
+        """Import main and run its argument-parser setup up to parse_args."""
+        import importlib, subprocess, sys
+        result = subprocess.run(
+            [sys.executable, "-c",
+             "import ghost_cli_main; "
+             "import argparse; "
+             "p = argparse.ArgumentParser(); "
+             "sub = p.add_subparsers(dest='cmd'); "
+             "print('ok')"],
+            capture_output=True, text=True,
+            cwd="/tmp/ghost_v11_build",
+        )
+        return result.returncode == 0
 
     def test_notify_subparser_registered(self):
         result = __import__("subprocess").run(
@@ -420,6 +498,10 @@ class TestCLIArgParsing(unittest.TestCase):
         )
         self.assertIn("audit", result.stdout + result.stderr)
 
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Entry point
+# ══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
