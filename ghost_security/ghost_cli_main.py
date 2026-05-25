@@ -906,6 +906,239 @@ def cmd_enrich(args) -> int:
     return 0
 
 
+def cmd_sarif(args) -> int:
+    """ghost sarif <findings.json> [--out results.sarif]"""
+    src = getattr(args, "findings", "findings.json")
+    out = getattr(args, "out", "results.sarif")
+    if not Path(src).exists():
+        print(RED(f"❌  File not found: {src}"))
+        return 1
+    from reports.sarif_exporter import SARIFExporter
+    path = SARIFExporter.from_file(src, out)
+    print(GREEN(f"✅  SARIF written: {path}"))
+    print(DIM("   Upload to GitHub → Security → Code scanning → Upload SARIF file"))
+    return 0
+
+
+def _lang_scan_cmd(args, ScannerClass, label: str, scanner_name: str) -> int:
+    path = str(Path(getattr(args, "path", ".")).resolve())
+    if not Path(path).exists():
+        print(RED(f"❌  Path not found: {path}")); return 1
+    print(BLUE(f"🔍  {label} scan: {path}"))
+    t0 = time.time()
+    result   = ScannerClass().scan_directory(path)
+    findings = result.get("findings", [])
+    duration = time.time() - t0
+    print(DIM(f"   Files: {result.get('files_scanned',0)}  "
+              f"Patterns: {ScannerClass().pattern_count()}\n"))
+    if getattr(args, "output", "table") == "json":
+        print(json.dumps(findings, indent=2))
+    else:
+        _print_findings(findings, max_show=50)
+        _print_summary({"total_findings": len(findings)}, duration)
+    if getattr(args, "save", None):
+        Path(args.save).write_text(json.dumps(findings, indent=2))
+        print(GREEN(f"💾  Saved to {args.save}"))
+    crits = sum(1 for f in findings if f.get("severity") == "CRITICAL")
+    return 1 if crits and not getattr(args, "no_fail", False) else 0
+
+
+def cmd_java(args) -> int:
+    """ghost java <path> — Java SAST scanner (12 patterns)."""
+    from scanners.java_scanner import JavaScanner
+    return _lang_scan_cmd(args, JavaScanner, "Java SAST", "java")
+
+
+def cmd_go(args) -> int:
+    """ghost go <path> — Go SAST scanner (12 patterns)."""
+    from scanners.go_scanner import GoScanner
+    return _lang_scan_cmd(args, GoScanner, "Go SAST", "go")
+
+
+def cmd_reachability(args) -> int:
+    """ghost reachability <findings.json> [--root .] — Is vulnerable code actually called?"""
+    src = getattr(args, "findings", "findings.json")
+    if not Path(src).exists():
+        print(RED(f"❌  File not found: {src}")); return 1
+    findings = json.loads(Path(src).read_text())
+    root     = str(Path(getattr(args, "root", ".")).resolve())
+    print(BLUE(f"🔗  Reachability analysis: {len(findings)} findings  root: {root}"))
+    t0 = time.time()
+    from core.analysis.reachability import ReachabilityAnalyzer
+    enriched = ReachabilityAnalyzer(root).analyze_all(findings)
+    summary  = ReachabilityAnalyzer(root).summary(enriched)
+    duration = time.time() - t0
+    print(DIM(f"   Reachable: {summary['reachable']}  "
+              f"Not reachable: {summary['not_reachable']}  "
+              f"Unknown: {summary['unknown']}  "
+              f"Noise reduction: {summary['noise_reduction']}  "
+              f"({duration:.2f}s)\n"))
+    if getattr(args, "output", "table") == "json":
+        print(json.dumps(enriched, indent=2))
+    else:
+        for f in enriched[:30]:
+            status = f.get("reachability_status", "UNKNOWN")
+            color  = GREEN if status == "NOT_REACHABLE" else (RED if status == "REACHABLE" else YELLOW)
+            sev    = f.get("severity", "")
+            msg    = (f.get("message") or "")[:55]
+            print(f"  {color(status.ljust(20))}  {DIM(sev.ljust(8))}  {msg}")
+    if getattr(args, "save", None):
+        Path(args.save).write_text(json.dumps(enriched, indent=2))
+        print(GREEN(f"\n💾  Saved to {args.save}"))
+    return 0
+
+
+def cmd_rules(args) -> int:
+    """ghost rules <path> [--rules-dir DIR] — Custom YAML security rules."""
+    path = str(Path(getattr(args, "path", ".")).resolve())
+    if getattr(args, "create_example", False):
+        from core.rules.custom_rules import create_example_rules
+        out = create_example_rules(path)
+        print(GREEN(f"✅  Example rules written: {out}"))
+        return 0
+    extra = [getattr(args, "rules_dir")] if getattr(args, "rules_dir", None) else []
+    print(BLUE(f"📏  Custom rules scan: {path}"))
+    t0 = time.time()
+    from core.rules.custom_rules import CustomRuleScanner
+    scanner  = CustomRuleScanner(path, extra_rule_paths=extra)
+    result   = scanner.scan_directory(path)
+    findings = result.get("findings", [])
+    duration = time.time() - t0
+    print(DIM(f"   Rules loaded: {result.get('rules_loaded',0)}  "
+              f"Files: {result.get('files_scanned',0)}\n"))
+    if getattr(args, "output", "table") == "json":
+        print(json.dumps(findings, indent=2))
+    else:
+        _print_findings(findings, max_show=50)
+        _print_summary({"total_findings": len(findings)}, duration)
+    if getattr(args, "save", None):
+        Path(args.save).write_text(json.dumps(findings, indent=2))
+        print(GREEN(f"💾  Saved to {args.save}"))
+    return 0
+
+
+def cmd_license(args) -> int:
+    """ghost license <path> — License compliance (GPL/AGPL/LGPL risk)."""
+    path = str(Path(getattr(args, "path", ".")).resolve())
+    print(BLUE(f"⚖️   License compliance scan: {path}"))
+    t0 = time.time()
+    from scanners.license_scanner import LicenseScanner
+    result   = LicenseScanner().scan_directory(path)
+    findings = result.get("findings", [])
+    duration = time.time() - t0
+    rc = result.get("risk_counts", {})
+    print(DIM(f"   Packages: {result.get('packages_found',0)}  "
+              f"Blocked: {rc.get('BLOCKED',0)}  "
+              f"Copyleft-strong: {rc.get('COPYLEFT_STRONG',0)}  "
+              f"Copyleft-weak: {rc.get('COPYLEFT_WEAK',0)}  "
+              f"Permissive: {rc.get('PERMISSIVE',0)}\n"))
+    if getattr(args, "output", "table") == "json":
+        print(json.dumps(findings, indent=2))
+    else:
+        _print_findings(findings, max_show=50)
+        _print_summary({"total_findings": len(findings)}, duration)
+    if getattr(args, "save", None):
+        Path(args.save).write_text(json.dumps(findings, indent=2))
+        print(GREEN(f"💾  Saved to {args.save}"))
+    return 1 if rc.get("BLOCKED", 0) > 0 else 0
+
+
+def cmd_git_secrets(args) -> int:
+    """ghost git-secrets <path> [--max-commits 200] — Scan git history for secrets."""
+    path = str(Path(getattr(args, "path", ".")).resolve())
+    max_c = getattr(args, "max_commits", 200)
+    print(BLUE(f"🔐  Git history secret scan: {path}  (max {max_c} commits)"))
+    t0 = time.time()
+    from scanners.git_history_scanner import GitHistoryScanner
+    result   = GitHistoryScanner(path, max_commits=max_c).scan()
+    if "error" in result:
+        print(RED(f"❌  {result['error']}")); return 1
+    findings = result.get("findings", [])
+    duration = time.time() - t0
+    print(DIM(f"   Commits scanned: {result.get('commits_scanned',0)}\n"))
+    if getattr(args, "output", "table") == "json":
+        print(json.dumps(findings, indent=2))
+    else:
+        _print_findings(findings, max_show=30)
+        _print_summary({"total_findings": len(findings)}, duration)
+        if findings:
+            print(RED("⚠️   Rotate all exposed credentials immediately!"))
+            print(DIM("   Use git-filter-repo to purge secrets from history."))
+    if getattr(args, "save", None):
+        Path(args.save).write_text(json.dumps(findings, indent=2))
+        print(GREEN(f"💾  Saved to {args.save}"))
+    return 1 if findings else 0
+
+
+def cmd_vex(args) -> int:
+    """ghost vex <findings.json> [--name app] [--version 1.0] [--out vex.json]"""
+    src = getattr(args, "findings", "findings.json")
+    if not Path(src).exists():
+        print(RED(f"❌  File not found: {src}")); return 1
+    findings = json.loads(Path(src).read_text())
+    name     = getattr(args, "name", "project")
+    version  = getattr(args, "version", "0.0.0")
+    out      = getattr(args, "out", "vex.json")
+    print(BLUE(f"📄  Generating VEX: {len(findings)} findings → {out}"))
+    from sbom.vex_exporter import VEXExporter
+    exp = VEXExporter(name, version)
+    vex = exp.from_findings(findings)
+    exp.write(vex, out)
+    affected     = sum(1 for v in vex["vulnerabilities"] if v.get("analysis",{}).get("state")=="affected")
+    not_affected = sum(1 for v in vex["vulnerabilities"] if v.get("analysis",{}).get("state")=="not_affected")
+    print(GREEN(f"✅  VEX written: {out}"))
+    print(DIM(f"   Affected: {affected}  Not affected: {not_affected}  "
+              f"Total: {len(vex['vulnerabilities'])}"))
+    print(DIM("   Compatible with: OWASP dependency-track · CycloneDX tools"))
+    return 0
+
+
+def cmd_graphql(args) -> int:
+    """ghost graphql <path> — GraphQL security scan."""
+    path = str(Path(getattr(args, "path", ".")).resolve())
+    print(BLUE(f"🔷  GraphQL security scan: {path}"))
+    t0 = time.time()
+    from scanners.graphql_scanner import GraphQLScanner
+    result   = GraphQLScanner().scan_directory(path)
+    findings = result.get("findings", [])
+    duration = time.time() - t0
+    print(DIM(f"   Schema files: {result.get('schema_files',0)}  "
+              f"Server files: {result.get('server_files',0)}\n"))
+    if getattr(args, "output", "table") == "json":
+        print(json.dumps(findings, indent=2))
+    else:
+        _print_findings(findings, max_show=50)
+        _print_summary({"total_findings": len(findings)}, duration)
+    if getattr(args, "save", None):
+        Path(args.save).write_text(json.dumps(findings, indent=2))
+        print(GREEN(f"💾  Saved to {args.save}"))
+    return 1 if any(f.get("severity")=="CRITICAL" for f in findings) else 0
+
+
+def cmd_jwt(args) -> int:
+    """ghost jwt <path> — JWT/OAuth misconfiguration scan."""
+    path = str(Path(getattr(args, "path", ".")).resolve())
+    print(BLUE(f"🔑  JWT/OAuth scan: {path}"))
+    t0 = time.time()
+    from scanners.jwt_scanner import JWTScanner
+    result   = JWTScanner().scan_directory(path)
+    findings = result.get("findings", [])
+    duration = time.time() - t0
+    print(DIM(f"   Files: {result.get('files_scanned',0)}  "
+              f"JWT: {result.get('jwt_findings',0)}  "
+              f"OAuth: {result.get('oauth_findings',0)}\n"))
+    if getattr(args, "output", "table") == "json":
+        print(json.dumps(findings, indent=2))
+    else:
+        _print_findings(findings, max_show=50)
+        _print_summary({"total_findings": len(findings)}, duration)
+    if getattr(args, "save", None):
+        Path(args.save).write_text(json.dumps(findings, indent=2))
+        print(GREEN(f"💾  Saved to {args.save}"))
+    crits = sum(1 for f in findings if f.get("severity") == "CRITICAL")
+    return 1 if crits and not getattr(args, "no_fail", False) else 0
+
+
 def cmd_ci(args) -> int:
     """ghost ci [--type github|gitlab|pre-commit] [--path .] [--min-severity MEDIUM]
 
@@ -1117,24 +1350,105 @@ def main():
         parser.print_help()
         return 0
 
+    # sarif — export findings to SARIF 2.1.0
+    p_sarif = sub.add_parser("sarif", help="Export findings to SARIF 2.1.0 (GitHub Code Scanning)")
+    p_sarif.add_argument("findings", nargs="?", default="findings.json")
+    p_sarif.add_argument("--out", default="results.sarif", metavar="FILE")
+
+    # java — Java SAST
+    p_java = sub.add_parser("java", help="Java SAST scan (SQL injection, XXE, deserialization, ...)")
+    p_java.add_argument("path", nargs="?", default=".")
+    p_java.add_argument("--output", "-o", choices=["table", "json"], default="table")
+    p_java.add_argument("--save", metavar="FILE")
+    p_java.add_argument("--no-fail", action="store_true")
+
+    # go — Go SAST
+    p_go = sub.add_parser("go", help="Go SAST scan (SQL injection, TLS, command injection, ...)")
+    p_go.add_argument("path", nargs="?", default=".")
+    p_go.add_argument("--output", "-o", choices=["table", "json"], default="table")
+    p_go.add_argument("--save", metavar="FILE")
+    p_go.add_argument("--no-fail", action="store_true")
+
+    # reachability — reachability analysis
+    p_reach = sub.add_parser("reachability",
+                              help="Reachability analysis — is the vulnerable code actually called?")
+    p_reach.add_argument("findings", nargs="?", default="findings.json")
+    p_reach.add_argument("--root", default=".", help="Project root for call-graph analysis")
+    p_reach.add_argument("--output", "-o", choices=["table", "json"], default="table")
+    p_reach.add_argument("--save", metavar="FILE")
+
+    # rules — custom YAML rules
+    p_rules = sub.add_parser("rules", help="Run custom YAML security rules against a directory")
+    p_rules.add_argument("path", nargs="?", default=".")
+    p_rules.add_argument("--rules-dir", metavar="DIR", help="Extra rules directory")
+    p_rules.add_argument("--output", "-o", choices=["table", "json"], default="table")
+    p_rules.add_argument("--save", metavar="FILE")
+    p_rules.add_argument("--create-example", action="store_true",
+                         help="Write .ghost/rules/example.yml to current directory")
+
+    # license — license compliance
+    p_lic = sub.add_parser("license", help="License compliance scan (GPL/AGPL/LGPL risk)")
+    p_lic.add_argument("path", nargs="?", default=".")
+    p_lic.add_argument("--output", "-o", choices=["table", "json"], default="table")
+    p_lic.add_argument("--save", metavar="FILE")
+
+    # git-secrets — git history secret scan
+    p_gs = sub.add_parser("git-secrets",
+                           help="Scan git commit history for accidentally committed secrets")
+    p_gs.add_argument("path", nargs="?", default=".", help="Git repository root")
+    p_gs.add_argument("--max-commits", type=int, default=200)
+    p_gs.add_argument("--output", "-o", choices=["table", "json"], default="table")
+    p_gs.add_argument("--save", metavar="FILE")
+
+    # vex — VEX exporter
+    p_vex = sub.add_parser("vex",
+                            help="Generate CycloneDX VEX (Vulnerability Exploitability eXchange)")
+    p_vex.add_argument("findings", nargs="?", default="findings.json")
+    p_vex.add_argument("--name", default="project", help="Product name")
+    p_vex.add_argument("--version", default="0.0.0")
+    p_vex.add_argument("--out", default="vex.json", metavar="FILE")
+
+    # graphql — GraphQL security scanner
+    p_gql = sub.add_parser("graphql", help="GraphQL security scan (introspection, depth, auth)")
+    p_gql.add_argument("path", nargs="?", default=".")
+    p_gql.add_argument("--output", "-o", choices=["table", "json"], default="table")
+    p_gql.add_argument("--save", metavar="FILE")
+
+    # jwt — JWT/OAuth scanner
+    p_jwt = sub.add_parser("jwt", help="JWT/OAuth misconfiguration scan (alg:none, PKCE, CSRF)")
+    p_jwt.add_argument("path", nargs="?", default=".")
+    p_jwt.add_argument("--output", "-o", choices=["table", "json"], default="table")
+    p_jwt.add_argument("--save", metavar="FILE")
+    p_jwt.add_argument("--no-fail", action="store_true")
+
     dispatch = {
-        "scan":      cmd_scan,
-        "ton":       cmd_ton,
-        "k8s":       cmd_k8s,
-        "fix":       cmd_fix,
-        "serve":     cmd_serve,
-        "status":    cmd_status,
-        "report":    cmd_report,
-        "benchmark": cmd_benchmark,
-        "deps":      cmd_deps,
-        "iac":       cmd_iac,
-        "ci":        cmd_ci,
-        "container": cmd_container,
-        "sbom":      cmd_sbom,
-        "compliance": cmd_compliance,
-        "fix-deps":  cmd_fix_deps,
-        "suppress":  cmd_suppress,
-        "enrich":    cmd_enrich,
+        "scan":         cmd_scan,
+        "ton":          cmd_ton,
+        "k8s":          cmd_k8s,
+        "fix":          cmd_fix,
+        "serve":        cmd_serve,
+        "status":       cmd_status,
+        "report":       cmd_report,
+        "benchmark":    cmd_benchmark,
+        "deps":         cmd_deps,
+        "iac":          cmd_iac,
+        "ci":           cmd_ci,
+        "container":    cmd_container,
+        "sbom":         cmd_sbom,
+        "compliance":   cmd_compliance,
+        "fix-deps":     cmd_fix_deps,
+        "suppress":     cmd_suppress,
+        "enrich":       cmd_enrich,
+        "sarif":        cmd_sarif,
+        "java":         cmd_java,
+        "go":           cmd_go,
+        "reachability": cmd_reachability,
+        "rules":        cmd_rules,
+        "license":      cmd_license,
+        "git-secrets":  cmd_git_secrets,
+        "vex":          cmd_vex,
+        "graphql":      cmd_graphql,
+        "jwt":          cmd_jwt,
     }
     handler = dispatch.get(args.command)
     if handler:
