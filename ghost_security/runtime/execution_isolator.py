@@ -245,10 +245,13 @@ class ExecutionIsolator:
 
         except subprocess.TimeoutExpired as exc:
             duration = round(time.monotonic() - t0, 4)
-            # Make sure the child is dead
-            if exc.process:
+            # Make sure the child is dead.
+            # subprocess.run() raises TimeoutExpired without a .process attribute;
+            # only Popen-based usage attaches it.  Use getattr to handle both.
+            proc_ref = getattr(exc, "process", None)
+            if proc_ref is not None:
                 try:
-                    exc.process.kill()
+                    proc_ref.kill()
                 except Exception:
                     pass
             return {
