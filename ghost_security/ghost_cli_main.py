@@ -170,6 +170,19 @@ def cmd_scan(args) -> int:
         processed = ConfidenceEngine(fp_threshold=0.35).process(raw)
         findings  = processed["findings"]
 
+    # Apply rule tuner if requested
+    if getattr(args, "tune", False):
+        try:
+            from core.analysis.rule_tuner import RuleTuner
+            tuner = RuleTuner()
+            loaded = tuner.load()
+            if loaded:
+                findings = tuner.apply(findings)
+                findings = [f for f in findings if not f.get("suppressed")]
+                print(DIM(f"   Rule tuner: {loaded} override(s) applied"))
+        except Exception as e:
+            print(DIM(f"   Rule tuner skipped: {e}"))
+
     # Apply min-severity filter
     order = ["INFO","LOW","MEDIUM","HIGH","CRITICAL"]
     min_idx = order.index(args.min_severity) if args.min_severity in order else 2
@@ -230,12 +243,86 @@ def cmd_ton(args) -> int:
     _print_findings(findings, max_show=30)
     _print_summary({"total_findings": len(findings), "findings": findings}, duration)
 
+    elite = getattr(args, "elite", False)
+
+    # ── Elite: Gas Risk Analysis ───────────────────────────────────────────────
+    if elite or getattr(args, "gas", False):
+        print(BLUE("\n⛽  Gas Risk Analysis"))
+        try:
+            from scanners.ton_scanner.gas_analyzer import GasAnalyzer
+            ga = GasAnalyzer()
+            gas_findings = []
+            p2 = Path(path)
+            for ext in ("*.fc", "*.func", "*.tact"):
+                for fp in (p2.rglob(ext) if p2.is_dir() else [p2]):
+                    r = ga.analyze(str(fp))
+                    gas_findings.extend(r.get("findings", []))
+            gas_findings = [f if isinstance(f, dict) else f.__dict__ for f in gas_findings]
+            if gas_findings:
+                _print_findings(gas_findings, max_show=15)
+            else:
+                print(GREEN("   ✓ No gas risks detected"))
+            findings.extend(gas_findings)
+        except Exception as e:
+            print(DIM(f"   Gas analyzer error: {e}"))
+
+    # ── Elite: State Machine Analysis ─────────────────────────────────────────
+    if elite or getattr(args, "state_machine", False):
+        print(BLUE("\n🔄  State Machine Analysis"))
+        try:
+            from scanners.ton_scanner.state_machine import StateMachineAnalyzer
+            sa = StateMachineAnalyzer()
+            stm_findings = []
+            p2 = Path(path)
+            for ext in ("*.fc", "*.func", "*.tact"):
+                for fp in (p2.rglob(ext) if p2.is_dir() else [p2]):
+                    r = sa.analyze(str(fp))
+                    stm_findings.extend(r.get("findings", []))
+            stm_findings = [f if isinstance(f, dict) else f.__dict__ for f in stm_findings]
+            if stm_findings:
+                _print_findings(stm_findings, max_show=15)
+            else:
+                print(GREEN("   ✓ No state machine violations detected"))
+            findings.extend(stm_findings)
+        except Exception as e:
+            print(DIM(f"   State machine analyzer error: {e}"))
+
+    # ── Elite: Attack Surface Mapping ─────────────────────────────────────────
+    if elite or getattr(args, "surface", False):
+        print(BLUE("\n🗺️   Attack Surface Mapping"))
+        try:
+            from scanners.ton_scanner.attack_surface import AttackSurfaceMapper
+            mapper = AttackSurfaceMapper()
+            p2 = Path(path)
+            if p2.is_file():
+                surface = mapper.map_file(str(p2))
+                surf_findings = mapper.to_findings(surface)
+                print(f"   Risk: {surface.risk_level} ({surface.risk_score}/100)  "
+                      f"Entry points: {len(surface.entry_points)}  "
+                      f"Upgradeable: {surface.upgradeable}")
+            else:
+                result = mapper.map_directory(str(p2))
+                surf_findings = []
+                for surf in result.get("surfaces", []):
+                    surf_findings.extend(mapper.to_findings(surf))
+                print(f"   Files: {len(result.get('surfaces',[]))}  "
+                      f"Total risk score: {result.get('total_risk_score', 0)}  "
+                      f"Highest risk: {result.get('highest_risk_file', '—')}")
+            if surf_findings:
+                _print_findings(surf_findings, max_show=10)
+            findings.extend(surf_findings)
+        except Exception as e:
+            print(DIM(f"   Attack surface error: {e}"))
+
     if hasattr(args, "report") and args.report and findings:
         from reports.bounty_report import BugBountyReportGenerator
         out_dir = args.report_dir if hasattr(args,"report_dir") and args.report_dir else "./ghost_reports/bounty"
         gen     = BugBountyReportGenerator(Path(path).name)
         outputs = gen.generate_all(findings, out_dir, min_severity="MEDIUM")
         print(GREEN(f"📄  Reports generated: {len(outputs)} files in {out_dir}/"))
+
+    if elite:
+        print(BLUE(f"\n🏆  TON Elite Mode — Total findings: {len(findings)}"))
 
     crits = sum(1 for f in findings if f.get("severity") == "CRITICAL")
     return 1 if crits > 0 else 0
@@ -1139,6 +1226,211 @@ def cmd_jwt(args) -> int:
     return 1 if crits and not getattr(args, "no_fail", False) else 0
 
 
+def cmd_tasks(args) -> int:
+    """ghost tasks [--stats] [--clean DAYS] [--state STATE] [--limit N]"""
+    from core.runtime.task_persistence import TaskStore
+    store = TaskStore()
+
+    if getattr(args, "clean", None):
+        n = store.cleanup_old(days=args.clean)
+        print(GREEN(f"🗑️   Removed {n} tasks older than {args.clean} days"))
+        return 0
+
+    if getattr(args, "stats", False):
+        stats = store.stats()
+        print(BLUE("📊  Task Store Statistics"))
+        for k, v in stats.items():
+            print(f"   {k:<18} {v}")
+        return 0
+
+    tasks = store.list_tasks(
+        state=getattr(args, "state_filter", None),
+        limit=getattr(args, "limit", 50),
+    )
+    if not tasks:
+        print(DIM("   No tasks found in store"))
+        return 0
+
+    print(BLUE(f"📋  Tasks ({len(tasks)})"))
+    print(DIM(f"   {'STATE':<12}  {'ID':<14}  {'NAME':<38}  {'DUR':>7}"))
+    for t in tasks:
+        state = t.get("state", "?")
+        col = GREEN if state == "succeeded" else (RED if state == "failed" else YELLOW)
+        dur = f"{t.get('duration', 0):.1f}s" if t.get("duration") else "—"
+        print(f"   {col(state[:11]):<12}  {t['task_id'][:14]:<14}  "
+              f"{t.get('name','?')[:38]:<38}  {dur:>7}")
+    return 0
+
+
+def cmd_tune(args) -> int:
+    """ghost tune <findings.json> [--config rule_tuning.yaml] [--out FILE]"""
+    from core.analysis.rule_tuner import RuleTuner
+
+    if getattr(args, "create_example", False):
+        tuner = RuleTuner()
+        out = tuner.create_example_config(
+            getattr(args, "example_out", "rule_tuning.yaml")
+        )
+        print(GREEN(f"✅  Example config → {out}"))
+        print(DIM("   Edit it, then: ghost tune findings.json --config rule_tuning.yaml"))
+        return 0
+
+    findings_path = args.findings
+    if not Path(findings_path).exists():
+        print(RED(f"❌  File not found: {findings_path}"))
+        return 1
+
+    raw = json.loads(Path(findings_path).read_text())
+    findings = raw if isinstance(raw, list) else raw.get("findings", [])
+
+    config_paths = [args.config] if getattr(args, "config", None) else None
+    tuner = RuleTuner(config_paths=config_paths)
+    loaded = tuner.load()
+    print(BLUE(f"🎛️   Rule Tuner — {loaded} override(s) loaded"))
+    if loaded == 0:
+        print(DIM("   Hint: ghost tune --create-example  to scaffold rule_tuning.yaml"))
+
+    tuned      = tuner.apply(findings)
+    suppressed = sum(1 for f in tuned if f.get("suppressed"))
+    adjusted   = sum(1 for f in tuned if f.get("tuning_note") and not f.get("suppressed"))
+
+    print(f"   Findings in:  {len(findings)}")
+    print(f"   Adjusted:     {adjusted}")
+    print(f"   Suppressed:   {suppressed}")
+    print(f"   Active:       {len(tuned) - suppressed}")
+
+    out_path = getattr(args, "out", None) or findings_path.replace(".json", "_tuned.json")
+    Path(out_path).write_text(json.dumps(tuned, indent=2))
+    print(GREEN(f"💾  Tuned findings → {out_path}"))
+    return 0
+
+
+def cmd_ton_gas(args) -> int:
+    """ghost ton-gas <path> — Gas consumption risk analysis for FunC/Tact"""
+    path = str(Path(args.path).resolve())
+    if not Path(path).exists():
+        print(RED(f"❌  Path not found: {path}"))
+        return 1
+
+    print(BLUE(f"⛽  TON Gas Risk Analysis: {path}"))
+    t0 = time.time()
+
+    from scanners.ton_scanner.gas_analyzer import GasAnalyzer
+    analyzer = GasAnalyzer()
+    p = Path(path)
+
+    if p.is_file():
+        result   = analyzer.analyze(str(p))
+        findings = result.get("findings", [])
+    else:
+        findings = []
+        for ext in ("*.fc", "*.func", "*.tact"):
+            for fpath in p.rglob(ext):
+                r = analyzer.analyze(str(fpath))
+                findings.extend(r.get("findings", []))
+
+    findings = [f if isinstance(f, dict) else f.__dict__ for f in findings]
+    duration = time.time() - t0
+    _print_findings(findings, max_show=30)
+    _print_summary({"total_findings": len(findings), "findings": findings}, duration)
+
+    if getattr(args, "save", None):
+        Path(args.save).write_text(json.dumps(findings, indent=2))
+        print(GREEN(f"💾  Saved to {args.save}"))
+
+    highs = sum(1 for f in findings if f.get("severity") in ("CRITICAL", "HIGH"))
+    return 1 if highs > 0 and not getattr(args, "no_fail", False) else 0
+
+
+def cmd_ton_state(args) -> int:
+    """ghost ton-state <path> — State machine transition analysis for FunC/Tact"""
+    path = str(Path(args.path).resolve())
+    if not Path(path).exists():
+        print(RED(f"❌  Path not found: {path}"))
+        return 1
+
+    print(BLUE(f"🔄  TON State Machine Analysis: {path}"))
+    t0 = time.time()
+
+    from scanners.ton_scanner.state_machine import StateMachineAnalyzer
+    analyzer = StateMachineAnalyzer()
+    p = Path(path)
+
+    if p.is_file():
+        result   = analyzer.analyze(str(p))
+        findings = result.get("findings", [])
+    else:
+        findings = []
+        for ext in ("*.fc", "*.func", "*.tact"):
+            for fpath in p.rglob(ext):
+                r = analyzer.analyze(str(fpath))
+                findings.extend(r.get("findings", []))
+
+    findings = [f if isinstance(f, dict) else f.__dict__ for f in findings]
+    duration = time.time() - t0
+    _print_findings(findings, max_show=30)
+    _print_summary({"total_findings": len(findings), "findings": findings}, duration)
+
+    if getattr(args, "save", None):
+        Path(args.save).write_text(json.dumps(findings, indent=2))
+        print(GREEN(f"💾  Saved to {args.save}"))
+
+    crits = sum(1 for f in findings if f.get("severity") in ("CRITICAL", "HIGH"))
+    return 1 if crits > 0 and not getattr(args, "no_fail", False) else 0
+
+
+def cmd_ton_surface(args) -> int:
+    """ghost ton-surface <path> — Attack surface mapping for TON contracts"""
+    path = str(Path(args.path).resolve())
+    if not Path(path).exists():
+        print(RED(f"❌  Path not found: {path}"))
+        return 1
+
+    print(BLUE(f"🗺️   TON Attack Surface Mapping: {path}"))
+    t0 = time.time()
+
+    from scanners.ton_scanner.attack_surface import AttackSurfaceMapper
+    mapper = AttackSurfaceMapper()
+    p = Path(path)
+
+    if p.is_file():
+        surface  = mapper.map_file(str(p))
+        findings = mapper.to_findings(surface)
+        summary  = {
+            "file":           str(p.name),
+            "risk_level":     surface.risk_level,
+            "risk_score":     surface.risk_score,
+            "entry_points":   len(surface.entry_points),
+            "upgradeable":    surface.upgradeable,
+            "external_calls": surface.external_calls,
+        }
+    else:
+        result   = mapper.map_directory(str(p))
+        findings = []
+        for surf in result.get("surfaces", []):
+            findings.extend(mapper.to_findings(surf))
+        summary = {
+            "files":            len(result.get("surfaces", [])),
+            "total_risk_score": result.get("total_risk_score", 0),
+            "highest_risk":     result.get("highest_risk_file", "—"),
+        }
+
+    duration = time.time() - t0
+    print(BLUE("   Surface Summary"))
+    for k, v in summary.items():
+        print(f"   {k:<22}  {v}")
+
+    _print_findings(findings, max_show=20)
+    _print_summary({"total_findings": len(findings), "findings": findings}, duration)
+
+    if getattr(args, "save", None):
+        Path(args.save).write_text(json.dumps({"summary": summary, "findings": findings}, indent=2))
+        print(GREEN(f"💾  Saved to {args.save}"))
+
+    high = sum(1 for f in findings if f.get("severity") in ("CRITICAL", "HIGH"))
+    return 1 if high > 0 and not getattr(args, "no_fail", False) else 0
+
+
 def cmd_ci(args) -> int:
     """ghost ci [--type github|gitlab|pre-commit] [--path .] [--min-severity MEDIUM]
 
@@ -1210,9 +1502,17 @@ def main():
   ghost enrich findings.json            # add EPSS scores + CISA KEV flags
   ghost ci --type github .              # generate GitHub Actions workflow
   ghost ton ./contracts/               # TON bug bounty scan + reports
+  ghost ton ./contracts/ --elite       # TON + gas + state-machine + attack surface
+  ghost ton-gas ./contracts/           # gas consumption risk only
+  ghost ton-state ./contracts/         # state machine violation analysis
+  ghost ton-surface ./contracts/       # attack surface mapping (risk score 0-100)
+  ghost scan . --tune                  # scan + apply rule_tuning.yaml overrides
+  ghost tune findings.json             # apply rule tuner to existing findings
+  ghost tune --create-example          # scaffold rule_tuning.yaml
+  ghost tasks --stats                  # view SQLite task history
   ghost k8s ./k8s/manifests/           # Kubernetes CIS audit
   ghost fix findings.json --apply      # apply code-level fixes (with backup)
-  ghost serve --port 8000              # start API server
+  ghost serve --port 8000              # start API server + WebSocket live feed
   ghost status                         # component health check
   ghost report findings.json           # generate Immunefi report
 """,
@@ -1229,6 +1529,8 @@ def main():
     p_scan.add_argument("--max-findings", type=int, default=50)
     p_scan.add_argument("--save", metavar="FILE", help="Save findings to JSON file")
     p_scan.add_argument("--no-fail", action="store_true", help="Always exit 0")
+    p_scan.add_argument("--tune", action="store_true",
+                        help="Apply rule_tuning.yaml overrides after scan")
 
     # ton
     p_ton = sub.add_parser("ton", help="TON smart contract security scan")
@@ -1236,6 +1538,12 @@ def main():
     p_ton.add_argument("--report", action="store_true", help="Generate Immunefi/HackenProof reports")
     p_ton.add_argument("--report-dir", default="./ghost_reports/bounty")
     p_ton.add_argument("--min-severity", default="LOW")
+    p_ton.add_argument("--elite", action="store_true",
+                       help="Run all elite analyzers: gas + state-machine + attack surface")
+    p_ton.add_argument("--gas", action="store_true", help="Run gas risk analysis")
+    p_ton.add_argument("--state-machine", action="store_true",
+                       dest="state_machine", help="Run state machine analysis")
+    p_ton.add_argument("--surface", action="store_true", help="Run attack surface mapping")
 
     # k8s
     p_k8s = sub.add_parser("k8s", help="Kubernetes security scan")
@@ -1345,11 +1653,6 @@ def main():
     p_enr.add_argument("--output", "-o", choices=["table", "json"], default="table")
     p_enr.add_argument("--save", metavar="FILE")
 
-    args = parser.parse_args()
-    if not args.command:
-        parser.print_help()
-        return 0
-
     # sarif — export findings to SARIF 2.1.0
     p_sarif = sub.add_parser("sarif", help="Export findings to SARIF 2.1.0 (GitHub Code Scanning)")
     p_sarif.add_argument("findings", nargs="?", default="findings.json")
@@ -1421,6 +1724,52 @@ def main():
     p_jwt.add_argument("--save", metavar="FILE")
     p_jwt.add_argument("--no-fail", action="store_true")
 
+    # tasks — SQLite task store viewer
+    p_tasks = sub.add_parser("tasks", help="View/manage persisted task history (SQLite store)")
+    p_tasks.add_argument("--stats", action="store_true", help="Show counts by state")
+    p_tasks.add_argument("--state", dest="state_filter", metavar="STATE",
+                         help="Filter by state: pending|running|succeeded|failed|cancelled")
+    p_tasks.add_argument("--limit", type=int, default=50)
+    p_tasks.add_argument("--clean", type=int, metavar="DAYS",
+                         help="Delete tasks older than DAYS days")
+
+    # tune — rule tuner
+    p_tune = sub.add_parser("tune", help="Apply YAML rule-weight overrides to reduce false positives")
+    p_tune.add_argument("findings", nargs="?", default="findings.json")
+    p_tune.add_argument("--config", metavar="FILE", help="Path to rule_tuning.yaml (auto-discovered if omitted)")
+    p_tune.add_argument("--out", metavar="FILE", help="Output path (default: findings_tuned.json)")
+    p_tune.add_argument("--create-example", action="store_true",
+                        dest="create_example", help="Scaffold a rule_tuning.yaml example")
+    p_tune.add_argument("--example-out", default="rule_tuning.yaml", dest="example_out")
+
+    # ton-gas — gas risk analysis
+    p_tgas = sub.add_parser("ton-gas", help="TON gas consumption risk analysis (GAS-001..006)")
+    p_tgas.add_argument("path", nargs="?", default=".")
+    p_tgas.add_argument("--output", "-o", choices=["table", "json"], default="table")
+    p_tgas.add_argument("--save", metavar="FILE")
+    p_tgas.add_argument("--no-fail", action="store_true")
+
+    # ton-state — state machine analysis
+    p_tstate = sub.add_parser("ton-state",
+                               help="TON state machine transition analysis (STM-001..004)")
+    p_tstate.add_argument("path", nargs="?", default=".")
+    p_tstate.add_argument("--output", "-o", choices=["table", "json"], default="table")
+    p_tstate.add_argument("--save", metavar="FILE")
+    p_tstate.add_argument("--no-fail", action="store_true")
+
+    # ton-surface — attack surface mapping
+    p_tsurf = sub.add_parser("ton-surface",
+                              help="TON attack surface mapping (entry points, risk score 0-100)")
+    p_tsurf.add_argument("path", nargs="?", default=".")
+    p_tsurf.add_argument("--save", metavar="FILE")
+    p_tsurf.add_argument("--no-fail", action="store_true")
+
+    # ── Parse (must be AFTER all sub.add_parser calls) ────────────────────────
+    args = parser.parse_args()
+    if not args.command:
+        parser.print_help()
+        return 0
+
     dispatch = {
         "scan":         cmd_scan,
         "ton":          cmd_ton,
@@ -1449,6 +1798,11 @@ def main():
         "vex":          cmd_vex,
         "graphql":      cmd_graphql,
         "jwt":          cmd_jwt,
+        "tasks":        cmd_tasks,
+        "tune":         cmd_tune,
+        "ton-gas":      cmd_ton_gas,
+        "ton-state":    cmd_ton_state,
+        "ton-surface":  cmd_ton_surface,
     }
     handler = dispatch.get(args.command)
     if handler:
