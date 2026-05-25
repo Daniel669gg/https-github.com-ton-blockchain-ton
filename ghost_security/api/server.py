@@ -11,13 +11,17 @@ import sys
 from typing import Optional, List, Dict, Any
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks, Request, Depends, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse, FileResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import Set
-import uvicorn
+try:
+    from fastapi import FastAPI, HTTPException, BackgroundTasks, Request, Depends
+    from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse, FileResponse
+    from fastapi.staticfiles import StaticFiles
+    from fastapi.middleware.cors import CORSMiddleware
+    from pydantic import BaseModel
+    import uvicorn
+except ImportError as _fastapi_err:  # pragma: no cover
+    raise ImportError(
+        f"API server requires: pip install fastapi uvicorn pydantic\n({_fastapi_err})"
+    ) from _fastapi_err
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from config.config import API_HOST, API_PORT, REPORTS_DIR
@@ -67,23 +71,6 @@ memory = MemoryManager()
 
 # SSE event queues per session
 _sse_queues: Dict[str, asyncio.Queue] = {}
-
-# WebSocket connections
-_ws_connections: Set[WebSocket] = set()
-
-
-# ---- Scan Event Model ----
-
-class ScanEvent(BaseModel):
-    event_type: str  # "scan_started", "finding", "scan_progress", "scan_completed", "error"
-    scan_id: str
-    data: dict
-    timestamp: Optional[float] = None
-
-    def __init__(self, **data):
-        if data.get("timestamp") is None:
-            data["timestamp"] = time.time()
-        super().__init__(**data)
 
 
 # ---- Request Models ----
@@ -142,78 +129,8 @@ async def security_headers(request: Request, call_next):
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    response.headers["Content-Security-Policy"] = "default-src 'self' ws: wss:"
+    response.headers["Content-Security-Policy"] = "default-src 'self'"
     return response
-
-
-# ---- WebSocket ----
-
-async def broadcast_scan_event(event: dict):
-    """Send event to all connected WebSocket clients. Removes dead connections silently."""
-    if not _ws_connections:
-        return
-    dead: Set[WebSocket] = set()
-    for ws in list(_ws_connections):
-        try:
-            await ws.send_json(event)
-        except Exception:
-            dead.add(ws)
-    _ws_connections.difference_update(dead)
-
-
-@app.websocket("/ws/scans")
-async def ws_scan_feed(websocket: WebSocket):
-    """WebSocket endpoint — streams live scan events to all connected clients."""
-    await websocket.accept()
-    _ws_connections.add(websocket)
-    try:
-        while True:
-            # Keep connection alive; client messages are ignored (server-push only)
-            await websocket.receive_text()
-    except WebSocketDisconnect:
-        pass
-    except Exception:
-        pass
-    finally:
-        _ws_connections.discard(websocket)
-
-
-@app.websocket("/ws/test")
-async def ws_test(websocket: WebSocket):
-    """Debug endpoint — accepts connection and sends a test event after 1 second."""
-    await websocket.accept()
-    try:
-        await asyncio.sleep(1)
-        await websocket.send_json({
-            "event_type": "scan_started",
-            "scan_id": "test-001",
-            "data": {"message": "WebSocket connection working", "test": True},
-            "timestamp": time.time(),
-        })
-        await asyncio.sleep(0.5)
-        await websocket.send_json({
-            "event_type": "finding",
-            "scan_id": "test-001",
-            "data": {
-                "id": "TEST-001",
-                "severity": "HIGH",
-                "description": "Test finding from /ws/test",
-                "file": "test.py",
-                "line": 1,
-            },
-            "timestamp": time.time(),
-        })
-        await asyncio.sleep(0.5)
-        await websocket.send_json({
-            "event_type": "scan_completed",
-            "scan_id": "test-001",
-            "data": {"total_findings": 1, "message": "Test scan complete"},
-            "timestamp": time.time(),
-        })
-    except (WebSocketDisconnect, Exception):
-        pass
-
-
 # ---- Routes ----
 
 @app.get("/", response_class=HTMLResponse)
@@ -250,14 +167,6 @@ async def start_audit(request: AuditRequest, background_tasks: BackgroundTasks, 
 
     # Create SSE queue for this session
     _sse_queues[session_id] = asyncio.Queue()
-
-    # Broadcast scan started
-    await broadcast_scan_event({
-        "event_type": "scan_started",
-        "scan_id": session_id,
-        "data": {"target": request.target, "audit_type": request.audit_type},
-        "timestamp": time.time(),
-    })
 
     # Start audit with callback
     actual_session_id = orchestrator.start_audit(
@@ -377,100 +286,36 @@ async def scan_code(request: CodeScanRequest, _: bool = Depends(verify_api_key),
 @app.post("/api/scan/path")
 async def scan_path(request: ScanRequest):
     """Scan a local path for security issues."""
-    import hashlib as _hl
-    scan_id = _hl.md5(f"{request.path}{time.time()}".encode()).hexdigest()[:12]
     target = Path(request.path)
     if not target.exists():
         raise HTTPException(status_code=404, detail=f"Path not found: {request.path}")
 
-    await broadcast_scan_event({
-        "event_type": "scan_started",
-        "scan_id": scan_id,
-        "data": {"path": str(target), "scanner": request.scanner},
-        "timestamp": time.time(),
-    })
-
     results = {}
-    scanners_done = 0
-    scanners_total = sum([
-        request.scanner in ["all", "secrets"],
-        request.scanner in ["all", "ast"],
-        request.scanner in ["all", "semgrep"],
-        request.scanner in ["all", "ton"],
-    ])
 
     if request.scanner in ["all", "secrets"]:
         if target.is_file():
             results["secrets"] = {"findings": secret_detector.scan_file(str(target))}
         else:
             results["secrets"] = secret_detector.scan_directory(str(target))
-        scanners_done += 1
-        await broadcast_scan_event({
-            "event_type": "scan_progress",
-            "scan_id": scan_id,
-            "data": {"scanner": "secrets", "progress": int(scanners_done / scanners_total * 100)},
-            "timestamp": time.time(),
-        })
 
     if request.scanner in ["all", "ast"]:
         if target.is_file():
             results["ast"] = {"findings": ast_scanner.scan_file(str(target))}
         else:
             results["ast"] = ast_scanner.scan_directory(str(target))
-        scanners_done += 1
-        await broadcast_scan_event({
-            "event_type": "scan_progress",
-            "scan_id": scan_id,
-            "data": {"scanner": "ast", "progress": int(scanners_done / scanners_total * 100)},
-            "timestamp": time.time(),
-        })
 
     if request.scanner in ["all", "semgrep"]:
         results["semgrep"] = semgrep_scanner.scan_path(str(target))
-        scanners_done += 1
-        await broadcast_scan_event({
-            "event_type": "scan_progress",
-            "scan_id": scan_id,
-            "data": {"scanner": "semgrep", "progress": int(scanners_done / scanners_total * 100)},
-            "timestamp": time.time(),
-        })
 
     if request.scanner in ["all", "ton"]:
         results["ton"] = {"findings": ton_analyzer.scan_directory(str(target))}
-        scanners_done += 1
-        await broadcast_scan_event({
-            "event_type": "scan_progress",
-            "scan_id": scan_id,
-            "data": {"scanner": "ton", "progress": int(scanners_done / scanners_total * 100)},
-            "timestamp": time.time(),
-        })
 
     # Aggregate all findings
     all_findings = []
     for scanner_result in results.values():
         all_findings.extend(scanner_result.get("findings", []))
 
-    # Broadcast each finding
-    for f in all_findings[:50]:  # cap at 50 to avoid flooding
-        await broadcast_scan_event({
-            "event_type": "finding",
-            "scan_id": scan_id,
-            "data": f,
-            "timestamp": time.time(),
-        })
-
-    await broadcast_scan_event({
-        "event_type": "scan_completed",
-        "scan_id": scan_id,
-        "data": {
-            "total_findings": len(all_findings),
-            "path": str(target),
-        },
-        "timestamp": time.time(),
-    })
-
     return {
-        "scan_id": scan_id,
         "path": str(target),
         "scanner_results": results,
         "total_findings": len(all_findings),

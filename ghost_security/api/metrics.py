@@ -2,8 +2,12 @@
 Ghost Security Platform — /metrics Prometheus endpoint
 Mount this router on the FastAPI app to expose metrics.
 """
-from fastapi import APIRouter
-from fastapi.responses import PlainTextResponse
+try:
+    from fastapi import APIRouter
+    from fastapi.responses import PlainTextResponse
+except ImportError:  # pragma: no cover
+    APIRouter = object
+    PlainTextResponse = object
 import sys
 from pathlib import Path
 

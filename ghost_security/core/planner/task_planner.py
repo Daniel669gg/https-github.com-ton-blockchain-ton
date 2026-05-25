@@ -5,7 +5,17 @@ Real LLM-powered task decomposition and planning. No placeholders.
 import json
 from typing import Dict, List, Optional
 from pathlib import Path
-from openai import OpenAI
+try:
+    from openai import OpenAI
+except ImportError:
+    class OpenAI:  # pragma: no cover
+        """Stub — install with: pip install openai"""
+        def __init__(self, *a, **kw): pass
+        class chat:
+            class completions:
+                @staticmethod
+                def create(*a, **kw):
+                    raise RuntimeError("openai not installed — pip install openai")
 
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))

@@ -23,10 +23,18 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+try:
+    from fastapi import APIRouter, HTTPException
+    from pydantic import BaseModel
+except ImportError:  # pragma: no cover
+    APIRouter = object
+    HTTPException = Exception
+    class BaseModel: pass  # type: ignore
 
-router = APIRouter(tags=["v2"])
+try:
+    router = APIRouter(tags=["v2"])
+except Exception:  # pragma: no cover
+    router = None  # type: ignore
 
 
 # ── Request models ──────────────────────────────────────────────────────────────

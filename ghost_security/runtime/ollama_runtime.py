@@ -257,18 +257,23 @@ Answer:"""
         sev   = finding.get("severity", "MEDIUM")
         ftype = finding.get("type") or finding.get("rule_id") or "finding"
         msg   = finding.get("message") or finding.get("description") or ftype
-        prompt = f"""Security finding:
-Type:     {ftype}
-Severity: {sev}
-Message:  {msg}
-CWE:      {finding.get('cwe', 'unknown')}
-OWASP:    {finding.get('owasp', 'unknown')}
-
-{'Vulnerable code:\n```\n' + code_context + '\n```\n' if code_context else ''}
-Provide:
-1. Root cause (1-2 sentences)
-2. Fixed code (complete, runnable)
-3. Testing advice (how to verify the fix)"""
+        code_block = (
+            "Vulnerable code:\n```\n" + code_context + "\n```\n"
+            if code_context else ""
+        )
+        prompt = (
+            f"Security finding:\n"
+            f"Type:     {ftype}\n"
+            f"Severity: {sev}\n"
+            f"Message:  {msg}\n"
+            f"CWE:      {finding.get('cwe', 'unknown')}\n"
+            f"OWASP:    {finding.get('owasp', 'unknown')}\n\n"
+            f"{code_block}"
+            "Provide:\n"
+            "1. Root cause (1-2 sentences)\n"
+            "2. Fixed code (complete, runnable)\n"
+            "3. Testing advice (how to verify the fix)"
+        )
         text, _ = self._router.call("remediation", prompt, system=_SYS_CODING, max_tokens=1500)
         return text or self._offline_remediation(finding)
 

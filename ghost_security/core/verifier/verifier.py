@@ -1,6 +1,16 @@
 import json
 import os
-from openai import OpenAI
+try:
+    from openai import OpenAI
+except ImportError:
+    class OpenAI:  # pragma: no cover
+        """Stub — install with: pip install openai"""
+        def __init__(self, *a, **kw): pass
+        class chat:
+            class completions:
+                @staticmethod
+                def create(*a, **kw):
+                    raise RuntimeError("openai not installed — pip install openai")
 from config.config import LLM_MODEL, OPENAI_BASE_URL
 
 class AgentVerifier:

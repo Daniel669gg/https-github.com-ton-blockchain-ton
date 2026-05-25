@@ -7,9 +7,24 @@ import time
 import hashlib
 from typing import Optional, List, Dict, Any
 from pathlib import Path
-import chromadb
-from chromadb.config import Settings
-from openai import OpenAI
+try:
+    import chromadb
+    from chromadb.config import Settings
+except ImportError:
+    chromadb = None   # pragma: no cover
+    Settings = dict   # pragma: no cover
+
+try:
+    from openai import OpenAI
+except ImportError:
+    class OpenAI:  # pragma: no cover
+        """Stub — install with: pip install openai"""
+        def __init__(self, *a, **kw): pass
+        class chat:
+            class completions:
+                @staticmethod
+                def create(*a, **kw):
+                    raise RuntimeError("openai not installed — pip install openai")
 
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
