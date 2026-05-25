@@ -1076,8 +1076,45 @@ def cmd_reachability(args) -> int:
 
 
 def cmd_rules(args) -> int:
-    """ghost rules <path> [--rules-dir DIR] — Custom YAML security rules."""
-    path = str(Path(getattr(args, "path", ".")).resolve())
+    """ghost rules <path|update|list> [--rules-dir DIR] — Custom YAML rules + CDN update."""
+    path = getattr(args, "path", ".")
+
+    # CDN subcommands: ghost rules update / ghost rules list
+    if path in ("update", "list"):
+        from integrations.rules_cdn import RulesCDN
+        cdn = RulesCDN()
+        if path == "list":
+            rules = cdn.list_local_rules()
+            if not rules:
+                print(DIM("   No rules installed. Run: ghost rules update"))
+                return 0
+            print(BLUE(f"📏  Installed rules ({len(rules)})  — version: {cdn.get_version() or 'unknown'}"))
+            for r in rules[:50]:
+                print(f"   {r.get('name','?'):<45}  {r.get('size_bytes',0):>8} bytes")
+            return 0
+
+        # update
+        check_only = getattr(args, "check_only", False)
+        force      = getattr(args, "force", False)
+        print(BLUE("🔄  Checking rules CDN for updates..."))
+        status = cdn.check_updates()
+        if status.get("error"):
+            print(YELLOW(f"⚠️   {status['error']}"))
+            return 0
+        if not status["has_update"] and not force:
+            print(GREEN(f"✅  Rules up-to-date (v{status.get('current','?')})"))
+            return 0
+        new_count = len(status.get("new_rules", []))
+        print(DIM(f"   Current: {status.get('current','?')}  Latest: {status.get('latest','?')}  New/changed: {new_count}"))
+        if check_only:
+            print(DIM("   Run without --check to download"))
+            return 0
+        result = cdn.download_rules(force=force)
+        print(GREEN(f"✅  Downloaded: {result['downloaded']}  Skipped: {result['skipped']}  "
+                    f"Errors: {result['errors']}  Version: {result.get('version','?')}"))
+        return 0
+
+    path = str(Path(path).resolve())
     if getattr(args, "create_example", False):
         from core.rules.custom_rules import create_example_rules
         out = create_example_rules(path)
@@ -1431,6 +1468,144 @@ def cmd_ton_surface(args) -> int:
     return 1 if high > 0 and not getattr(args, "no_fail", False) else 0
 
 
+def cmd_notify(args) -> int:
+    """ghost notify <findings.json> [--jira] [--slack] [--min-severity HIGH]"""
+    findings_path = getattr(args, "findings", "findings.json")
+
+    if getattr(args, "test_connection", False):
+        if getattr(args, "jira", False):
+            from integrations.jira.jira_integration import JiraIntegration
+            result = JiraIntegration().test_connection()
+            if result["ok"]:
+                print(GREEN(f"✅  Jira connection OK — user: {result.get('user','?')}"))
+            else:
+                print(RED(f"❌  Jira error: {result.get('error','unknown')}"))
+        if getattr(args, "slack", False):
+            from integrations.slack.slack_notifier import SlackNotifier
+            ok = SlackNotifier().test()
+            print(GREEN("✅  Slack connection OK") if ok else RED("❌  Slack connection failed"))
+        return 0
+
+    if not Path(findings_path).exists():
+        print(RED(f"❌  File not found: {findings_path}"))
+        return 1
+
+    raw = json.loads(Path(findings_path).read_text())
+    findings = raw if isinstance(raw, list) else raw.get("findings", [])
+    min_sev   = getattr(args, "min_severity", "HIGH")
+    order = ["INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
+    min_idx = order.index(min_sev) if min_sev in order else 3
+    filtered = [f for f in findings if order.index(f.get("severity", "INFO")) >= min_idx]
+
+    print(BLUE(f"📣  Notifying about {len(filtered)} findings (min: {min_sev})"))
+
+    if getattr(args, "jira", False):
+        from integrations.jira.jira_integration import JiraIntegration
+        jira = JiraIntegration()
+        if not jira.is_configured():
+            print(YELLOW("⚠️   Jira not configured — set JIRA_BASE_URL, JIRA_EMAIL, JIRA_API_TOKEN, JIRA_PROJECT_KEY"))
+        else:
+            created = jira.create_issues_batch(filtered, min_severity=min_sev)
+            print(GREEN(f"✅  Jira: {len(created)} issue(s) created"))
+
+    if getattr(args, "slack", False):
+        from integrations.slack.slack_notifier import SlackNotifier
+        slack = SlackNotifier()
+        if not slack.is_configured():
+            print(YELLOW("⚠️   Slack not configured — set SLACK_WEBHOOK_URL or SLACK_BOT_TOKEN"))
+        else:
+            path = getattr(args, "findings", "project")
+            ok = slack.send_scan_summary(filtered, scan_path=path, duration=0.0)
+            print(GREEN("✅  Slack summary sent") if ok else RED("❌  Slack delivery failed"))
+
+    if not getattr(args, "jira", False) and not getattr(args, "slack", False):
+        print(YELLOW("   Specify --jira and/or --slack"))
+    return 0
+
+
+def cmd_sla(args) -> int:
+    """ghost sla [findings.json] [--open] [--report] [--overdue] [--policy NAME]"""
+    from core.enterprise.sla_tracker import SLATracker, SLAPolicy
+
+    policy_name = getattr(args, "policy", "default")
+    policy_map = {"default": SLAPolicy.default, "pci-dss": SLAPolicy.pci_dss, "soc2": SLAPolicy.soc2}
+    policy = policy_map.get(policy_name, SLAPolicy.default)()
+    tracker = SLATracker(policy=policy)
+
+    if getattr(args, "open_findings", False):
+        findings_path = getattr(args, "findings", "findings.json")
+        if not Path(findings_path).exists():
+            print(RED(f"❌  File not found: {findings_path}"))
+            return 1
+        raw = json.loads(Path(findings_path).read_text())
+        findings = raw if isinstance(raw, list) else raw.get("findings", [])
+        summary = tracker.track_batch(findings)
+        print(GREEN(f"✅  SLA opened for {summary['total']} findings"))
+        return 0
+
+    if getattr(args, "overdue", False):
+        items = tracker.overdue()
+        if not items:
+            print(GREEN("✅  No overdue findings"))
+            return 0
+        print(RED(f"🚨  {len(items)} overdue finding(s):"))
+        for s in items:
+            print(f"   {RED(s.rule_id):<20}  {s.file[:40]}  overdue by {abs(s.days_remaining)}d")
+        return 1
+
+    if getattr(args, "report", False):
+        fmt = getattr(args, "fmt", "table")
+        print(tracker.report(fmt=fmt))
+        return 0
+
+    # Default: summary
+    summary = tracker.summary()
+    sla_score = summary.get("sla_score", 100.0)
+    color = GREEN if sla_score >= 90 else (YELLOW if sla_score >= 70 else RED)
+    print(BLUE("📊  SLA Compliance Status"))
+    print(f"   Score:     {color(f'{sla_score:.1f}/100')}")
+    print(f"   Total:     {summary.get('total', 0)}")
+    print(f"   On track:  {summary.get('on_track', 0)}")
+    print(f"   At risk:   {summary.get('at_risk', 0)}")
+    print(f"   Overdue:   {summary.get('overdue', 0)}")
+    return 0
+
+
+def cmd_audit_log(args) -> int:
+    """ghost audit-log [--tail N] [--stats] [--export FILE]"""
+    from core.audit_log import AuditLog
+    log = AuditLog()
+
+    if getattr(args, "export_path", None):
+        out = log.export_csv(args.export_path)
+        print(GREEN(f"💾  Audit log exported: {out}"))
+        return 0
+
+    if getattr(args, "stats", False):
+        stats = log.stats()
+        print(BLUE("📊  Audit Log Statistics"))
+        for k, v in stats.items():
+            print(f"   {k:<25}  {v}")
+        return 0
+
+    n = getattr(args, "tail", 50)
+    events = log.tail(n)
+    if not events:
+        print(DIM("   Audit log is empty"))
+        return 0
+    print(BLUE(f"📋  Last {len(events)} audit events"))
+    print(DIM(f"   {'TIME':<20}  {'EVENT':<25}  {'DETAIL'}"))
+    for e in events:
+        ts = e.get("timestamp", "")
+        if isinstance(ts, (int, float)):
+            import datetime
+            ts = datetime.datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S")
+        etype = e.get("event_type", e.get("action", "?"))[:25]
+        detail = str(e.get("detail", e.get("message", e.get("target", ""))))[:60]
+        print(f"   {str(ts)[:20]:<20}  {etype:<25}  {detail}")
+    return 0
+
+
 def cmd_ci(args) -> int:
     """ghost ci [--type github|gitlab|pre-commit] [--path .] [--min-severity MEDIUM]
 
@@ -1764,6 +1939,44 @@ def main():
     p_tsurf.add_argument("--save", metavar="FILE")
     p_tsurf.add_argument("--no-fail", action="store_true")
 
+    # notify — Jira + Slack notification dispatch
+    p_notify = sub.add_parser("notify",
+                               help="Send findings to Jira and/or Slack")
+    p_notify.add_argument("findings", nargs="?", default="findings.json",
+                          help="Findings JSON file (default: findings.json)")
+    p_notify.add_argument("--jira", action="store_true", help="Create Jira issues")
+    p_notify.add_argument("--slack", action="store_true", help="Send Slack summary")
+    p_notify.add_argument("--min-severity", dest="min_severity", default="HIGH",
+                          choices=["INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL"],
+                          help="Minimum severity to notify (default: HIGH)")
+    p_notify.add_argument("--test-connection", dest="test_connection", action="store_true",
+                          help="Test Jira/Slack connectivity without sending findings")
+
+    # sla — SLA compliance tracking
+    p_sla = sub.add_parser("sla", help="SLA compliance tracking and reporting")
+    p_sla.add_argument("findings", nargs="?", default="findings.json",
+                       help="Findings JSON file (used with --open)")
+    p_sla.add_argument("--open", dest="open_findings", action="store_true",
+                       help="Open SLA tickets for findings in FILE")
+    p_sla.add_argument("--overdue", action="store_true",
+                       help="List overdue findings (exit 1 if any)")
+    p_sla.add_argument("--report", action="store_true",
+                       help="Print full SLA compliance report")
+    p_sla.add_argument("--fmt", default="table", choices=["table", "json"],
+                       help="Report format (default: table)")
+    p_sla.add_argument("--policy", default="default",
+                       choices=["default", "pci-dss", "soc2"],
+                       help="SLA policy to apply (default: default)")
+
+    # audit-log — audit event viewer
+    p_audit = sub.add_parser("audit-log", help="View and export the platform audit log")
+    p_audit.add_argument("--tail", type=int, default=50, metavar="N",
+                         help="Show last N audit events (default: 50)")
+    p_audit.add_argument("--stats", action="store_true",
+                         help="Show aggregate statistics")
+    p_audit.add_argument("--export", dest="export_path", metavar="FILE",
+                         help="Export audit log to CSV")
+
     # ── Parse (must be AFTER all sub.add_parser calls) ────────────────────────
     args = parser.parse_args()
     if not args.command:
@@ -1803,6 +2016,9 @@ def main():
         "ton-gas":      cmd_ton_gas,
         "ton-state":    cmd_ton_state,
         "ton-surface":  cmd_ton_surface,
+        "notify":       cmd_notify,
+        "sla":          cmd_sla,
+        "audit-log":    cmd_audit_log,
     }
     handler = dispatch.get(args.command)
     if handler:
