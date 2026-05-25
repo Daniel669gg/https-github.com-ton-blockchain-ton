@@ -1,0 +1,540 @@
+- id: GHOST-JS-NODE-001
+  name: Express no rate limit
+  description: Login route without rate limiter
+  severity: HIGH
+  cwe: CWE-307
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: router\.post\s*\(["\']\/(?:login|signin|register)["\'](?![\s\S]{0,300}rateLimit)
+    confidence: 0.86
+  fix: Add express-rate-limit
+  tags:
+  - auth
+  - bruteforce
+- id: GHOST-JS-NODE-002
+  name: Express body-parser large
+  description: body-parser limit too large
+  severity: MEDIUM
+  cwe: CWE-400
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: bodyParser\.(?:json|urlencoded)\s*\(\s*\{[^}]*limit\s*:\s*["\'](?:\d{3,}[km]b|\d{2,}mb)["\']
+    confidence: 0.86
+  fix: Set reasonable request size limit
+  tags:
+  - dos
+  - express
+- id: GHOST-JS-NODE-003
+  name: Node.js path join unsafe
+  description: path.join with req param
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: path\.join\s*\([^)]*req\.(?:params|query|body)
+    confidence: 0.86
+  fix: Validate path is within allowed root
+  tags:
+  - path
+  - node
+- id: GHOST-JS-NODE-004
+  name: Node.js fs.unlink unsafe
+  description: fs.unlink with user path
+  severity: CRITICAL
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: fs\.unlink(?:Sync)?\s*\([^)]*req\.(?:params|query|body)
+    confidence: 0.86
+  fix: Validate before deleting files
+  tags:
+  - path
+  - file
+- id: GHOST-JS-NODE-005
+  name: Node.js child_process user arg
+  description: spawn/exec with user arg
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: (?:spawn|exec|execFile)\s*\([^)]*req\.(?:params|query|body)
+    confidence: 0.86
+  fix: Validate all process arguments strictly
+  tags:
+  - command
+  - node
+- id: GHOST-JS-NODE-006
+  name: Node.js require injection
+  description: require() with user-controlled path
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: require\s*\([^)]*req\.(?:params|query|body)
+    confidence: 0.86
+  fix: Never require user-supplied paths
+  tags:
+  - injection
+  - node
+- id: GHOST-JS-NODE-007
+  name: Node.js vm.runInContext
+  description: vm.runInContext with user code
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: vm\.runInContext\s*\([^)]*req\.
+    confidence: 0.86
+  fix: Use isolated-vm for sandboxing
+  tags:
+  - eval
+  - vm
+- id: GHOST-JS-NODE-008
+  name: Express error handler verbose
+  description: Error handler exposing stack
+  severity: HIGH
+  cwe: CWE-209
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: app\.use\s*\([^)]*err\s*,.*\)\s*\{[^}]*res\.send\s*\([^)]*err\.stack
+    confidence: 0.86
+  fix: Return generic error; log stack server-side
+  tags:
+  - disclosure
+  - express
+- id: GHOST-JS-NODE-009
+  name: Node.js http redirect
+  description: res.redirect with user URL
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: res\.redirect\s*\(\s*req\.(?:query|body|params)
+    confidence: 0.86
+  fix: Validate redirect URL against allowlist
+  tags:
+  - redirect
+  - express
+- id: GHOST-JS-NODE-010
+  name: Node.js regex inject
+  description: RegExp with user input
+  severity: HIGH
+  cwe: CWE-730
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: new\s+RegExp\s*\([^)]*req\.(?:query|body|params)
+    confidence: 0.86
+  fix: Never compile user-supplied regex
+  tags:
+  - redos
+  - regex
+- id: GHOST-JS-NODE-011
+  name: Mongoose injection
+  description: Mongoose query with $where
+  severity: CRITICAL
+  cwe: CWE-943
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: \$where\s*:\s*(?:req\.|function)
+    confidence: 0.86
+  fix: Use $eq/$in instead of $where
+  tags:
+  - nosql
+  - mongoose
+- id: GHOST-JS-NODE-012
+  name: MongoDB $where injection
+  description: MongoDB $where operator
+  severity: CRITICAL
+  cwe: CWE-943
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: 'find\s*\(\s*\{[^}]*\$where\s*:'
+    confidence: 0.86
+  fix: Never use $where with user input
+  tags:
+  - nosql
+  - mongodb
+- id: GHOST-JS-NODE-013
+  name: Node.js SSRF request lib
+  description: request() with user URL
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: \brequest\s*\(\s*(?:req\.|options\.url\s*=\s*req\.)
+    confidence: 0.86
+  fix: Validate URL against allowlist
+  tags:
+  - ssrf
+  - request
+- id: GHOST-JS-NODE-014
+  name: JWT no expiry
+  description: JWT signed without expiresIn
+  severity: HIGH
+  cwe: CWE-613
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: jwt\.sign\s*\([^)]*\)(?!.*expiresIn)
+    confidence: 0.86
+  fix: Add expiresIn to JWT options
+  tags:
+  - jwt
+  - auth
+- id: GHOST-JS-NODE-015
+  name: bcrypt low rounds
+  description: bcrypt with < 10 rounds
+  severity: MEDIUM
+  cwe: CWE-916
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: bcrypt\.hash(?:Sync)?\s*\([^,]+,\s*[1-9]\s*[,)]
+    confidence: 0.86
+  fix: Use bcrypt rounds >= 12
+  tags:
+  - crypto
+  - bcrypt
+- id: GHOST-JS-NODE-016
+  name: Node.js crypto randomBytes
+  description: crypto.pseudoRandomBytes deprecated
+  severity: HIGH
+  cwe: CWE-338
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: crypto\.pseudoRandomBytes\s*\(
+    confidence: 0.86
+  fix: Use crypto.randomBytes()
+  tags:
+  - crypto
+  - random
+- id: GHOST-JS-NODE-017
+  name: Express no helmet
+  description: Express app without helmet
+  severity: MEDIUM
+  cwe: CWE-693
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: express\s*\(\s*\)(?![\s\S]{0,300}helmet)
+    confidence: 0.86
+  fix: Add helmet() middleware
+  tags:
+  - headers
+  - express
+- id: GHOST-JS-NODE-018
+  name: Express no compression
+  description: No response compression (minor)
+  severity: LOW
+  cwe: CWE-400
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: app\.use\s*\([^)]*compress
+    confidence: 0.86
+  fix: Not an issue; be careful with BREACH attack
+  tags:
+  - express
+  - misc
+- id: GHOST-JS-NODE-019
+  name: cookie-session insecure
+  description: cookie-session without httpOnly
+  severity: MEDIUM
+  cwe: CWE-1004
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: cookieSession\s*\(\s*\{(?![\s\S]{0,200}httpOnly)
+    confidence: 0.86
+  fix: 'Set httpOnly: true in session config'
+  tags:
+  - cookie
+  - session
+- id: GHOST-JS-NODE-020
+  name: express-session insecure
+  description: express-session with insecure options
+  severity: MEDIUM
+  cwe: CWE-613
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: session\s*\(\s*\{(?![\s\S]{0,200}resave\s*:\s*false)
+    confidence: 0.86
+  fix: Set resave:false, saveUninitialized:false
+  tags:
+  - session
+  - express
+- id: GHOST-JS-NODE-021
+  name: Node.js uncaught exception
+  description: process.on uncaughtException silent
+  severity: HIGH
+  cwe: CWE-390
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: process\.on\s*\(["\']uncaughtException["\'][^)]*\)\s*\{[^}]*\}(?![\s\S]{0,100}(?:exit|log))
+    confidence: 0.86
+  fix: Log and exit on uncaught exceptions
+  tags:
+  - reliability
+  - node
+- id: GHOST-JS-NODE-022
+  name: Node.js env config
+  description: Sensitive config in source
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: (?:config|settings)\[[\'"]\w*(?:password|key|secret|token)\w*[\'"]\]\s*=\s*["\'][^"\']{6,}["\']
+    confidence: 0.86
+  fix: Use environment variables
+  tags:
+  - hardcoded
+  - config
+- id: GHOST-JS-NODE-023
+  name: Socket.io no auth
+  description: Socket.io without authentication
+  severity: HIGH
+  cwe: CWE-306
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: io\.on\s*\(["\']connection["\'](?![\s\S]{0,300}(?:token|auth|jwt|session))
+    confidence: 0.86
+  fix: Authenticate socket connections
+  tags:
+  - auth
+  - socket
+- id: GHOST-JS-NODE-024
+  name: Node.js prototype pollution merge
+  description: lodash.merge with user object
+  severity: HIGH
+  cwe: CWE-1321
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: _\.merge\s*\([^,]+,\s*req\.(?:body|params|query)
+    confidence: 0.86
+  fix: Sanitize keys before deep merge
+  tags:
+  - prototype
+  - lodash
+- id: GHOST-JS-NODE-025
+  name: Sequelize literal injection
+  description: Sequelize.literal with user input
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: Sequelize\.literal\s*\([^)]*req\.(?:body|query|params)
+    confidence: 0.86
+  fix: Never use Sequelize.literal() with user input
+  tags:
+  - sql
+  - sequelize
+- id: GHOST-JS-NODE-026
+  name: Knex whereRaw injection
+  description: Knex whereRaw with user input
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: \.whereRaw\s*\([^)]*req\.(?:body|query|params)
+    confidence: 0.86
+  fix: Use Knex whereRaw bindings
+  tags:
+  - sql
+  - knex
+- id: GHOST-JS-NODE-027
+  name: TypeORM query injection
+  description: TypeORM query with user input
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: \.query\s*\([^)]*\+[^)]*req\.(?:body|query|params)
+    confidence: 0.86
+  fix: Use TypeORM parameters
+  tags:
+  - sql
+  - typeorm
+- id: GHOST-JS-NODE-028
+  name: Prisma raw query inject
+  description: Prisma $queryRaw with concat
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: \$queryRaw\s*`[^`]*\$\{req\.
+    confidence: 0.86
+  fix: Use Prisma $queryRaw with Prisma.sql
+  tags:
+  - sql
+  - prisma
+- id: GHOST-JS-NODE-029
+  name: multer unlimited size
+  description: multer without fileSize limit
+  severity: HIGH
+  cwe: CWE-400
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: multer\s*\(\s*\{(?![\s\S]{0,200}fileSize)
+    confidence: 0.86
+  fix: Set limits.fileSize in multer config
+  tags:
+  - upload
+  - dos
+- id: GHOST-JS-NODE-030
+  name: Node.js zip bomb
+  description: unzip without size check
+  severity: HIGH
+  cwe: CWE-400
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: (?:unzipper|extract-zip|adm-zip)(?![\s\S]{0,200}(?:maxSize|THRESHOLD|limit))
+    confidence: 0.86
+  fix: Limit decompressed size
+  tags:
+  - dos
+  - zip

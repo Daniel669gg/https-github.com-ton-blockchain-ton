@@ -1,0 +1,643 @@
+- id: GHOST-GO-SQL-001
+  name: SQL injection fmt.Sprintf
+  description: SQL via fmt.Sprintf
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: db\.(?:Query|Exec|QueryRow)\s*\(\s*fmt\.Sprintf
+    confidence: 0.93
+  fix: Use parameterized queries with ?/$1
+  tags:
+  - sql
+  - injection
+- id: GHOST-GO-SQL-002
+  name: SQL injection string concat
+  description: SQL via + concatenation
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: db\.(?:Query|Exec|QueryRow)\s*\(\s*["\'][^"\']*"\s*\+
+    confidence: 0.92
+  fix: Use parameterized queries
+  tags:
+  - sql
+  - injection
+- id: GHOST-GO-SQL-003
+  name: GORM raw injection
+  description: GORM Raw() with user input
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: db\.Raw\s*\(\s*fmt\.Sprintf|db\.Exec\s*\(\s*fmt\.Sprintf
+    confidence: 0.9
+  fix: Use GORM placeholders
+  tags:
+  - sql
+  - gorm
+- id: GHOST-GO-SQL-004
+  name: sqlx injection
+  description: sqlx.DB query with format
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: sqlx\..*(?:Query|Exec|Get|Select)\s*\(\s*fmt\.Sprintf
+    confidence: 0.91
+  fix: Use named parameters with sqlx
+  tags:
+  - sql
+  - sqlx
+- id: GHOST-GO-CMD-001
+  name: Command injection exec.Command
+  description: exec.Command with user input
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: exec\.Command\s*\([^)]*(?:r\.Form|r\.URL|r\.PostForm|userInput)
+    confidence: 0.91
+  fix: Validate and whitelist command arguments
+  tags:
+  - command
+  - injection
+- id: GHOST-GO-CMD-002
+  name: os.Exec injection
+  description: os.Exec with user input
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: exec\.CommandContext\s*\([^,]+,[^)]*(?:r\.|req\.|input)
+    confidence: 0.9
+  fix: Validate command arguments strictly
+  tags:
+  - command
+  - injection
+- id: GHOST-GO-PATH-001
+  name: Path traversal os.Open
+  description: os.Open with user path
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.89
+  patterns:
+  - type: regex
+    pattern: os\.(?:Open|ReadFile|Stat|Remove)\s*\([^)]*(?:r\.|req\.|userPath|filePath)
+    confidence: 0.89
+  fix: Use filepath.Clean and validate against base dir
+  tags:
+  - path
+  - traversal
+- id: GHOST-GO-PATH-002
+  name: http.ServeFile traversal
+  description: http.ServeFile with user path
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: http\.ServeFile\s*\([^,]+,[^,]+,[^)]*(?:r\.URL|r\.FormValue)
+    confidence: 0.9
+  fix: Validate path with filepath.Clean
+  tags:
+  - path
+  - http
+- id: GHOST-GO-PATH-003
+  name: filepath.Join traversal
+  description: filepath.Join with user segment
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: filepath\.Join\s*\([^)]*(?:r\.|req\.|input\.|user)
+    confidence: 0.88
+  fix: Resolve and verify path stays within root
+  tags:
+  - path
+  - traversal
+- id: GHOST-GO-SSRF-001
+  name: SSRF http.Get
+  description: http.Get with user URL
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.89
+  patterns:
+  - type: regex
+    pattern: http\.(?:Get|Post)\s*\([^)]*(?:r\.|req\.|userURL|targetURL)
+    confidence: 0.89
+  fix: Validate URL against allowlist
+  tags:
+  - ssrf
+  - http
+- id: GHOST-GO-SSRF-002
+  name: SSRF net.Dial
+  description: net.Dial with user host
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: net\.(?:Dial|DialTCP|DialUDP)\s*\([^,]+,[^)]*(?:r\.|req\.|host)
+    confidence: 0.87
+  fix: Validate host against allowlist
+  tags:
+  - ssrf
+  - net
+- id: GHOST-GO-SSRF-003
+  name: SSRF http.NewRequest
+  description: http.NewRequest with user URL
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: http\.NewRequest\s*\([^,]+,\s*[^,]*(?:r\.|req\.|userURL)
+    confidence: 0.88
+  fix: Validate URL against allowlist
+  tags:
+  - ssrf
+  - http
+- id: GHOST-GO-CRYPTO-001
+  name: MD5 in Go
+  description: crypto/md5 usage
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: md5\.New\s*\(\s*\)|md5\.Sum\s*\(
+    confidence: 0.92
+  fix: Use crypto/sha256 or sha3
+  tags:
+  - crypto
+  - md5
+- id: GHOST-GO-CRYPTO-002
+  name: SHA1 in Go
+  description: crypto/sha1 usage
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: sha1\.New\s*\(\s*\)|sha1\.Sum\s*\(
+    confidence: 0.92
+  fix: Use crypto/sha256 or sha3
+  tags:
+  - crypto
+  - sha1
+- id: GHOST-GO-CRYPTO-003
+  name: math/rand for security
+  description: math/rand instead of crypto/rand
+  severity: HIGH
+  cwe: CWE-338
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.89
+  patterns:
+  - type: regex
+    pattern: rand\.(?:Intn|Int63|Float64)\s*\((?!.*crypto)
+    confidence: 0.89
+  fix: Use crypto/rand for security-sensitive values
+  tags:
+  - crypto
+  - random
+- id: GHOST-GO-CRYPTO-004
+  name: Hardcoded key bytes
+  description: Key as byte slice literal
+  severity: CRITICAL
+  cwe: CWE-321
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: (?:key|secret)\s*:?=\s*\[\]byte\s*\{
+    confidence: 0.9
+  fix: Load keys from environment variables
+  tags:
+  - hardcoded
+  - key
+- id: GHOST-GO-CRYPTO-005
+  name: Weak TLS config
+  description: TLS InsecureSkipVerify
+  severity: CRITICAL
+  cwe: CWE-295
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: InsecureSkipVerify\s*:\s*true
+    confidence: 0.95
+  fix: Never disable TLS certificate verification
+  tags:
+  - tls
+  - ssl
+- id: GHOST-GO-CRYPTO-006
+  name: Weak TLS version
+  description: TLS MinVersion < 1.2
+  severity: HIGH
+  cwe: CWE-326
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: MinVersion\s*:\s*tls\.VersionTLS1[01]
+    confidence: 0.92
+  fix: 'Set MinVersion: tls.VersionTLS12'
+  tags:
+  - tls
+  - version
+- id: GHOST-GO-CRYPTO-007
+  name: ECB block cipher
+  description: Manual ECB encryption
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: cipher\.NewECBEncrypter\s*\(|NewECBDecrypter\s*\(
+    confidence: 0.9
+  fix: Use cipher.NewGCM() for authenticated encryption
+  tags:
+  - crypto
+  - ecb
+- id: GHOST-GO-DESER-001
+  name: encoding/gob user input
+  description: gob.Decode on user data
+  severity: HIGH
+  cwe: CWE-502
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: gob\.NewDecoder\s*\([^)]*(?:r\.Body|req\.Body|reader)
+    confidence: 0.85
+  fix: Validate data types before gob decoding
+  tags:
+  - deserialization
+  - gob
+- id: GHOST-GO-DESER-002
+  name: YAML unmarshal
+  description: yaml.Unmarshal on user data
+  severity: MEDIUM
+  cwe: CWE-502
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: yaml\.Unmarshal\s*\([^,]*(?:body|data|input)
+    confidence: 0.83
+  fix: Use yaml.v3 and validate schema
+  tags:
+  - deserialization
+  - yaml
+- id: GHOST-GO-XSS-001
+  name: fmt.Fprintf XSS
+  description: fmt.Fprintf with user input to ResponseWriter
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: fmt\.Fprintf\s*\(w,[^)]*(?:r\.FormValue|r\.URL|r\.PathValue)
+    confidence: 0.88
+  fix: Use template/html for safe output
+  tags:
+  - xss
+  - http
+- id: GHOST-GO-XSS-002
+  name: text/template used for HTML
+  description: text/template for HTML output
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: text/template.*Execute\s*\(|template\.New.*text/template
+    confidence: 0.87
+  fix: Use html/template for HTML rendering
+  tags:
+  - xss
+  - template
+- id: GHOST-GO-REDIRECT-001
+  name: Open redirect
+  description: http.Redirect with user URL
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: http\.Redirect\s*\([^,]+,[^,]+,[^)]*(?:r\.FormValue|r\.URL|r\.Query)
+    confidence: 0.88
+  fix: Validate redirect URL against allowlist
+  tags:
+  - redirect
+- id: GHOST-GO-CSRF-001
+  name: No CSRF on mutation
+  description: POST handler without CSRF
+  severity: HIGH
+  cwe: CWE-352
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.76
+  patterns:
+  - type: regex
+    pattern: (?:r\.Method\s*==\s*"POST"|HandleFunc.*POST)(?!.*csrf|.*CSRF)
+    confidence: 0.76
+  fix: Add gorilla/csrf or custom CSRF protection
+  tags:
+  - csrf
+- id: GHOST-GO-RACE-001
+  name: Race condition global
+  description: Global variable modified concurrently
+  severity: HIGH
+  cwe: CWE-362
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: var\s+\w+\s+(?:int|string|bool|map)\b(?!.*sync\.|.*atomic\.)
+    confidence: 0.8
+  fix: Use sync.Mutex or atomic operations
+  tags:
+  - race
+  - concurrency
+- id: GHOST-GO-RACE-002
+  name: Map concurrent access
+  description: map written without mutex
+  severity: HIGH
+  cwe: CWE-362
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: make\s*\(\s*map\[.*\]\s*\)(?!.*sync\.Map|.*sync\.RWMutex)
+    confidence: 0.78
+  fix: Use sync.Map or protect with sync.RWMutex
+  tags:
+  - race
+  - map
+- id: GHOST-GO-LOG-001
+  name: Log sensitive data
+  description: log.Printf with password/token
+  severity: HIGH
+  cwe: CWE-312
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: log\.(?:Printf|Println|Print)\s*\([^)]*(?:password|token|secret|key)
+    confidence: 0.87
+  fix: Never log sensitive data
+  tags:
+  - logging
+  - credentials
+- id: GHOST-GO-ERR-001
+  name: Error ignored
+  description: Error return silently ignored
+  severity: MEDIUM
+  cwe: CWE-252
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: '[a-z_]+,\s*_\s*:?=\s*\w+\.\w+\s*\('
+    confidence: 0.8
+  fix: Handle all error returns
+  tags:
+  - error
+  - ignored
+- id: GHOST-GO-CORS-001
+  name: CORS allow all
+  description: AllowAllOrigins in CORS config
+  severity: MEDIUM
+  cwe: CWE-942
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: AllowAllOrigins\s*:\s*true|AllowOrigins\s*:\s*\[\s*"\*"\s*\]
+    confidence: 0.88
+  fix: Restrict CORS to known origins
+  tags:
+  - cors
+- id: GHOST-GO-UPLOAD-001
+  name: Unvalidated file upload
+  description: multipart.File without type check
+  severity: HIGH
+  cwe: CWE-434
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: r\.FormFile\s*\([^)]+\)(?!.*ContentType|.*mime\.)
+    confidence: 0.85
+  fix: Validate file MIME type and extension
+  tags:
+  - upload
+  - file
+- id: GHOST-GO-ENV-001
+  name: Hardcoded secret string
+  description: String constant for secret
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: const\s+\w*(?:[Ss]ecret|[Pp]assword|[Kk]ey)\w*\s*=\s*"[^"]{6,}"
+    confidence: 0.88
+  fix: Use os.Getenv() for secrets
+  tags:
+  - hardcoded
+  - secret
+- id: GHOST-GO-REGEX-001
+  name: ReDoS user pattern
+  description: regexp.Compile with user input
+  severity: HIGH
+  cwe: CWE-730
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: regexp\.(?:Compile|MustCompile)\s*\([^)]*(?:r\.|req\.|input\.|user)
+    confidence: 0.87
+  fix: Never compile user-supplied regex
+  tags:
+  - redos
+  - regex
+- id: GHOST-GO-PANIC-001
+  name: Panic in HTTP handler
+  description: panic() in request handler
+  severity: HIGH
+  cwe: CWE-400
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: (?:func|func\s+\w+)\s*\(w\s+http\.ResponseWriter[^)]+\)\s*\{[^}]*\bpanic\s*\(
+    confidence: 0.83
+  fix: Use error returns instead of panic in handlers
+  tags:
+  - dos
+  - panic
+- id: GHOST-GO-SSRF-004
+  name: SSRF via url.Parse
+  description: url.Parse result used unchecked
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: url\.Parse\s*\([^)]*(?:r\.|req\.|userURL)\s*\)(?!\s*;\s*if\s+err)
+    confidence: 0.85
+  fix: Validate parsed URL scheme and host
+  tags:
+  - ssrf
+  - url
+- id: GHOST-GO-PERM-001
+  name: Overly permissive file
+  description: os.WriteFile with 0777
+  severity: HIGH
+  cwe: CWE-732
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: os\.(?:WriteFile|Chmod)\s*\([^)]*0o?777
+    confidence: 0.9
+  fix: Use 0o600 for sensitive files
+  tags:
+  - permissions
+  - file
+- id: GHOST-GO-TIMEOUT-001
+  name: HTTP client no timeout
+  description: http.Client without timeout
+  severity: MEDIUM
+  cwe: CWE-400
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: http\.Client\s*\{(?!.*Timeout)
+    confidence: 0.85
+  fix: Set Timeout on all http.Client instances
+  tags:
+  - dos
+  - timeout
+- id: GHOST-GO-TIMEOUT-002
+  name: Default http client
+  description: Using http.DefaultClient
+  severity: MEDIUM
+  cwe: CWE-400
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: \bhttp\.(?:Get|Post|DefaultClient)\b(?!.*Timeout)
+    confidence: 0.83
+  fix: Create http.Client with explicit Timeout
+  tags:
+  - dos
+  - timeout

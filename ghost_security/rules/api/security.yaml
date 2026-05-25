@@ -1,0 +1,400 @@
+- id: GHOST-API-AUTH-001
+  name: Missing API authentication
+  description: API endpoint without auth check
+  severity: HIGH
+  cwe: CWE-306
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - typescript
+  - go
+  confidence: 0.77
+  patterns:
+  - type: regex
+    pattern: '@(?:app|router)\.(?:get|post|put|delete)\s*\([^)]+\)(?!.*(?:auth|token|jwt|require)[\s\S]{0,100}@)'
+    confidence: 0.77
+  fix: Add authentication middleware
+  tags:
+  - api
+  - auth
+- id: GHOST-API-RATE-001
+  name: No rate limiting
+  description: API without rate limiting
+  severity: HIGH
+  cwe: CWE-307
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - typescript
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: '@(?:app|router)\.post\s*\(["\'']\/(?:login|register|reset)["\'']'
+    confidence: 0.78
+  fix: Add rate limiting middleware
+  tags:
+  - api
+  - ratelimit
+- id: GHOST-API-MASS-001
+  name: Mass assignment via body
+  description: Accept all body fields
+  severity: HIGH
+  cwe: CWE-915
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - typescript
+  - go
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: (?:req|request)\.body\s*(?:\.\.\.|Object\.assign|spread)
+    confidence: 0.84
+  fix: Whitelist allowed fields from request body
+  tags:
+  - api
+  - mass_assignment
+- id: GHOST-API-EXPO-001
+  name: Stack trace in response
+  description: Stack trace in API response
+  severity: HIGH
+  cwe: CWE-209
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - typescript
+  - go
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: (?:stack|trace|traceback)\s*:\s*(?:err\.|error\.|e\.)stack
+    confidence: 0.86
+  fix: Return generic error messages to clients
+  tags:
+  - api
+  - disclosure
+- id: GHOST-API-VER-001
+  name: No API versioning
+  description: API without version prefix
+  severity: LOW
+  cwe: CWE-693
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - typescript
+  - go
+  confidence: 0.72
+  patterns:
+  - type: regex
+    pattern: '@app\.route\s*\(["\'']\/(?!v\d+\/|api\/v)'
+    confidence: 0.72
+  fix: Version APIs with /v1/ prefix
+  tags:
+  - api
+  - versioning
+- id: GHOST-API-CORS-001
+  name: Wildcard CORS API
+  description: API with wildcard CORS
+  severity: HIGH
+  cwe: CWE-942
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - typescript
+  - go
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: Access-Control-Allow-Origin.*\*
+    confidence: 0.88
+  fix: Restrict API CORS to known origins
+  tags:
+  - api
+  - cors
+- id: GHOST-API-BROKEN-001
+  name: Broken object level auth
+  description: IDOR in API
+  severity: HIGH
+  cwe: CWE-639
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - typescript
+  - go
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: \/api\/\w+\/\{(?:id|userId|user_id)\}(?!.*(?:owner|ownership|authorize))
+    confidence: 0.8
+  fix: Verify resource ownership in object-level checks
+  tags:
+  - api
+  - idor
+- id: GHOST-API-JWT-001
+  name: JWT in query param
+  description: JWT passed as query parameter
+  severity: HIGH
+  cwe: CWE-598
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - typescript
+  - go
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: (?:token|jwt|access_token)\s*=\s*\$\{?(?:jwt|token)
+    confidence: 0.86
+  fix: Use Authorization header for JWT
+  tags:
+  - api
+  - jwt
+- id: GHOST-API-VERB-001
+  name: HTTP verb not restricted
+  description: DELETE without explicit auth
+  severity: HIGH
+  cwe: CWE-285
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - typescript
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: '@(?:app|router)\.delete\s*\([^)]+\)(?!.*(?:admin|owner|auth|require))'
+    confidence: 0.78
+  fix: Restrict DELETE to authorized users
+  tags:
+  - api
+  - verb
+- id: GHOST-API-INPUT-001
+  name: No input validation
+  description: API endpoint without schema validation
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - typescript
+  - go
+  confidence: 0.76
+  patterns:
+  - type: regex
+    pattern: '@(?:app|router)\.post\s*\([^)]+\)(?!.*(?:schema|validate|joi|zod|pydantic|marshmallow))'
+    confidence: 0.76
+  fix: Add request body validation schema
+  tags:
+  - api
+  - validation
+- id: GHOST-API-CACHE-001
+  name: Sensitive data cached
+  description: Cache-Control missing on sensitive response
+  severity: HIGH
+  cwe: CWE-524
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - typescript
+  - go
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: res\.json\s*\([^)]*(?:token|password|secret|ssn)\b
+    confidence: 0.82
+  fix: 'Add Cache-Control: no-store for sensitive endpoints'
+  tags:
+  - api
+  - cache
+- id: GHOST-API-TIMEOUT-001
+  name: No request timeout
+  description: API client without timeout
+  severity: MEDIUM
+  cwe: CWE-400
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - typescript
+  - go
+  confidence: 0.81
+  patterns:
+  - type: regex
+    pattern: (?:axios|fetch|requests\.get)\s*\([^)]*\)(?!.*timeout)
+    confidence: 0.81
+  fix: Set request timeout on all API calls
+  tags:
+  - api
+  - timeout
+- id: GHOST-API-GRAPHQL-001
+  name: GraphQL depth unlimited
+  description: No query depth limit
+  severity: HIGH
+  cwe: CWE-400
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - typescript
+  - go
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: graphql\s*\(\s*\{(?!.*depthLimit|.*depth_limit)
+    confidence: 0.8
+  fix: Add graphql-depth-limit middleware
+  tags:
+  - api
+  - graphql
+- id: GHOST-API-GRAPHQL-002
+  name: GraphQL complexity unlimited
+  description: No query complexity limit
+  severity: HIGH
+  cwe: CWE-400
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - typescript
+  - go
+  confidence: 0.79
+  patterns:
+  - type: regex
+    pattern: buildSchema\s*\(|makeExecutableSchema\s*\((?!.*complexity)
+    confidence: 0.79
+  fix: Add query complexity analysis
+  tags:
+  - api
+  - graphql
+- id: GHOST-API-GRAPHQL-003
+  name: GraphQL introspection prod
+  description: Introspection enabled in production
+  severity: MEDIUM
+  cwe: CWE-200
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - typescript
+  - go
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: introspection:\s*true|GRAPHQL_INTROSPECTION.*=.*true
+    confidence: 0.85
+  fix: Disable introspection in production
+  tags:
+  - api
+  - graphql
+- id: GHOST-API-RESP-001
+  name: Internal path in response
+  description: File system path in response
+  severity: HIGH
+  cwe: CWE-209
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - typescript
+  - go
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: (?:\/home\/|\/var\/www\/|\/usr\/local\/|C:\\\\).*in\s+(?:error|response)
+    confidence: 0.84
+  fix: Sanitize internal paths from error responses
+  tags:
+  - api
+  - disclosure
+- id: GHOST-API-FORMAT-001
+  name: XML response XEE
+  description: Unvalidated XML in response
+  severity: HIGH
+  cwe: CWE-611
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - typescript
+  - go
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: Content-Type.*text\/xml.*\n(?:(?!defused).)*return
+    confidence: 0.82
+  fix: Use defusedxml for XML responses
+  tags:
+  - api
+  - xxe
+- id: GHOST-API-WEBHOOK-001
+  name: Webhook no signature verify
+  description: Incoming webhook without signature check
+  severity: HIGH
+  cwe: CWE-345
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - typescript
+  - go
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: (?:@app|@router)\.post\s*\(["\'][^\'"]*webhook["\'](?![\s\S]{0,200}(?:signature|hmac|secret))
+    confidence: 0.83
+  fix: Verify webhook signatures (HMAC)
+  tags:
+  - api
+  - webhook
+- id: GHOST-API-LIMIT-001
+  name: No pagination limit
+  description: API returning unbounded results
+  severity: HIGH
+  cwe: CWE-400
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - typescript
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: \.find\s*\(\s*\)\s*(?!.*\.limit|.*LIMIT|.*paginate)
+    confidence: 0.78
+  fix: Add pagination and max page size limit
+  tags:
+  - api
+  - dos
+- id: GHOST-API-KEY-001
+  name: API key in URL
+  description: API key in request URL
+  severity: HIGH
+  cwe: CWE-598
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - typescript
+  - go
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: \/api\/[^?]*\?[^=]*(?:api_key|apikey|token)=[^&]+
+    confidence: 0.87
+  fix: Pass API keys in Authorization header
+  tags:
+  - api
+  - apikey

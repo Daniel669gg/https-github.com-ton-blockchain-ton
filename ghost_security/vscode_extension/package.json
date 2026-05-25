@@ -1,121 +1,109 @@
 {
   "name": "ghost-security",
   "displayName": "Ghost Security",
-  "description": "AI-native AppSec scanner — inline vulnerability detection as you type",
-  "version": "1.0.0",
+  "description": "Real-time security scanning for 3000+ vulnerability patterns. TON/Web3, Python, JS, Go, Java, Solidity and more.",
+  "version": "2.0.0",
   "publisher": "ghost-security",
-  "icon": "images/ghost_icon.png",
-  "engines": { "vscode": "^1.85.0" },
+  "engines": {"vscode": "^1.85.0"},
   "categories": ["Linters", "Other"],
-  "keywords": ["security", "appsec", "vulnerability", "sast", "owasp"],
+  "keywords": ["security", "vulnerability", "sast", "blockchain", "ton", "solidity", "audit"],
+  "icon": "media/ghost-icon.png",
   "repository": { "type": "git", "url": "https://github.com/ghost-security/vscode-extension" },
-  "activationEvents": [
-    "onLanguage:python",
-    "onLanguage:javascript",
-    "onLanguage:typescript",
-    "onLanguage:solidity"
-  ],
+  "activationEvents": ["onStartupFinished"],
   "main": "./out/extension.js",
   "contributes": {
+    "commands": [
+      {"command": "ghost.scanFile",       "title": "Ghost Security: Scan Current File",      "icon": "$(shield)"},
+      {"command": "ghost.scanWorkspace",  "title": "Ghost Security: Scan Workspace",          "icon": "$(search)"},
+      {"command": "ghost.showFindings",   "title": "Ghost Security: Show Findings Panel",     "icon": "$(list-unordered)"},
+      {"command": "ghost.clearFindings",  "title": "Ghost Security: Clear Findings",          "icon": "$(clear-all)"},
+      {"command": "ghost.openSettings",   "title": "Ghost Security: Open Settings",           "icon": "$(gear)"},
+      {"command": "ghost.showRuleInfo",   "title": "Ghost Security: Show Rule Information",   "icon": "$(info)"},
+      {"command": "ghost.runQuickFix",    "title": "Ghost Security: Apply Quick Fix",         "icon": "$(lightbulb)"},
+      {"command": "ghost.exportSarif",    "title": "Ghost Security: Export SARIF Report",     "icon": "$(export)"},
+      {"command": "ghost.exportJson",     "title": "Ghost Security: Export JSON Report",      "icon": "$(file-code)"},
+      {"command": "ghost.updateRules",    "title": "Ghost Security: Update Rules from CDN",   "icon": "$(cloud-download)"}
+    ],
     "configuration": {
       "title": "Ghost Security",
       "properties": {
-        "ghost.serverUrl": {
+        "ghostSecurity.cliPath": {
           "type": "string",
-          "default": "http://localhost:8000",
-          "description": "Ghost Security API server URL"
+          "default": "ghost",
+          "description": "Path to the Ghost Security CLI executable"
         },
-        "ghost.scanOnSave": {
+        "ghostSecurity.scanOnSave": {
           "type": "boolean",
           "default": true,
-          "description": "Automatically scan file on save"
+          "description": "Automatically scan files on save"
         },
-        "ghost.scanOnType": {
+        "ghostSecurity.scanOnOpen": {
           "type": "boolean",
-          "default": false,
-          "description": "Scan while typing (debounced, may slow editor)"
+          "default": true,
+          "description": "Automatically scan files when opened"
         },
-        "ghost.minSeverity": {
+        "ghostSecurity.minSeverity": {
           "type": "string",
           "enum": ["INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL"],
           "default": "MEDIUM",
-          "description": "Minimum severity to show inline"
+          "description": "Minimum severity level to show in editor"
         },
-        "ghost.showInlineHints": {
+        "ghostSecurity.rulesDir": {
+          "type": "string",
+          "default": "",
+          "description": "Custom path to rules directory (leave empty for defaults)"
+        },
+        "ghostSecurity.enabledLanguages": {
+          "type": "array",
+          "items": {"type": "string"},
+          "default": ["python", "javascript", "typescript", "java", "go", "php", "ruby", "rust", "solidity"],
+          "description": "Languages to scan"
+        },
+        "ghostSecurity.showInlineHints": {
           "type": "boolean",
           "default": true,
-          "description": "Show inline code lens with finding details"
+          "description": "Show inline code lens hints for findings"
         },
-        "ghost.autoFix": {
+        "ghostSecurity.maxFindingsPerFile": {
+          "type": "number",
+          "default": 100,
+          "description": "Maximum findings to display per file"
+        },
+        "ghostSecurity.suppressedRules": {
+          "type": "array",
+          "items": {"type": "string"},
+          "default": [],
+          "description": "Rule IDs to suppress"
+        },
+        "ghostSecurity.auditMode": {
           "type": "boolean",
-          "default": true,
-          "description": "Show quick-fix suggestions (requires Ollama)"
+          "default": false,
+          "description": "Enable full audit mode (slower, more thorough)"
         }
       }
     },
-    "commands": [
-      {
-        "command": "ghost.scanFile",
-        "title": "Ghost: Scan Current File",
-        "icon": "$(shield)"
-      },
-      {
-        "command": "ghost.scanWorkspace",
-        "title": "Ghost: Scan Workspace",
-        "icon": "$(search)"
-      },
-      {
-        "command": "ghost.showFindingsPanel",
-        "title": "Ghost: Show Findings",
-        "icon": "$(list-unordered)"
-      },
-      {
-        "command": "ghost.clearDiagnostics",
-        "title": "Ghost: Clear Diagnostics"
-      },
-      {
-        "command": "ghost.explainFinding",
-        "title": "Ghost: Explain This Finding"
-      },
-      {
-        "command": "ghost.generateFix",
-        "title": "Ghost: Generate Fix (AI)"
-      }
-    ],
     "menus": {
-      "editor/title": [
-        {
-          "command": "ghost.scanFile",
-          "group": "navigation",
-          "when": "resourceLangId == python || resourceLangId == javascript || resourceLangId == typescript"
-        }
-      ],
       "editor/context": [
-        {
-          "command": "ghost.explainFinding",
-          "group": "ghost",
-          "when": "editorHasSelection"
-        },
-        {
-          "command": "ghost.generateFix",
-          "group": "ghost",
-          "when": "editorHasSelection"
-        }
+        {"command": "ghost.scanFile",     "group": "ghost@1", "when": "editorIsOpen"},
+        {"command": "ghost.showFindings", "group": "ghost@2"},
+        {"command": "ghost.runQuickFix",  "group": "ghost@3", "when": "editorHasSelection"}
+      ],
+      "explorer/context": [
+        {"command": "ghost.scanWorkspace", "group": "ghost@1"}
+      ],
+      "editor/title": [
+        {"command": "ghost.scanFile", "group": "navigation", "when": "resourceExtname =~ /\\.(py|js|ts|java|go|php|rb|rs|sol)$/"}
       ]
     },
-    "viewsContainers": {
-      "activitybar": [
-        {
-          "id": "ghost-security",
-          "title": "Ghost Security",
-          "icon": "images/ghost_icon_sm.svg"
-        }
-      ]
-    },
+    "keybindings": [
+      {"command": "ghost.scanFile",      "key": "ctrl+shift+g s", "mac": "cmd+shift+g s"},
+      {"command": "ghost.scanWorkspace", "key": "ctrl+shift+g w", "mac": "cmd+shift+g w"},
+      {"command": "ghost.showFindings",  "key": "ctrl+shift+g f", "mac": "cmd+shift+g f"}
+    ],
     "views": {
       "ghost-security": [
         {
-          "id": "ghost.findingsView",
+          "id": "ghostSecurityFindings",
           "name": "Findings",
           "icon": "$(shield)"
         },
@@ -125,19 +113,28 @@
           "icon": "$(history)"
         }
       ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "ghost-security",
+          "title": "Ghost Security",
+          "icon": "$(shield)"
+        }
+      ]
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch":   "tsc -watch -p ./",
-    "lint":    "eslint src --ext ts",
+    "vscode:prepublish": "node build.js",
+    "compile": "node build.js",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts",
     "package": "vsce package"
   },
   "devDependencies": {
-    "@types/vscode":  "^1.85.0",
-    "@types/node":    "^20.0.0",
-    "typescript":     "^5.3.0",
-    "@vscode/vsce":   "^2.24.0"
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0",
+    "@vscode/vsce": "^2.24.0"
   }
 }

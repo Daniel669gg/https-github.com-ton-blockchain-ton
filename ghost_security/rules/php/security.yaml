@@ -1,0 +1,759 @@
+- id: GHOST-PHP-SQL-001
+  name: MySQL injection mysqli
+  description: mysqli_query with user input
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: mysqli_query\s*\([^,]+,[^)]*\$_(?:GET|POST|REQUEST|COOKIE)
+    confidence: 0.93
+  fix: Use prepared statements with bind_param
+  tags:
+  - sql
+  - injection
+- id: GHOST-PHP-SQL-002
+  name: PDO injection
+  description: PDO query with concat
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: \$(?:pdo|db)\.query\s*\([^)]*\$_(?:GET|POST|REQUEST)|->query\s*\(["\'][^"\']*"\s*\.\s*\$
+    confidence: 0.92
+  fix: Use PDO prepare() with execute()
+  tags:
+  - sql
+  - pdo
+- id: GHOST-PHP-SQL-003
+  name: MySQL inject sprintf
+  description: SQL via sprintf
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: mysql(?:i)?_query\s*\([^,]+,\s*sprintf\s*\([^)]*\$_
+    confidence: 0.91
+  fix: Use prepared statements
+  tags:
+  - sql
+  - injection
+- id: GHOST-PHP-SQL-004
+  name: Doctrine DQL inject
+  description: Doctrine DQL with concat
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: createQuery\s*\(["\'][^"\']*"\s*\.\s*\$
+    confidence: 0.9
+  fix: Use Doctrine named parameters
+  tags:
+  - sql
+  - doctrine
+- id: GHOST-PHP-XSS-001
+  name: echo user input
+  description: echo $_GET without escaping
+  severity: CRITICAL
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: \becho\s+\$_(?:GET|POST|REQUEST|COOKIE)\[
+    confidence: 0.93
+  fix: Use htmlspecialchars() before output
+  tags:
+  - xss
+- id: GHOST-PHP-XSS-002
+  name: print user input
+  description: print() with user input
+  severity: CRITICAL
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: \bprint\s*\$_(?:GET|POST|REQUEST|COOKIE)
+    confidence: 0.92
+  fix: Escape with htmlspecialchars()
+  tags:
+  - xss
+- id: GHOST-PHP-XSS-003
+  name: printf injection
+  description: printf with user format
+  severity: CRITICAL
+  cwe: CWE-134
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: printf\s*\(\s*\$_(?:GET|POST|REQUEST)
+    confidence: 0.93
+  fix: Never use user input as printf format string
+  tags:
+  - xss
+  - format
+- id: GHOST-PHP-CMD-001
+  name: system() injection
+  description: system() with user input
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.94
+  patterns:
+  - type: regex
+    pattern: system\s*\([^)]*\$_(?:GET|POST|REQUEST)
+    confidence: 0.94
+  fix: Use escapeshellarg() and whitelist commands
+  tags:
+  - command
+  - injection
+- id: GHOST-PHP-CMD-002
+  name: exec() injection
+  description: exec() with user input
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.94
+  patterns:
+  - type: regex
+    pattern: exec\s*\([^)]*\$_(?:GET|POST|REQUEST)
+    confidence: 0.94
+  fix: Use escapeshellarg() and whitelist
+  tags:
+  - command
+  - injection
+- id: GHOST-PHP-CMD-003
+  name: passthru injection
+  description: passthru() with user input
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: passthru\s*\([^)]*\$_(?:GET|POST|REQUEST)
+    confidence: 0.93
+  fix: Sanitize all command arguments
+  tags:
+  - command
+  - injection
+- id: GHOST-PHP-CMD-004
+  name: shell_exec injection
+  description: shell_exec() with user input
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.94
+  patterns:
+  - type: regex
+    pattern: shell_exec\s*\([^)]*\$_(?:GET|POST|REQUEST)
+    confidence: 0.94
+  fix: Use escapeshellarg() and restrict commands
+  tags:
+  - command
+  - injection
+- id: GHOST-PHP-CMD-005
+  name: backtick injection
+  description: Backtick operator with user input
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: '`[^`]*\$_(?:GET|POST|REQUEST)'
+    confidence: 0.93
+  fix: Use escapeshellarg(); avoid backticks
+  tags:
+  - command
+  - injection
+- id: GHOST-PHP-CMD-006
+  name: eval injection
+  description: eval() with user data
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: \beval\s*\([^)]*\$_(?:GET|POST|REQUEST)
+    confidence: 0.95
+  fix: Never eval user input
+  tags:
+  - eval
+  - injection
+- id: GHOST-PHP-PATH-001
+  name: include traversal
+  description: include with user path
+  severity: CRITICAL
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: \binclude\s*\([^)]*\$_(?:GET|POST|REQUEST)
+    confidence: 0.93
+  fix: Whitelist allowed files for include
+  tags:
+  - path
+  - lfi
+- id: GHOST-PHP-PATH-002
+  name: require traversal
+  description: require with user path
+  severity: CRITICAL
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: \brequire\s*\([^)]*\$_(?:GET|POST|REQUEST)
+    confidence: 0.93
+  fix: Whitelist allowed files for require
+  tags:
+  - path
+  - lfi
+- id: GHOST-PHP-PATH-003
+  name: file_get_contents LFI
+  description: file_get_contents with user path
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: file_get_contents\s*\([^)]*\$_(?:GET|POST|REQUEST)
+    confidence: 0.91
+  fix: Validate path against allowed directory
+  tags:
+  - path
+  - lfi
+- id: GHOST-PHP-PATH-004
+  name: fopen traversal
+  description: fopen with user path
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: fopen\s*\([^)]*\$_(?:GET|POST|REQUEST)
+    confidence: 0.91
+  fix: Validate and restrict file paths
+  tags:
+  - path
+  - traversal
+- id: GHOST-PHP-PATH-005
+  name: readfile traversal
+  description: readfile() with user path
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: readfile\s*\([^)]*\$_(?:GET|POST|REQUEST)
+    confidence: 0.9
+  fix: Validate path against whitelist
+  tags:
+  - path
+  - traversal
+- id: GHOST-PHP-DESER-001
+  name: unserialize injection
+  description: unserialize() with user data
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: unserialize\s*\([^)]*\$_(?:GET|POST|REQUEST|COOKIE)
+    confidence: 0.95
+  fix: Use JSON instead of unserialize
+  tags:
+  - deserialization
+- id: GHOST-PHP-SSRF-001
+  name: file_get_contents SSRF
+  description: file_get_contents with user URL
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.89
+  patterns:
+  - type: regex
+    pattern: file_get_contents\s*\([^)]*\$_(?:GET|POST|REQUEST)
+    confidence: 0.89
+  fix: Validate URL against allowlist
+  tags:
+  - ssrf
+- id: GHOST-PHP-SSRF-002
+  name: curl SSRF
+  description: curl_setopt with user URL
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: curl_setopt\s*\([^,]+,\s*CURLOPT_URL\s*,\s*\$_(?:GET|POST|REQUEST)
+    confidence: 0.9
+  fix: Validate URL against allowlist
+  tags:
+  - ssrf
+  - curl
+- id: GHOST-PHP-UPLOAD-001
+  name: move_uploaded_file no check
+  description: move_uploaded_file without type check
+  severity: HIGH
+  cwe: CWE-434
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: move_uploaded_file\s*\([^)]*\$_FILES(?![\s\S]{0,200}mime|[\s\S]{0,200}extension)
+    confidence: 0.86
+  fix: Check file type with finfo_file()
+  tags:
+  - upload
+  - file
+- id: GHOST-PHP-CRYPTO-001
+  name: md5 password
+  description: md5() for password hash
+  severity: CRITICAL
+  cwe: CWE-916
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: md5\s*\([^)]*(?:password|passwd|pwd)
+    confidence: 0.93
+  fix: Use password_hash() with PASSWORD_BCRYPT
+  tags:
+  - crypto
+  - password
+- id: GHOST-PHP-CRYPTO-002
+  name: sha1 password
+  description: sha1() for password hash
+  severity: CRITICAL
+  cwe: CWE-916
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: sha1\s*\([^)]*(?:password|passwd|pwd)
+    confidence: 0.93
+  fix: Use password_hash() with PASSWORD_BCRYPT
+  tags:
+  - crypto
+  - password
+- id: GHOST-PHP-CRYPTO-003
+  name: rand() for security
+  description: rand()/mt_rand() for token
+  severity: HIGH
+  cwe: CWE-338
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.89
+  patterns:
+  - type: regex
+    pattern: (?:mt_)?rand\s*\(\s*\)(?=[\s\S]{0,100}(?:token|key|secret|password))
+    confidence: 0.89
+  fix: Use random_bytes() for security tokens
+  tags:
+  - crypto
+  - random
+- id: GHOST-PHP-CRYPTO-004
+  name: openssl no verify
+  description: SSL certificate not verified
+  severity: HIGH
+  cwe: CWE-295
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.94
+  patterns:
+  - type: regex
+    pattern: CURLOPT_SSL_VERIFYPEER\s*,\s*(?:0|false)
+    confidence: 0.94
+  fix: Enable SSL peer verification
+  tags:
+  - ssl
+  - tls
+- id: GHOST-PHP-CRYPTO-005
+  name: Hardcoded secret PHP
+  description: Secret as PHP string
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: \$(?:secret|api_key|password|token)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.88
+  fix: Use environment variables
+  tags:
+  - hardcoded
+  - secret
+- id: GHOST-PHP-XXE-001
+  name: simplexml XXE
+  description: simplexml_load_string with entities
+  severity: HIGH
+  cwe: CWE-611
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: simplexml_load_string\s*\([^)]*(?:\$_GET|\$_POST|\$_REQUEST)
+    confidence: 0.88
+  fix: Disable external entities with libxml_disable_entity_loader()
+  tags:
+  - xxe
+  - xml
+- id: GHOST-PHP-XXE-002
+  name: DOMDocument XXE
+  description: DOMDocument load with entities
+  severity: HIGH
+  cwe: CWE-611
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: (?:new\s+DOMDocument|DOMDocument\s*\(\s*\))(?![\s\S]{0,100}LIBXML_NOENT\s*,\s*false)
+    confidence: 0.87
+  fix: Disable LIBXML_NOENT flag
+  tags:
+  - xxe
+  - xml
+- id: GHOST-PHP-REDIRECT-001
+  name: header redirect
+  description: header() redirect with user URL
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: header\s*\(\s*["\']Location:\s*["\'][^)]*\$_(?:GET|POST|REQUEST)
+    confidence: 0.9
+  fix: Validate redirect URL against allowlist
+  tags:
+  - redirect
+- id: GHOST-PHP-SESSION-001
+  name: Session fixation PHP
+  description: session_id set from user input
+  severity: HIGH
+  cwe: CWE-384
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: session_id\s*\(\s*\$_(?:GET|POST|COOKIE)
+    confidence: 0.9
+  fix: Never set session_id from user input
+  tags:
+  - session
+  - fixation
+- id: GHOST-PHP-DEBUG-001
+  name: display_errors on
+  description: PHP display_errors enabled
+  severity: HIGH
+  cwe: CWE-209
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: (?:ini_set|display_errors)\s*\(["\']display_errors["\'],\s*(?:1|["\']On["\'])
+    confidence: 0.91
+  fix: Disable display_errors in production
+  tags:
+  - debug
+  - disclosure
+- id: GHOST-PHP-EXPOSE-001
+  name: PHP version exposed
+  description: expose_php enabled
+  severity: LOW
+  cwe: CWE-200
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: expose_php\s*=\s*On
+    confidence: 0.88
+  fix: Set expose_php = Off in php.ini
+  tags:
+  - disclosure
+  - php
+- id: GHOST-PHP-GLOB-001
+  name: extract() pollution
+  description: extract($_POST) variable injection
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.94
+  patterns:
+  - type: regex
+    pattern: extract\s*\(\s*\$_(?:GET|POST|REQUEST)
+    confidence: 0.94
+  fix: Never use extract() on user-controlled arrays
+  tags:
+  - injection
+  - extract
+- id: GHOST-PHP-GLOB-002
+  name: register_globals risk
+  description: register_globals detection
+  severity: HIGH
+  cwe: CWE-473
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: register_globals\s*=\s*(?:On|1|true)
+    confidence: 0.92
+  fix: Disable register_globals in php.ini
+  tags:
+  - injection
+  - globals
+- id: GHOST-PHP-TRUST-001
+  name: preg_replace /e flag
+  description: preg_replace with /e eval modifier
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: preg_replace\s*\(["\'][^"\']*\/e["\']
+    confidence: 0.95
+  fix: Use preg_replace_callback() instead
+  tags:
+  - eval
+  - regex
+- id: GHOST-PHP-TRUST-002
+  name: Hardcoded DB creds
+  description: MySQL connect with literal creds
+  severity: CRITICAL
+  cwe: CWE-259
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: mysqli_connect\s*\(["\'][^"\']+["\'],\s*["\'][^"\']+["\'],\s*["\'][^"\']+["\']
+    confidence: 0.91
+  fix: Use environment variables for DB credentials
+  tags:
+  - hardcoded
+  - database
+- id: GHOST-PHP-TRUST-003
+  name: popen injection
+  description: popen() with user input
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: popen\s*\([^)]*\$_(?:GET|POST|REQUEST)
+    confidence: 0.93
+  fix: Sanitize input; use escapeshellarg()
+  tags:
+  - command
+  - injection
+- id: GHOST-PHP-TRUST-004
+  name: CSRF missing PHP
+  description: POST form without CSRF token
+  severity: HIGH
+  cwe: CWE-352
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: <form[^>]*method=["\']post["\'](?![\s\S]{0,200}csrf_token|[\s\S]{0,200}_token)
+    confidence: 0.78
+  fix: Add CSRF token to all POST forms
+  tags:
+  - csrf
+- id: GHOST-PHP-TRUST-005
+  name: Null byte injection
+  description: Null byte in user input
+  severity: HIGH
+  cwe: CWE-626
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: \$_(?:GET|POST|REQUEST)\[[^\]]+\](?![\s\S]{0,100}str_replace.*\\0)
+    confidence: 0.86
+  fix: Filter null bytes from all user input
+  tags:
+  - injection
+  - nullbyte
+- id: GHOST-PHP-TRUST-006
+  name: Type juggling
+  description: Loose comparison ==
+  severity: HIGH
+  cwe: CWE-697
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: (?:password_verify|strcmp)\s*\([^)]+\)\s*==\s*(?:0|true|false)(?!\s*===)
+    confidence: 0.85
+  fix: Use strict comparison === for auth checks
+  tags:
+  - type_juggling
+  - auth
+- id: GHOST-PHP-TRUST-007
+  name: Object injection via cookie
+  description: unserialize on cookie
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: unserialize\s*\(\s*\$_COOKIE
+    confidence: 0.95
+  fix: Never unserialize cookie data
+  tags:
+  - deserialization
+  - cookie
+- id: GHOST-PHP-TRUST-008
+  name: HTTP param pollution
+  description: Duplicate params exploited
+  severity: MEDIUM
+  cwe: CWE-20
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: \$_REQUEST\[
+    confidence: 0.78
+  fix: Prefer $_GET or $_POST; avoid $_REQUEST
+  tags:
+  - injection
+  - param
+- id: GHOST-PHP-TRUST-009
+  name: XSS via header
+  description: XSS in Location header
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: header\s*\(\s*["\']Location:[^)]*\$_(?:GET|POST)(?![\s\S]{0,100}htmlspecialchars)
+    confidence: 0.88
+  fix: Sanitize redirect targets
+  tags:
+  - xss
+  - header
+- id: GHOST-PHP-TRUST-010
+  name: Timing attack password
+  description: strcmp for password comparison
+  severity: HIGH
+  cwe: CWE-208
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: strcmp\s*\([^)]*password
+    confidence: 0.87
+  fix: Use hash_equals() for constant-time comparison
+  tags:
+  - timing
+  - auth

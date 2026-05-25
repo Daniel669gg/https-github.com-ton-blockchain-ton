@@ -1,0 +1,600 @@
+- id: GHOST-TON-EXT-001
+  name: TON send_raw_message no bounce
+  description: send_raw_message without bounce flag
+  severity: HIGH
+  cwe: CWE-252
+  owasp: A01:2021
+  languages:
+  - func
+  - tact
+  - fift
+  - tolk
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: send_raw_message\s*\([^,]+,\s*(?:0|1)\s*\)
+    confidence: 0.85
+  fix: Set mode=64 or check bounce flag
+  tags:
+  - ton
+  - message
+- id: GHOST-TON-EXT-002
+  name: TON emit_log without check
+  description: emit_log without validation
+  severity: MEDIUM
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - func
+  - tact
+  - fift
+  - tolk
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: emit_log\s*\([^)]*\)(?!.*require|.*throw)
+    confidence: 0.85
+  fix: Validate before emitting log
+  tags:
+  - ton
+  - log
+- id: GHOST-TON-EXT-003
+  name: TON recv_internal no auth
+  description: recv_internal without sender check
+  severity: CRITICAL
+  cwe: CWE-285
+  owasp: A01:2021
+  languages:
+  - func
+  - tact
+  - fift
+  - tolk
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: recv_internal\s*\([^)]*\)\s*impure\s*\{(?![\s\S]{0,200}equal_slices|[\s\S]{0,200}sender_address)
+    confidence: 0.85
+  fix: Verify sender address in recv_internal
+  tags:
+  - ton
+  - auth
+- id: GHOST-TON-EXT-004
+  name: TON raw_reserve wrong mode
+  description: raw_reserve with wrong mode
+  severity: HIGH
+  cwe: CWE-682
+  owasp: A01:2021
+  languages:
+  - func
+  - tact
+  - fift
+  - tolk
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: raw_reserve\s*\([^,]+,\s*0\s*\)
+    confidence: 0.85
+  fix: Use mode=2 for reserving exact balance
+  tags:
+  - ton
+  - reserve
+- id: GHOST-TON-EXT-005
+  name: TON unsafe slice loading
+  description: Unguarded ~load_uint
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - func
+  - tact
+  - fift
+  - tolk
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: ~load_uint\s*\([^)]*\)(?!.*try|.*catch)
+    confidence: 0.85
+  fix: Use try/catch for slice loading
+  tags:
+  - ton
+  - slice
+- id: GHOST-TON-EXT-006
+  name: TON cell overflow
+  description: Storing too much data in cell
+  severity: HIGH
+  cwe: CWE-400
+  owasp: A01:2021
+  languages:
+  - func
+  - tact
+  - fift
+  - tolk
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: store_uint\s*\([^,]+,\s*(?:25[6-9]|2[6-9]\d|[3-9]\d\d)\s*\)
+    confidence: 0.85
+  fix: Cells hold max 1023 bits; use refs for overflow
+  tags:
+  - ton
+  - cell
+- id: GHOST-TON-EXT-007
+  name: TON msg_value not checked
+  description: msg_value used without validation
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - func
+  - tact
+  - fift
+  - tolk
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: msg_value\s*\(\s*\)(?![\s\S]{0,100}>=|<=|>|<)
+    confidence: 0.85
+  fix: Validate msg_value against expected amount
+  tags:
+  - ton
+  - value
+- id: GHOST-TON-EXT-008
+  name: TON forward amount too low
+  description: Forward fee too low for action
+  severity: MEDIUM
+  cwe: CWE-682
+  owasp: A01:2021
+  languages:
+  - func
+  - tact
+  - fift
+  - tolk
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: forward_ton_amount\s*=\s*0\b
+    confidence: 0.85
+  fix: Set sufficient forward_ton_amount
+  tags:
+  - ton
+  - fee
+- id: GHOST-TON-EXT-009
+  name: TON storage fee ignored
+  description: Storage fee not reserved
+  severity: MEDIUM
+  cwe: CWE-400
+  owasp: A01:2021
+  languages:
+  - func
+  - tact
+  - fift
+  - tolk
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: raw_reserve\s*\([^)]*\)(?![\s\S]{0,100}storage_fee)
+    confidence: 0.85
+  fix: Reserve storage fees explicitly
+  tags:
+  - ton
+  - storage
+- id: GHOST-TON-EXT-010
+  name: TON get_balance misuse
+  description: Calling get_balance in computation
+  severity: HIGH
+  cwe: CWE-362
+  owasp: A01:2021
+  languages:
+  - func
+  - tact
+  - fift
+  - tolk
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: get_balance\s*\(\s*\)(?=[\s\S]{0,100}(?:==|<=|>=))
+    confidence: 0.85
+  fix: Balance can change; use raw_reserve for safety
+  tags:
+  - ton
+  - balance
+- id: GHOST-TON-EXT-011
+  name: TON public key in storage
+  description: Public key stored in state
+  severity: LOW
+  cwe: CWE-312
+  owasp: A01:2021
+  languages:
+  - func
+  - tact
+  - fift
+  - tolk
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: store_uint\s*\([^,]*public_key[^,]*,\s*256\s*\)(?!.*comment.*immutable)
+    confidence: 0.85
+  fix: Document why public key is in state
+  tags:
+  - ton
+  - key
+- id: GHOST-TON-EXT-012
+  name: TON improper message mode
+  description: Message mode 0 may fail silently
+  severity: HIGH
+  cwe: CWE-252
+  owasp: A01:2021
+  languages:
+  - func
+  - tact
+  - fift
+  - tolk
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: send_raw_message\s*\([^,]+,\s*0\s*\)
+    confidence: 0.85
+  fix: Use mode=64+2 to handle errors
+  tags:
+  - ton
+  - message
+- id: GHOST-TON-EXT-013
+  name: TON int overflow FunC
+  description: Integer overflow in FunC arithmetic
+  severity: HIGH
+  cwe: CWE-190
+  owasp: A01:2021
+  languages:
+  - func
+  - tact
+  - fift
+  - tolk
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: \bvar\s+\w+\s*=\s*\w+\s*\*\s*\w+\s*;(?!.*check|.*require)
+    confidence: 0.85
+  fix: Check for overflow before multiplication
+  tags:
+  - ton
+  - arithmetic
+- id: GHOST-TON-EXT-014
+  name: TON cell deserialization loop
+  description: Unbounded cell parsing loop
+  severity: HIGH
+  cwe: CWE-400
+  owasp: A01:2021
+  languages:
+  - func
+  - tact
+  - fift
+  - tolk
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: while\s*\(.*\.remaining\s*\(\s*\)\s*>\s*0\s*\)
+    confidence: 0.85
+  fix: Add maximum iteration guard
+  tags:
+  - ton
+  - dos
+- id: GHOST-TON-EXT-015
+  name: TON owner not validated
+  description: Owner check with wrong address
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A01:2021
+  languages:
+  - func
+  - tact
+  - fift
+  - tolk
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: equal_slices\s*\(\s*sender\s*,\s*my_address\s*\(\s*\)\s*\)
+    confidence: 0.85
+  fix: Compare with stored owner address, not own address
+  tags:
+  - ton
+  - auth
+- id: GHOST-TON-EXT-016
+  name: TON seqno not incremented
+  description: Seqno not updated after use
+  severity: CRITICAL
+  cwe: CWE-294
+  owasp: A01:2021
+  languages:
+  - func
+  - tact
+  - fift
+  - tolk
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: seqno\s*=\s*load_uint\s*\([^)]+\)(?![\s\S]{0,300}seqno\s*\+\s*1)
+    confidence: 0.85
+  fix: Always increment seqno after processing
+  tags:
+  - ton
+  - replay
+- id: GHOST-TON-EXT-017
+  name: TON jetton transfer no comment
+  description: Jetton transfer without forward_payload
+  severity: LOW
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - func
+  - tact
+  - fift
+  - tolk
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: op::transfer\b(?![\s\S]{0,200}forward_payload)
+    confidence: 0.85
+  fix: Include forward_payload for transfer notifications
+  tags:
+  - ton
+  - jetton
+- id: GHOST-TON-EXT-018
+  name: TON missing op validation
+  description: op code not fully validated
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - func
+  - tact
+  - fift
+  - tolk
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: if\s*\(\s*op\s*==\s*op::(?:\w+)\s*\)(?![\s\S]{0,50}else.*throw)
+    confidence: 0.85
+  fix: Add else throw for unknown op codes
+  tags:
+  - ton
+  - op
+- id: GHOST-TON-EXT-019
+  name: TON gas not checked
+  description: Gas limit not set on outgoing message
+  severity: MEDIUM
+  cwe: CWE-400
+  owasp: A01:2021
+  languages:
+  - func
+  - tact
+  - fift
+  - tolk
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: send_raw_message\s*\([^)]*\)(?![\s\S]{0,200}gas_limit)
+    confidence: 0.85
+  fix: Set appropriate gas limits
+  tags:
+  - ton
+  - gas
+- id: GHOST-TON-EXT-020
+  name: TON slice refs ignored
+  description: Cell refs not consumed
+  severity: MEDIUM
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - func
+  - tact
+  - fift
+  - tolk
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: ~load_ref\s*\(\s*\)(?![\s\S]{0,100}end_parse\s*\(\s*\))
+    confidence: 0.85
+  fix: Call end_parse() to ensure all data consumed
+  tags:
+  - ton
+  - parse
+- id: GHOST-TON-EXT-021
+  name: TON wallet v1 use
+  description: Using deprecated wallet v1
+  severity: MEDIUM
+  cwe: CWE-1104
+  owasp: A01:2021
+  languages:
+  - func
+  - tact
+  - fift
+  - tolk
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: wallet_v1r\d
+    confidence: 0.85
+  fix: Migrate to wallet v4 or v5
+  tags:
+  - ton
+  - wallet
+- id: GHOST-TON-EXT-022
+  name: TON no workchain check
+  description: Not validating workchain ID
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - func
+  - tact
+  - fift
+  - tolk
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: ~load_msg_addr\s*\(\s*\)(?![\s\S]{0,100}workchain)
+    confidence: 0.85
+  fix: Validate workchain ID from address
+  tags:
+  - ton
+  - address
+- id: GHOST-TON-EXT-023
+  name: TON large cell serialize
+  description: Storing > 128 bytes in single cell ref
+  severity: MEDIUM
+  cwe: CWE-400
+  owasp: A01:2021
+  languages:
+  - func
+  - tact
+  - fift
+  - tolk
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: store_slice\s*\([^)]*\)(?![\s\S]{0,100}\.get_bits\(\)\s*<=)
+    confidence: 0.85
+  fix: Check data size before storing in cell
+  tags:
+  - ton
+  - cell
+- id: GHOST-TON-EXT-024
+  name: TON config param not validated
+  description: Getting config param without null check
+  severity: HIGH
+  cwe: CWE-476
+  owasp: A01:2021
+  languages:
+  - func
+  - tact
+  - fift
+  - tolk
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: config_param\s*\([^)]*\)(?![\s\S]{0,50}null\s*\?|[\s\S]{0,50}!= null)
+    confidence: 0.85
+  fix: Check config param for null before use
+  tags:
+  - ton
+  - config
+- id: GHOST-TON-EXT-025
+  name: TON jetton master no auth
+  description: Jetton master minting without auth
+  severity: CRITICAL
+  cwe: CWE-285
+  owasp: A01:2021
+  languages:
+  - func
+  - tact
+  - fift
+  - tolk
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: op::mint\b(?![\s\S]{0,200}equal_slices.*admin|[\s\S]{0,200}require.*owner)
+    confidence: 0.85
+  fix: Restrict mint to admin address only
+  tags:
+  - ton
+  - jetton
+- id: GHOST-TON-EXT-026
+  name: TON NFT transfer no auth
+  description: NFT transfer without owner check
+  severity: CRITICAL
+  cwe: CWE-285
+  owasp: A01:2021
+  languages:
+  - func
+  - tact
+  - fift
+  - tolk
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: op::transfer\b(?![\s\S]{0,200}equal_slices.*owner|[\s\S]{0,200}sender.*==.*owner)
+    confidence: 0.85
+  fix: Verify NFT owner before transferring
+  tags:
+  - ton
+  - nft
+- id: GHOST-TON-EXT-027
+  name: TON recv_external replay
+  description: recv_external without seqno check
+  severity: CRITICAL
+  cwe: CWE-294
+  owasp: A01:2021
+  languages:
+  - func
+  - tact
+  - fift
+  - tolk
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: recv_external\s*\([^)]*\)\s*impure\s*\{(?![\s\S]{0,300}seqno)
+    confidence: 0.85
+  fix: Always validate seqno in recv_external
+  tags:
+  - ton
+  - replay
+- id: GHOST-TON-EXT-028
+  name: TON bounce flag missing
+  description: Message without bounce validation
+  severity: MEDIUM
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - func
+  - tact
+  - fift
+  - tolk
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: \.begin_cell\(\)[\s\S]{0,200}\.end_cell\(\)(?![\s\S]{0,100}is_bounce)
+    confidence: 0.85
+  fix: Set bounce flag appropriately
+  tags:
+  - ton
+  - message
+- id: GHOST-TON-EXT-029
+  name: TON timeout not set
+  description: External message without expire_at
+  severity: HIGH
+  cwe: CWE-294
+  owasp: A01:2021
+  languages:
+  - func
+  - tact
+  - fift
+  - tolk
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: recv_external\s*\([^)]*\)(?![\s\S]{0,300}expire_at|[\s\S]{0,300}valid_until)
+    confidence: 0.85
+  fix: Include valid_until to prevent replay
+  tags:
+  - ton
+  - timeout
+- id: GHOST-TON-EXT-030
+  name: TON dict misuse
+  description: Dict operations without error check
+  severity: HIGH
+  cwe: CWE-476
+  owasp: A01:2021
+  languages:
+  - func
+  - tact
+  - fift
+  - tolk
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: ~udict_get_ref\s*\([^)]*\)(?![\s\S]{0,100}!=\s*null|[\s\S]{0,100}null\?)
+    confidence: 0.85
+  fix: Check dict lookup result for null
+  tags:
+  - ton
+  - dict

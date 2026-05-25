@@ -1,0 +1,180 @@
+- id: GHOST-VUE-001
+  name: v-html user data
+  description: v-html binding
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: v-html\s*=\s*["\'][^"\']+["\']|v-html\s*=\s*\{[^}]+\}
+    confidence: 0.86
+  fix: Sanitize with DOMPurify
+  tags:
+  - vue
+  - xss
+- id: GHOST-VUE-002
+  name: Vue $createElement XSS
+  description: Render function with user HTML
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: \$createElement\s*\([^,]+,\s*\{[^}]*domProps[^}]*innerHTML
+    confidence: 0.86
+  fix: Sanitize HTML in domProps
+  tags:
+  - vue
+  - xss
+- id: GHOST-VUE-003
+  name: Vue eval in computed
+  description: eval in computed property
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: computed\s*:\s*\{[^}]*\beval\s*\(
+    confidence: 0.86
+  fix: Remove eval from computed properties
+  tags:
+  - vue
+  - eval
+- id: GHOST-VUE-004
+  name: Vue SSRF axios
+  description: axios request with route param
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: axios\.\w+\s*\([^)]*\$route\.(?:params|query)
+    confidence: 0.86
+  fix: Validate URL before axios call
+  tags:
+  - vue
+  - ssrf
+- id: GHOST-VUE-005
+  name: Nuxt server route no auth
+  description: Nuxt server route without auth
+  severity: HIGH
+  cwe: CWE-306
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: defineEventHandler\s*\([^)]*\)(?![\s\S]{0,300}(?:getHeader|auth|token))
+    confidence: 0.86
+  fix: Add auth middleware to Nuxt routes
+  tags:
+  - nuxt
+  - auth
+- id: GHOST-ANG-001
+  name: Angular bypassSecurity
+  description: Angular DomSanitizer bypass
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: bypassSecurityTrust(?:Html|Script|Style|Url|ResourceUrl)\s*\([^)]*(?:user|input|param)
+    confidence: 0.86
+  fix: Only bypass on fully sanitized content
+  tags:
+  - angular
+  - xss
+- id: GHOST-ANG-002
+  name: Angular eval
+  description: eval in Angular service
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: (?:@Injectable|@Component)[\s\S]{0,500}\beval\s*\(
+    confidence: 0.86
+  fix: Remove eval from Angular services
+  tags:
+  - angular
+  - eval
+- id: GHOST-ANG-003
+  name: Angular HTTP no auth
+  description: HttpClient without auth interceptor
+  severity: HIGH
+  cwe: CWE-306
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: HttpClient[\s\S]{0,200}\.get\s*\([^)]*\)(?![\s\S]{0,100}headers)
+    confidence: 0.86
+  fix: Use HTTP interceptor for auth headers
+  tags:
+  - angular
+  - auth
+- id: GHOST-ANG-004
+  name: Angular SSRF
+  description: Angular HttpClient user URL
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: this\.http\.get\s*\([^)]*(?:this\.url|inputUrl|req\.)
+    confidence: 0.86
+  fix: Validate URL against allowlist
+  tags:
+  - angular
+  - ssrf
+- id: GHOST-ANG-005
+  name: Angular localStorage token
+  description: Token in localStorage Angular
+  severity: HIGH
+  cwe: CWE-922
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: localStorage\.setItem\s*\(["\'](?:token|jwt)["\']
+    confidence: 0.86
+  fix: Use httpOnly cookies instead
+  tags:
+  - angular
+  - auth

@@ -1,0 +1,255 @@
+- id: GHOST-FA-001
+  name: FastAPI missing auth
+  description: Router without auth dependency
+  severity: HIGH
+  cwe: CWE-306
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: '@(?:app|router)\.(?:get|post|put|delete)\s*\([^)]+\)(?![\s\S]{0,200}Depends\s*\([^)]*(?:auth|token|jwt|get_current))'
+    confidence: 0.87
+  fix: Add Depends(get_current_user)
+  tags:
+  - fastapi
+  - auth
+- id: GHOST-FA-002
+  name: FastAPI body injection
+  description: Pydantic bypass with arbitrary_types
+  severity: MEDIUM
+  cwe: CWE-20
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: class\s+Config\s*:[^}]+arbitrary_types_allowed\s*=\s*True
+    confidence: 0.87
+  fix: Avoid arbitrary_types; validate strictly
+  tags:
+  - fastapi
+  - pydantic
+- id: GHOST-FA-003
+  name: FastAPI CORS wildcard
+  description: FastAPI CORS with all origins
+  severity: MEDIUM
+  cwe: CWE-942
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: CORSMiddleware[^)]+allow_origins\s*=\s*\[["\']?\*["\']?\]
+    confidence: 0.87
+  fix: Restrict allow_origins
+  tags:
+  - fastapi
+  - cors
+- id: GHOST-FA-004
+  name: FastAPI debug mode
+  description: DEBUG=True in FastAPI
+  severity: HIGH
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: app\s*=\s*FastAPI\s*\([^)]*debug\s*=\s*True
+    confidence: 0.87
+  fix: Disable debug in production
+  tags:
+  - fastapi
+  - debug
+- id: GHOST-FA-005
+  name: FastAPI path traversal
+  description: File endpoint with user path
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: '@(?:app|router)\.get\s*\([^)]*\{(?:filename|path|file)\}[^)]*\)(?![\s\S]{0,300}\.is_relative_to|[\s\S]{0,300}os\.path\.realpath)'
+    confidence: 0.87
+  fix: Validate path against base dir
+  tags:
+  - fastapi
+  - path
+- id: GHOST-FA-006
+  name: FastAPI SQL injection
+  description: SQLAlchemy with format string in FastAPI
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: db\.execute\s*\([^)]*\.format\s*\(|db\.execute\s*\(f["\']
+    confidence: 0.87
+  fix: Use parameterized SQLAlchemy queries
+  tags:
+  - fastapi
+  - sql
+- id: GHOST-FA-007
+  name: FastAPI SQLi via text()
+  description: text() with user params
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: text\s*\([^)]*f["\'][^"\']*\{[^}]*\}|text\s*\([^)]*\+[^)]*\)
+    confidence: 0.87
+  fix: Use text() with :param placeholders
+  tags:
+  - fastapi
+  - sql
+- id: GHOST-FA-008
+  name: FastAPI background task unsafe
+  description: BackgroundTask with user code
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: BackgroundTasks\s*\)[\s\S]{0,200}add_task\s*\([^)]*(?:eval|exec|import)
+    confidence: 0.87
+  fix: Never background eval user code
+  tags:
+  - fastapi
+  - tasks
+- id: GHOST-FA-009
+  name: FastAPI WebSocket no auth
+  description: WebSocket endpoint without auth
+  severity: HIGH
+  cwe: CWE-306
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: '@(?:app|router)\.websocket\s*\([^)]+\)(?![\s\S]{0,300}(?:token|auth|jwt))'
+    confidence: 0.87
+  fix: Authenticate WebSocket on connect
+  tags:
+  - fastapi
+  - websocket
+- id: GHOST-FA-010
+  name: FastAPI exception verbose
+  description: HTTPException with full error
+  severity: HIGH
+  cwe: CWE-209
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: raise\s+HTTPException\s*\([^)]*detail\s*=\s*str\s*\(
+    confidence: 0.87
+  fix: Return generic error message
+  tags:
+  - fastapi
+  - disclosure
+- id: GHOST-FA-011
+  name: FastAPI no rate limit
+  description: No rate limiting middleware
+  severity: HIGH
+  cwe: CWE-307
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: app\s*=\s*FastAPI\s*\([^)]*\)(?![\s\S]{0,1000}SlowAPI|RateLimiter|rate_limit)
+    confidence: 0.87
+  fix: Add slowapi or fastapi-limiter
+  tags:
+  - fastapi
+  - ratelimit
+- id: GHOST-FA-012
+  name: FastAPI SSRF via httpx
+  description: httpx.AsyncClient with user URL
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: httpx\.AsyncClient\s*\([^)]*\)[\s\S]{0,100}\.get\s*\([^)]*(?:request\.|body\.|query\.)
+    confidence: 0.87
+  fix: Validate URL against allowlist
+  tags:
+  - fastapi
+  - ssrf
+- id: GHOST-FA-013
+  name: Pydantic no validator
+  description: Input model without field validators
+  severity: MEDIUM
+  cwe: CWE-20
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: 'class\s+\w+\s*\(\s*BaseModel\s*\)\s*:\s*\n(?:(?!@validator|@field_validator|Field\(.*pattern).)*class '
+    confidence: 0.87
+  fix: Add field validators for user input
+  tags:
+  - fastapi
+  - validation
+- id: GHOST-FA-014
+  name: FastAPI hardcoded JWT secret
+  description: JWT secret in FastAPI app
+  severity: CRITICAL
+  cwe: CWE-321
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: SECRET_KEY\s*=\s*["\'][^"\']{1,30}["\'](?=[\s\S]{0,500}jwt|[\s\S]{0,500}token)
+    confidence: 0.87
+  fix: Load JWT secret from environment
+  tags:
+  - fastapi
+  - jwt
+- id: GHOST-FA-015
+  name: Async SQLi with asyncpg
+  description: asyncpg query with format
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: await\s+\w+\.(?:fetch|execute)\s*\([^)]*\.format\s*\(|await\s+\w+\.(?:fetch|execute)\s*\(f["\']
+    confidence: 0.87
+  fix: Use parameterized asyncpg queries
+  tags:
+  - fastapi
+  - asyncpg

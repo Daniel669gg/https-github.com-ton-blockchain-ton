@@ -1,0 +1,540 @@
+- id: GHOST-K8S-PRIV-001
+  name: Privileged container
+  description: Container running as privileged
+  severity: CRITICAL
+  cwe: CWE-250
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: privileged:\s*true
+    confidence: 0.95
+  fix: 'Set privileged: false'
+  tags:
+  - kubernetes
+  - privilege
+- id: GHOST-K8S-PRIV-002
+  name: Root container
+  description: Container running as root (UID 0)
+  severity: HIGH
+  cwe: CWE-250
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: runAsUser:\s*0
+    confidence: 0.93
+  fix: Set runAsUser to non-zero UID
+  tags:
+  - kubernetes
+  - root
+- id: GHOST-K8S-PRIV-003
+  name: runAsNonRoot false
+  description: runAsNonRoot explicitly false
+  severity: HIGH
+  cwe: CWE-250
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: runAsNonRoot:\s*false
+    confidence: 0.93
+  fix: 'Set runAsNonRoot: true'
+  tags:
+  - kubernetes
+  - root
+- id: GHOST-K8S-PRIV-004
+  name: AllowPrivilegeEscalation
+  description: 'allowPrivilegeEscalation: true'
+  severity: HIGH
+  cwe: CWE-250
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: allowPrivilegeEscalation:\s*true
+    confidence: 0.93
+  fix: 'Set allowPrivilegeEscalation: false'
+  tags:
+  - kubernetes
+  - privilege
+- id: GHOST-K8S-CAP-001
+  name: CAP_SYS_ADMIN capability
+  description: SYS_ADMIN Linux capability
+  severity: CRITICAL
+  cwe: CWE-250
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: capabilities:\s*\n\s*add:\s*\n\s*-\s*SYS_ADMIN
+    confidence: 0.92
+  fix: Drop all capabilities; add only required ones
+  tags:
+  - kubernetes
+  - capabilities
+- id: GHOST-K8S-CAP-002
+  name: CAP_NET_ADMIN capability
+  description: NET_ADMIN Linux capability
+  severity: HIGH
+  cwe: CWE-250
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: -\s*NET_ADMIN
+    confidence: 0.9
+  fix: Drop NET_ADMIN unless strictly required
+  tags:
+  - kubernetes
+  - capabilities
+- id: GHOST-K8S-CAP-003
+  name: CAP_NET_RAW capability
+  description: NET_RAW Linux capability
+  severity: HIGH
+  cwe: CWE-250
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: -\s*NET_RAW
+    confidence: 0.9
+  fix: Drop NET_RAW to prevent packet injection
+  tags:
+  - kubernetes
+  - capabilities
+- id: GHOST-K8S-CAP-004
+  name: All capabilities added
+  description: Adding ALL capabilities
+  severity: CRITICAL
+  cwe: CWE-250
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.94
+  patterns:
+  - type: regex
+    pattern: -\s*ALL(?=\s*$)
+    confidence: 0.94
+  fix: Specify only required capabilities
+  tags:
+  - kubernetes
+  - capabilities
+- id: GHOST-K8S-NET-001
+  name: HostNetwork access
+  description: Container using host network
+  severity: CRITICAL
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: hostNetwork:\s*true
+    confidence: 0.93
+  fix: Disable hostNetwork unless required
+  tags:
+  - kubernetes
+  - network
+- id: GHOST-K8S-NET-002
+  name: HostPID access
+  description: Container using host PID namespace
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: hostPID:\s*true
+    confidence: 0.92
+  fix: Disable hostPID unless required
+  tags:
+  - kubernetes
+  - pid
+- id: GHOST-K8S-NET-003
+  name: HostIPC access
+  description: Container using host IPC
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: hostIPC:\s*true
+    confidence: 0.92
+  fix: Disable hostIPC unless required
+  tags:
+  - kubernetes
+  - ipc
+- id: GHOST-K8S-NET-004
+  name: No NetworkPolicy
+  description: Pod without NetworkPolicy
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: kind:\s*Pod(?!.*NetworkPolicy)
+    confidence: 0.75
+  fix: Apply NetworkPolicy to restrict pod communication
+  tags:
+  - kubernetes
+  - network
+- id: GHOST-K8S-VOL-001
+  name: HostPath volume
+  description: hostPath volume mount
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: 'hostPath:\s*\n\s*path:'
+    confidence: 0.9
+  fix: Avoid hostPath mounts; use PersistentVolumes
+  tags:
+  - kubernetes
+  - volume
+- id: GHOST-K8S-VOL-002
+  name: Docker socket mount
+  description: Mounting /var/run/docker.sock
+  severity: CRITICAL
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.96
+  patterns:
+  - type: regex
+    pattern: path:\s*/var/run/docker\.sock
+    confidence: 0.96
+  fix: Never mount Docker socket in containers
+  tags:
+  - kubernetes
+  - docker
+- id: GHOST-K8S-VOL-003
+  name: Sensitive host path
+  description: Mounting /etc or /proc
+  severity: CRITICAL
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: path:\s*/(?:etc|proc|sys|root)(?:/|$)
+    confidence: 0.93
+  fix: Never mount sensitive host directories
+  tags:
+  - kubernetes
+  - volume
+- id: GHOST-K8S-SECRET-001
+  name: Secret in env plain
+  description: Secret value in env literal
+  severity: HIGH
+  cwe: CWE-312
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: env:\s*\n(?:.*\n)*.*value:\s*["\'][^"\']{8,}["\'](?=.*(?:PASSWORD|SECRET|KEY|TOKEN))
+    confidence: 0.85
+  fix: Use secretKeyRef for sensitive env vars
+  tags:
+  - kubernetes
+  - secret
+- id: GHOST-K8S-SECRET-002
+  name: No secret encryption
+  description: Kubernetes secrets not encrypted at rest
+  severity: HIGH
+  cwe: CWE-312
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: kind:\s*Secret\n(?!.*EncryptionConfiguration)
+    confidence: 0.78
+  fix: Enable etcd encryption for Kubernetes secrets
+  tags:
+  - kubernetes
+  - encryption
+- id: GHOST-K8S-RBAC-001
+  name: Wildcard RBAC
+  description: RBAC with * verbs
+  severity: HIGH
+  cwe: CWE-285
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: verbs:\s*\n\s*-\s*["\']?\*["\']?
+    confidence: 0.92
+  fix: Use least-privilege RBAC; avoid wildcards
+  tags:
+  - kubernetes
+  - rbac
+- id: GHOST-K8S-RBAC-002
+  name: Wildcard resources RBAC
+  description: RBAC with * resources
+  severity: HIGH
+  cwe: CWE-285
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: resources:\s*\n\s*-\s*["\']?\*["\']?
+    confidence: 0.92
+  fix: Specify exact resource types in RBAC
+  tags:
+  - kubernetes
+  - rbac
+- id: GHOST-K8S-RBAC-003
+  name: ClusterAdmin binding
+  description: ClusterRole binding with cluster-admin
+  severity: CRITICAL
+  cwe: CWE-285
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: roleRef:\s*\n.*name:\s*cluster-admin
+    confidence: 0.93
+  fix: Avoid cluster-admin; use minimal role
+  tags:
+  - kubernetes
+  - rbac
+- id: GHOST-K8S-IMG-001
+  name: Latest image tag
+  description: Container using :latest tag
+  severity: HIGH
+  cwe: CWE-1104
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: image:\s*[^\s:]+:latest\b
+    confidence: 0.9
+  fix: Pin container image tags to specific versions
+  tags:
+  - kubernetes
+  - image
+- id: GHOST-K8S-IMG-002
+  name: No image digest
+  description: Image without digest pin
+  severity: MEDIUM
+  cwe: CWE-1104
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: image:\s*[^\s:]+:[^\s@]+(?!\s*#.*sha256)(?!.*@sha256)
+    confidence: 0.82
+  fix: Use @sha256 digest for image immutability
+  tags:
+  - kubernetes
+  - image
+- id: GHOST-K8S-LIMIT-001
+  name: No resource limits
+  description: Container without resource limits
+  severity: HIGH
+  cwe: CWE-400
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: 'containers:\s*\n(?:(?!limits:).)*\n.*name:'
+    confidence: 0.82
+  fix: Set CPU and memory limits on all containers
+  tags:
+  - kubernetes
+  - resources
+- id: GHOST-K8S-LIMIT-002
+  name: No resource requests
+  description: Container without resource requests
+  severity: MEDIUM
+  cwe: CWE-400
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: 'containers:\s*\n(?:(?!requests:).)*\n.*name:'
+    confidence: 0.8
+  fix: Set CPU and memory requests on containers
+  tags:
+  - kubernetes
+  - resources
+- id: GHOST-K8S-PROBE-001
+  name: No liveness probe
+  description: Container without liveness probe
+  severity: MEDIUM
+  cwe: CWE-400
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: 'containers:\s*\n(?:(?!livenessProbe:).)*\n.*image:'
+    confidence: 0.78
+  fix: Add livenessProbe to detect container failures
+  tags:
+  - kubernetes
+  - reliability
+- id: GHOST-K8S-SEC-001
+  name: No securityContext
+  description: Container without securityContext
+  severity: HIGH
+  cwe: CWE-250
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: 'containers:\s*\n(?:(?!securityContext:).)*\n.*image:'
+    confidence: 0.8
+  fix: Add securityContext to all containers
+  tags:
+  - kubernetes
+  - security
+- id: GHOST-K8S-SEC-002
+  name: ReadOnlyRootFilesystem false
+  description: Writable root filesystem
+  severity: HIGH
+  cwe: CWE-732
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: readOnlyRootFilesystem:\s*false
+    confidence: 0.9
+  fix: 'Set readOnlyRootFilesystem: true'
+  tags:
+  - kubernetes
+  - filesystem
+- id: GHOST-K8S-INGRESS-001
+  name: Ingress TLS missing
+  description: Ingress without TLS configuration
+  severity: HIGH
+  cwe: CWE-319
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: kind:\s*Ingress(?!.*tls:)
+    confidence: 0.83
+  fix: Add TLS configuration to all Ingress resources
+  tags:
+  - kubernetes
+  - tls
+- id: GHOST-K8S-PSP-001
+  name: Pod Security Policy deprecated
+  description: Using deprecated PodSecurityPolicy
+  severity: MEDIUM
+  cwe: CWE-693
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: kind:\s*PodSecurityPolicy
+    confidence: 0.88
+  fix: Migrate to Pod Security Admission (PSA)
+  tags:
+  - kubernetes
+  - psp
+- id: GHOST-K8S-ANNOT-001
+  name: Insecure annotation
+  description: Sensitive data in annotations
+  severity: HIGH
+  cwe: CWE-312
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: 'annotations:.*(?:password|secret|token|key)\s*:'
+    confidence: 0.82
+  fix: Remove sensitive data from annotations
+  tags:
+  - kubernetes
+  - annotation

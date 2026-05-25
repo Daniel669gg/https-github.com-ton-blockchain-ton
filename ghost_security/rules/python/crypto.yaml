@@ -1,29 +1,1019 @@
-- id: GHOST-PY-HASH-001
-  name: Weak hash algorithm MD5
-  description: MD5 is cryptographically broken — not safe for passwords or integrity checks
+- id: GHOST-PY-CRYPTO-001
+  name: MD5 hash
+  description: MD5 is cryptographically broken
   severity: HIGH
   cwe: CWE-327
   owasp: A02:2021
-  languages: [python]
-  confidence: 0.93
+  languages:
+  - python
+  confidence: 0.91
   patterns:
-    - type: regex
-      pattern: 'hashlib\.md5\s*\('
-      confidence: 0.93
-  fix: "Use hashlib.sha256() or argon2 for passwords"
-  tags: [crypto, hash, md5]
-
-- id: GHOST-PY-HASH-002
-  name: Weak hash algorithm SHA-1
-  description: SHA-1 is broken for collision resistance
+  - type: regex
+    pattern: hashlib\.md5\s*\(
+    confidence: 0.91
+  fix: Use SHA-256 or SHA-3
+  tags:
+  - crypto
+  - md5
+- id: GHOST-PY-CRYPTO-002
+  name: SHA1 hash
+  description: SHA1 is cryptographically weak
   severity: HIGH
   cwe: CWE-327
   owasp: A02:2021
-  languages: [python]
+  languages:
+  - python
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: hashlib\.sha1\s*\(
+    confidence: 0.91
+  fix: Use SHA-256 or SHA-3
+  tags:
+  - crypto
+  - sha1
+- id: GHOST-PY-CRYPTO-003
+  name: DES cipher
+  description: DES is broken (56-bit key)
+  severity: CRITICAL
+  cwe: CWE-327
+  owasp: A02:2021
+  languages:
+  - python
   confidence: 0.92
   patterns:
-    - type: regex
-      pattern: 'hashlib\.sha1\s*\('
-      confidence: 0.92
-  fix: "Use hashlib.sha256() or hashlib.sha3_256()"
-  tags: [crypto, hash, sha1]
+  - type: regex
+    pattern: DES\s*\.|Cipher.*DES[^3]
+    confidence: 0.92
+  fix: Use AES-256-GCM
+  tags:
+  - crypto
+  - des
+- id: GHOST-PY-CRYPTO-004
+  name: 3DES cipher
+  description: 3DES vulnerable to Sweet32
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: TripleDES\.|DES3\.|3DES
+    confidence: 0.9
+  fix: Use AES-256-GCM
+  tags:
+  - crypto
+  - 3des
+- id: GHOST-PY-CRYPTO-005
+  name: RC4 cipher
+  description: RC4 is broken
+  severity: CRITICAL
+  cwe: CWE-327
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: \bRC4\b|ARC4\s*\(
+    confidence: 0.92
+  fix: Use ChaCha20-Poly1305 or AES-GCM
+  tags:
+  - crypto
+  - rc4
+- id: GHOST-PY-CRYPTO-006
+  name: ECB mode
+  description: ECB mode reveals patterns
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: MODE_ECB|modes\.ECB
+    confidence: 0.93
+  fix: Use AES-GCM or AES-CBC with random IV
+  tags:
+  - crypto
+  - ecb
+- id: GHOST-PY-CRYPTO-007
+  name: Hardcoded IV
+  description: Static/hardcoded IV
+  severity: HIGH
+  cwe: CWE-329
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: iv\s*=\s*b["\'][^"\']{1,32}["\']
+    confidence: 0.87
+  fix: Generate IV with os.urandom(16)
+  tags:
+  - crypto
+  - iv
+- id: GHOST-PY-CRYPTO-008
+  name: Weak RSA key
+  description: RSA key < 2048 bits
+  severity: HIGH
+  cwe: CWE-326
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: RSA\.generate\s*\(\s*(?:512|768|1024)\b
+    confidence: 0.91
+  fix: Use RSA 2048+ or prefer ECC
+  tags:
+  - crypto
+  - rsa
+- id: GHOST-PY-CRYPTO-009
+  name: Random not cryptographic
+  description: random.random() for secrets
+  severity: HIGH
+  cwe: CWE-338
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: random\.(random|randint|choice|shuffle)\s*\(
+    confidence: 0.88
+  fix: Use secrets module or os.urandom()
+  tags:
+  - crypto
+  - random
+- id: GHOST-PY-CRYPTO-010
+  name: Predictable seed
+  description: random.seed() with constant
+  severity: HIGH
+  cwe: CWE-335
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: random\.seed\s*\(\s*(?:\d+|None)
+    confidence: 0.87
+  fix: Use secrets module for security-sensitive random
+  tags:
+  - crypto
+  - random
+- id: GHOST-PY-CRYPTO-011
+  name: Hardcoded secret key
+  description: SECRET_KEY as literal string
+  severity: CRITICAL
+  cwe: CWE-321
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: SECRET_KEY\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.92
+  fix: Load SECRET_KEY from environment variable
+  tags:
+  - hardcoded
+  - secret
+- id: GHOST-PY-CRYPTO-012
+  name: Hardcoded password
+  description: password variable as literal
+  severity: CRITICAL
+  cwe: CWE-259
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: (?:password|passwd|pwd)\s*=\s*["\'][^"\']{4,}["\']
+    confidence: 0.9
+  fix: Use environment variables or secrets manager
+  tags:
+  - hardcoded
+  - password
+- id: GHOST-PY-CRYPTO-013
+  name: Hardcoded API key
+  description: api_key as string literal
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: (?:api_key|apikey|API_KEY)\s*=\s*["\'][^"\']{10,}["\']
+    confidence: 0.91
+  fix: Use environment variables
+  tags:
+  - hardcoded
+  - apikey
+- id: GHOST-PY-CRYPTO-014
+  name: JWT no verify
+  description: PyJWT decode without verification
+  severity: CRITICAL
+  cwe: CWE-347
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: jwt\.decode\s*\([^)]*verify\s*=\s*False|algorithms\s*=\s*\[\s*["\']none["\']
+    confidence: 0.93
+  fix: Always verify JWT signature
+  tags:
+  - jwt
+  - crypto
+- id: GHOST-PY-CRYPTO-015
+  name: JWT none algorithm
+  description: JWT accepting 'none' algorithm
+  severity: CRITICAL
+  cwe: CWE-347
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: '["\'']none["\''].*algorithm|algorithm.*["\'']none["\'']'
+    confidence: 0.92
+  fix: Reject none algorithm explicitly
+  tags:
+  - jwt
+  - crypto
+- id: GHOST-PY-CRYPTO-016
+  name: Bcrypt rounds too low
+  description: Bcrypt work factor < 10
+  severity: MEDIUM
+  cwe: CWE-916
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: bcrypt\.hashpw\s*\([^,]+,\s*bcrypt\.gensalt\s*\(\s*(?:[1-9])\s*\)
+    confidence: 0.88
+  fix: Use bcrypt rounds >= 12
+  tags:
+  - crypto
+  - bcrypt
+- id: GHOST-PY-CRYPTO-017
+  name: MD5 password hash
+  description: MD5 for password hashing
+  severity: CRITICAL
+  cwe: CWE-916
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: hashlib\.md5\s*\([^)]*password|hashlib\.md5\s*\([^)]*passwd
+    confidence: 0.92
+  fix: Use bcrypt, argon2, or scrypt
+  tags:
+  - crypto
+  - password
+- id: GHOST-PY-CRYPTO-018
+  name: SHA1 password hash
+  description: SHA1 for password hashing
+  severity: CRITICAL
+  cwe: CWE-916
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: hashlib\.sha1\s*\([^)]*password
+    confidence: 0.91
+  fix: Use bcrypt, argon2, or scrypt
+  tags:
+  - crypto
+  - password
+- id: GHOST-PY-CRYPTO-019
+  name: Unsalted hash
+  description: hashlib without salt
+  severity: HIGH
+  cwe: CWE-759
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: hashlib\.(md5|sha1|sha256)\s*\(\s*(?:password|passwd|pwd)\.encode
+    confidence: 0.86
+  fix: Add random salt before hashing passwords
+  tags:
+  - crypto
+  - salt
+- id: GHOST-PY-CRYPTO-020
+  name: TLS verify=False
+  description: requests with SSL verify=False
+  severity: HIGH
+  cwe: CWE-295
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: requests\.\w+\s*\([^)]*verify\s*=\s*False
+    confidence: 0.93
+  fix: Never disable SSL verification
+  tags:
+  - tls
+  - ssl
+- id: GHOST-PY-CRYPTO-021
+  name: SSL unverified context
+  description: ssl._create_unverified_context
+  severity: CRITICAL
+  cwe: CWE-295
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.94
+  patterns:
+  - type: regex
+    pattern: ssl\._create_unverified_context\s*\(
+    confidence: 0.94
+  fix: Use ssl.create_default_context()
+  tags:
+  - ssl
+  - tls
+- id: GHOST-PY-CRYPTO-022
+  name: httpx SSL disabled
+  description: httpx with verify=False
+  severity: HIGH
+  cwe: CWE-295
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: httpx\.\w+\s*\([^)]*verify\s*=\s*False
+    confidence: 0.93
+  fix: Use verify=True (default)
+  tags:
+  - ssl
+  - httpx
+- id: GHOST-PY-CRYPTO-023
+  name: Blowfish cipher
+  description: Blowfish has weak key schedule
+  severity: MEDIUM
+  cwe: CWE-327
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: Blowfish\s*\.|cipher.*blowfish
+    confidence: 0.88
+  fix: Use AES-256-GCM
+  tags:
+  - crypto
+  - blowfish
+- id: GHOST-PY-CRYPTO-024
+  name: Hardcoded private key
+  description: Private key as string literal
+  severity: CRITICAL
+  cwe: CWE-321
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.96
+  patterns:
+  - type: regex
+    pattern: '-----BEGIN (?:RSA |EC )?PRIVATE KEY-----'
+    confidence: 0.96
+  fix: Store private keys in secrets manager
+  tags:
+  - hardcoded
+  - privatekey
+- id: GHOST-PY-CRYPTO-025
+  name: Hardcoded AWS key
+  description: AWS access key ID literal
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: AKIA[0-9A-Z]{16}
+    confidence: 0.95
+  fix: Use IAM roles or AWS Secrets Manager
+  tags:
+  - hardcoded
+  - aws
+- id: GHOST-PY-CRYPTO-026
+  name: Hardcoded GCP key
+  description: GCP service account key
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: '"type":\s*"service_account"'
+    confidence: 0.93
+  fix: Use Workload Identity Federation
+  tags:
+  - hardcoded
+  - gcp
+- id: GHOST-PY-CRYPTO-027
+  name: Hardcoded DB password
+  description: Database connection string with password
+  severity: CRITICAL
+  cwe: CWE-259
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: (?:postgresql|mysql|mongodb)\+?\w*://[^:]+:[^@]+@
+    confidence: 0.93
+  fix: Use environment variables for DB credentials
+  tags:
+  - hardcoded
+  - database
+- id: GHOST-PY-CRYPTO-028
+  name: CBC no MAC
+  description: AES-CBC without authentication
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: MODE_CBC(?!.*(?:hmac|mac|tag|auth))
+    confidence: 0.85
+  fix: Use AES-GCM which provides authentication
+  tags:
+  - crypto
+  - cbc
+- id: GHOST-PY-CRYPTO-029
+  name: Padding oracle risk
+  description: Manual CBC padding
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: pad\s*=.*block_size|PKCS7\s*\(
+    confidence: 0.83
+  fix: Use AES-GCM to avoid padding oracle attacks
+  tags:
+  - crypto
+  - padding
+- id: GHOST-PY-CRYPTO-030
+  name: Hardcoded token
+  description: Bearer/API token literal
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: (?:Bearer|token)\s+[A-Za-z0-9_\-\.]{20,}
+    confidence: 0.88
+  fix: Use environment variables for tokens
+  tags:
+  - hardcoded
+  - token
+- id: GHOST-PY-CRYPTO-031
+  name: Insecure hash use
+  description: hashlib with user-controlled algo
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: hashlib\.new\s*\([^)]*request\.
+    confidence: 0.86
+  fix: Never let users control hash algorithm
+  tags:
+  - crypto
+  - hash
+- id: GHOST-PY-CRYPTO-032
+  name: PBKDF2 low iterations
+  description: PBKDF2 with < 100000 iterations
+  severity: MEDIUM
+  cwe: CWE-916
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: pbkdf2_hmac\s*\([^,]*,[^,]*,[^,]*,\s*(?:[1-9]\d{0,4})\s*\)
+    confidence: 0.87
+  fix: Use >= 310000 iterations for PBKDF2
+  tags:
+  - crypto
+  - pbkdf2
+- id: GHOST-PY-CRYPTO-033
+  name: Hardcoded GitHub token
+  description: GitHub PAT in source
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: gh[pousr]_[A-Za-z0-9]{36}|github_token\s*=\s*["\'][^"\']+["\']
+    confidence: 0.95
+  fix: Use environment variables or GitHub Secrets
+  tags:
+  - hardcoded
+  - github
+- id: GHOST-PY-CRYPTO-034
+  name: Hardcoded Slack token
+  description: Slack bot/app token literal
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: xox[baprs]-[0-9A-Za-z\-]{10,}
+    confidence: 0.95
+  fix: Use environment variables for Slack tokens
+  tags:
+  - hardcoded
+  - slack
+- id: GHOST-PY-CRYPTO-035
+  name: Hardcoded Stripe key
+  description: Stripe secret key literal
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.96
+  patterns:
+  - type: regex
+    pattern: sk_live_[0-9A-Za-z]{24}|sk_test_[0-9A-Za-z]{24}
+    confidence: 0.96
+  fix: Use environment variables for payment keys
+  tags:
+  - hardcoded
+  - stripe
+- id: GHOST-PY-CRYPTO-036
+  name: Argon2 low memory
+  description: Argon2 with memory_cost < 65536
+  severity: MEDIUM
+  cwe: CWE-916
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: memory_cost\s*=\s*(?:[1-9]\d{0,3})\b
+    confidence: 0.85
+  fix: Use memory_cost >= 65536 for Argon2
+  tags:
+  - crypto
+  - argon2
+- id: GHOST-PY-CRYPTO-037
+  name: Hardcoded OpenAI key
+  description: OpenAI API key literal
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: sk-[A-Za-z0-9]{48}|openai\.api_key\s*=\s*["\'][^"\']+["\']
+    confidence: 0.95
+  fix: Use environment variables
+  tags:
+  - hardcoded
+  - openai
+- id: GHOST-PY-CRYPTO-038
+  name: Hardcoded Twilio key
+  description: Twilio auth token literal
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: twilio.*auth_token\s*=\s*["\'][0-9a-f]{32}["\']
+    confidence: 0.95
+  fix: Use environment variables
+  tags:
+  - hardcoded
+  - twilio
+- id: GHOST-PY-CRYPTO-039
+  name: Hardcoded SendGrid key
+  description: SendGrid API key literal
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.96
+  patterns:
+  - type: regex
+    pattern: SG\.[A-Za-z0-9_\-]{22}\.[A-Za-z0-9_\-]{43}
+    confidence: 0.96
+  fix: Use environment variables
+  tags:
+  - hardcoded
+  - sendgrid
+- id: GHOST-PY-CRYPTO-040
+  name: Weak SSL protocol
+  description: SSLv2/SSLv3/TLSv1.0 forced
+  severity: CRITICAL
+  cwe: CWE-326
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: ssl\.PROTOCOL_(?:SSLv2|SSLv3|TLSv1(?!_2|_3))
+    confidence: 0.93
+  fix: Use TLS 1.2+ only
+  tags:
+  - ssl
+  - tls
+- id: GHOST-PY-CRYPTO-041
+  name: Crypto key reuse
+  description: Using same key for encrypt and MAC
+  severity: HIGH
+  cwe: CWE-321
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: hmac\.new\s*\([^)]*key.*encrypt|encrypt.*hmac\.new\s*\([^)]*key
+    confidence: 0.8
+  fix: Use separate keys for encryption and MAC
+  tags:
+  - crypto
+  - key
+- id: GHOST-PY-CRYPTO-042
+  name: Insecure nonce
+  description: Nonce counter instead of random
+  severity: HIGH
+  cwe: CWE-330
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: nonce\s*=\s*(?:counter|i\b|n\b|\d+)
+    confidence: 0.82
+  fix: Use os.urandom() for nonces
+  tags:
+  - crypto
+  - nonce
+- id: GHOST-PY-CRYPTO-043
+  name: Hardcoded Heroku key
+  description: Heroku API key literal
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.94
+  patterns:
+  - type: regex
+    pattern: HEROKU_API_KEY\s*=\s*["\'][0-9a-f\-]{36}["\']
+    confidence: 0.94
+  fix: Use environment variables
+  tags:
+  - hardcoded
+  - heroku
+- id: GHOST-PY-CRYPTO-044
+  name: JWT weak secret
+  description: JWT signed with short secret
+  severity: HIGH
+  cwe: CWE-347
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: jwt\.encode\s*\([^)]*,\s*["\'][^"\']{1,15}["\']
+    confidence: 0.87
+  fix: Use a secret >= 256 bits
+  tags:
+  - jwt
+  - weak_secret
+- id: GHOST-PY-CRYPTO-045
+  name: Hardcoded Firebase key
+  description: Firebase service account
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.94
+  patterns:
+  - type: regex
+    pattern: firebase.*private_key\s*=\s*["\']-----BEGIN
+    confidence: 0.94
+  fix: Use environment variables
+  tags:
+  - hardcoded
+  - firebase
+- id: GHOST-PY-CRYPTO-046
+  name: Base64 is not encryption
+  description: Base64-encoded secret mistaken for encryption
+  severity: HIGH
+  cwe: CWE-311
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: base64\.b64encode\s*\([^)]*password|base64\.b64decode.*password
+    confidence: 0.84
+  fix: Base64 is encoding, not encryption
+  tags:
+  - crypto
+  - base64
+- id: GHOST-PY-CRYPTO-047
+  name: XOR encryption
+  description: XOR used as cipher
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: def\s+(?:encrypt|decrypt|xor_cipher|xor_crypt)\s*\([^)]*\).*\^
+    confidence: 0.83
+  fix: XOR is not a secure cipher; use AES-GCM
+  tags:
+  - crypto
+  - xor
+- id: GHOST-PY-CRYPTO-048
+  name: SHA256 password hash
+  description: SHA256 for password (no KDF)
+  severity: HIGH
+  cwe: CWE-916
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: hashlib\.sha256\s*\([^)]*password
+    confidence: 0.88
+  fix: Use bcrypt, argon2, or scrypt for passwords
+  tags:
+  - crypto
+  - password
+- id: GHOST-PY-CRYPTO-049
+  name: Hardcoded JWT secret
+  description: JWT secret as string literal
+  severity: CRITICAL
+  cwe: CWE-321
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: jwt.*secret\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.91
+  fix: Use environment variables for JWT secrets
+  tags:
+  - hardcoded
+  - jwt
+- id: GHOST-PY-CRYPTO-050
+  name: Hardcoded encryption key
+  description: AES key as bytes literal
+  severity: CRITICAL
+  cwe: CWE-321
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: key\s*=\s*b["\'][^"\']{16,32}["\']
+    confidence: 0.9
+  fix: Generate keys with os.urandom() at runtime
+  tags:
+  - hardcoded
+  - crypto
+- id: GHOST-PY-CRYPTO-051
+  name: Deprecated MD4
+  description: MD4 hash algorithm
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.89
+  patterns:
+  - type: regex
+    pattern: md4|MD4
+    confidence: 0.89
+  fix: Use SHA-256 or SHA-3
+  tags:
+  - crypto
+  - md4
+- id: GHOST-PY-CRYPTO-052
+  name: Weak cipher Blowfish
+  description: Blowfish with small block size
+  severity: MEDIUM
+  cwe: CWE-327
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: Cipher\.Blowfish
+    confidence: 0.87
+  fix: Use AES-256-GCM
+  tags:
+  - crypto
+- id: GHOST-PY-CRYPTO-053
+  name: Hardcoded Dropbox token
+  description: Dropbox access token literal
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: dropbox.*token\s*=\s*["\'][A-Za-z0-9_\-]{15,}["\']
+    confidence: 0.93
+  fix: Use environment variables
+  tags:
+  - hardcoded
+  - dropbox
+- id: GHOST-PY-CRYPTO-054
+  name: Hardcoded Mailgun key
+  description: Mailgun API key literal
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: key-[0-9a-f]{32}|mailgun.*key\s*=\s*["\'][^"\']+["\']
+    confidence: 0.93
+  fix: Use environment variables
+  tags:
+  - hardcoded
+  - mailgun
+- id: GHOST-PY-CRYPTO-055
+  name: Insecure Fernet rotation
+  description: Fernet without key rotation
+  severity: MEDIUM
+  cwe: CWE-321
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: Fernet\s*\(\s*key\s*\)(?!.*MultiFernet)
+    confidence: 0.8
+  fix: Use MultiFernet for key rotation support
+  tags:
+  - crypto
+  - fernet
+- id: GHOST-PY-CRYPTO-056
+  name: Hardcoded Elasticsearch creds
+  description: ES basic auth in code
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: Elasticsearch\s*\([^)]*http_auth\s*=\s*\(["\'][^"\']+["\'],\s*["\'][^"\']+["\']
+    confidence: 0.92
+  fix: Use environment variables for ES credentials
+  tags:
+  - hardcoded
+  - elasticsearch
+- id: GHOST-PY-CRYPTO-057
+  name: Hardcoded Mongo URI
+  description: MongoDB URI with credentials
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: mongodb\+srv?://[^:]+:[^@]+@
+    confidence: 0.93
+  fix: Use environment variables for connection strings
+  tags:
+  - hardcoded
+  - mongodb
+- id: GHOST-PY-CRYPTO-058
+  name: Hardcoded Redis password
+  description: Redis URL with password
+  severity: HIGH
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: redis://:?[^@]+@[^/]+
+    confidence: 0.91
+  fix: Use environment variables for Redis auth
+  tags:
+  - hardcoded
+  - redis
+- id: GHOST-PY-CRYPTO-059
+  name: Hardcoded RabbitMQ creds
+  description: AMQP URL with credentials
+  severity: HIGH
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: amqp://[^:]+:[^@]+@
+    confidence: 0.91
+  fix: Use environment variables for AMQP auth
+  tags:
+  - hardcoded
+  - rabbitmq
+- id: GHOST-PY-CRYPTO-060
+  name: Insecure cipher mode OFB
+  description: OFB mode without MAC
+  severity: MEDIUM
+  cwe: CWE-327
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: MODE_OFB
+    confidence: 0.84
+  fix: Use AES-GCM for authenticated encryption
+  tags:
+  - crypto
+  - ofb

@@ -1,0 +1,255 @@
+- id: GHOST-PY-FL-001
+  name: Flask debug PIN exposed
+  description: Werkzeug debugger PIN exposed
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: app\.run\s*\([^)]*debug\s*=\s*True
+    confidence: 0.87
+  fix: Disable debug in production
+  tags:
+  - debug
+  - flask
+- id: GHOST-PY-FL-002
+  name: Flask secret_key weak
+  description: Flask secret_key hardcoded
+  severity: HIGH
+  cwe: CWE-94
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: app\.(?:config\[|secret_key\s*=)\s*["\'][^"\']{1,20}["\']
+    confidence: 0.87
+  fix: Use os.urandom(32)
+  tags:
+  - secret
+  - flask
+- id: GHOST-PY-FL-003
+  name: Flask before_request missing auth
+  description: Blueprint without before_request auth
+  severity: MEDIUM
+  cwe: CWE-94
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: Blueprint\s*\([^)]+\)(?![\s\S]{0,500}before_request)
+    confidence: 0.87
+  fix: Add authentication in before_request hook
+  tags:
+  - auth
+  - flask
+- id: GHOST-PY-FL-004
+  name: Flask session not signed
+  description: Flask session without secret key
+  severity: HIGH
+  cwe: CWE-94
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: app\s*=\s*Flask\s*\([^)]+\)(?![\s\S]{0,200}secret_key)
+    confidence: 0.87
+  fix: Always set app.secret_key before using sessions
+  tags:
+  - session
+  - flask
+- id: GHOST-PY-FL-005
+  name: Flask CORS wildcard
+  description: flask_cors with *
+  severity: MEDIUM
+  cwe: CWE-94
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: CORS\s*\(\s*app\s*\)(?!\s*,)|CORS\s*\(\s*app\s*,\s*origins\s*=\s*["\'][*]["\']
+    confidence: 0.87
+  fix: Restrict origins in CORS()
+  tags:
+  - cors
+  - flask
+- id: GHOST-PY-FL-006
+  name: Flask SQLAlchemy injection
+  description: db.engine.execute with format
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: db\.engine\.execute\s*\([^)]*%\s*\(
+    confidence: 0.87
+  fix: Use parameterized SQLAlchemy
+  tags:
+  - sql
+  - flask
+- id: GHOST-PY-FL-007
+  name: Flask send_file user path
+  description: send_file with request param
+  severity: HIGH
+  cwe: CWE-94
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: send_file\s*\([^)]*request\.(?:args|form|json)
+    confidence: 0.87
+  fix: Validate path before send_file
+  tags:
+  - path
+  - flask
+- id: GHOST-PY-FL-008
+  name: Flask unsafe jsonify
+  description: jsonify with sensitive data
+  severity: HIGH
+  cwe: CWE-94
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: jsonify\s*\([^)]*(?:password|secret|token)
+    confidence: 0.87
+  fix: Filter sensitive fields before jsonify
+  tags:
+  - disclosure
+  - flask
+- id: GHOST-PY-FL-009
+  name: Flask abort with message
+  description: abort() revealing internal message
+  severity: MEDIUM
+  cwe: CWE-94
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: abort\s*\(\s*\d+\s*,\s*[^)]*(?:traceback|exception|error\.args)
+    confidence: 0.87
+  fix: Return generic error messages
+  tags:
+  - disclosure
+  - flask
+- id: GHOST-PY-FL-010
+  name: Flask render_template_string
+  description: render_template_string with input
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: render_template_string\s*\([^)]*(?:request\.|f["\'])
+    confidence: 0.87
+  fix: Use render_template() with file-based templates
+  tags:
+  - ssti
+  - flask
+- id: GHOST-PY-FL-011
+  name: Flask WTF disabled
+  description: WTF_CSRF_ENABLED False
+  severity: HIGH
+  cwe: CWE-94
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: WTF_CSRF_ENABLED\s*=\s*False
+    confidence: 0.87
+  fix: Enable CSRF protection
+  tags:
+  - csrf
+  - flask
+- id: GHOST-PY-FL-012
+  name: Flask testing mode
+  description: TESTING=True in production
+  severity: MEDIUM
+  cwe: CWE-94
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: app\.testing\s*=\s*True|TESTING\s*=\s*True
+    confidence: 0.87
+  fix: Disable TESTING mode in production
+  tags:
+  - debug
+  - flask
+- id: GHOST-PY-FL-013
+  name: Flask redirect user URL
+  description: redirect() with user URL
+  severity: HIGH
+  cwe: CWE-94
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: redirect\s*\([^)]*request\.(?:args|form|json)
+    confidence: 0.87
+  fix: Validate URL against allowlist
+  tags:
+  - redirect
+  - flask
+- id: GHOST-PY-FL-014
+  name: Flask eval in view
+  description: eval() in route handler
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: '@app\.route[^)]*\)[\s\S]{0,200}\beval\s*\('
+    confidence: 0.87
+  fix: Never eval user-controlled code in views
+  tags:
+  - eval
+  - flask
+- id: GHOST-PY-FL-015
+  name: Flask blueprint missing csrf
+  description: Blueprint route without CSRF
+  severity: HIGH
+  cwe: CWE-94
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: '@\w+\.route\s*\([^)]*methods.*POST[^)]*\)(?![\s\S]{0,200}csrf)'
+    confidence: 0.87
+  fix: Add CSRF to POST blueprint routes
+  tags:
+  - csrf
+  - flask

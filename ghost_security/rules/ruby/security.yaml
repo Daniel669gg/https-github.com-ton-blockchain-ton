@@ -1,0 +1,340 @@
+- id: GHOST-RB-SQL-001
+  name: ActiveRecord injection
+  description: where() with string interpolation
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - ruby
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: \.where\s*\(["\'][^"\']*#\{
+    confidence: 0.93
+  fix: Use hash conditions or ? placeholders
+  tags:
+  - sql
+  - activerecord
+- id: GHOST-RB-SQL-002
+  name: find_by_sql injection
+  description: find_by_sql with interpolation
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - ruby
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: find_by_sql\s*\(["\'][^"\']*#\{
+    confidence: 0.93
+  fix: Use parameterized find_by_sql
+  tags:
+  - sql
+  - activerecord
+- id: GHOST-RB-SQL-003
+  name: execute injection
+  description: execute with string interpolation
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - ruby
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: execute\s*\(["\'][^"\']*#\{|ActiveRecord::Base\.connection\.execute\s*\([^)]*\+
+    confidence: 0.92
+  fix: Use parameterized queries
+  tags:
+  - sql
+  - rails
+- id: GHOST-RB-CMD-001
+  name: system() injection
+  description: system() with user input
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - ruby
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: system\s*\([^)]*params\[|system\s*\([^)]*\+
+    confidence: 0.91
+  fix: Use system with array form
+  tags:
+  - command
+  - injection
+- id: GHOST-RB-CMD-002
+  name: eval injection
+  description: eval() with user input
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - ruby
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: \beval\s*\([^)]*(?:params\[|request\.)
+    confidence: 0.93
+  fix: Never eval user input
+  tags:
+  - eval
+  - injection
+- id: GHOST-RB-CMD-003
+  name: backtick injection
+  description: Backtick with interpolation
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - ruby
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: '`[^`]*#\{[^}]*(?:params|request)'
+    confidence: 0.92
+  fix: Avoid backticks with user input
+  tags:
+  - command
+  - injection
+- id: GHOST-RB-DESER-001
+  name: Marshal.load injection
+  description: Marshal.load with user data
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A03:2021
+  languages:
+  - ruby
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: Marshal\.load\s*\([^)]*(?:params\[|Base64\.decode)
+    confidence: 0.93
+  fix: Use JSON instead of Marshal
+  tags:
+  - deserialization
+  - marshal
+- id: GHOST-RB-DESER-002
+  name: YAML.load injection
+  description: YAML.load with user input
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A03:2021
+  languages:
+  - ruby
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: YAML\.load\s*\([^)]*(?:params\[|request\.)
+    confidence: 0.93
+  fix: Use YAML.safe_load()
+  tags:
+  - deserialization
+  - yaml
+- id: GHOST-RB-XSS-001
+  name: raw helper XSS
+  description: Rails raw() with user data
+  severity: CRITICAL
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - ruby
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: =\s*raw\s*[^%\n]*(?:params\[|request\.)
+    confidence: 0.91
+  fix: Use html_escape() or ERB::Util.html_escape
+  tags:
+  - xss
+  - rails
+- id: GHOST-RB-XSS-002
+  name: html_safe XSS
+  description: html_safe on user input
+  severity: CRITICAL
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - ruby
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: params\[[^\]]+\]\.html_safe|request\.\w+\.html_safe
+    confidence: 0.93
+  fix: Never call html_safe on user input
+  tags:
+  - xss
+  - rails
+- id: GHOST-RB-PATH-001
+  name: File.read traversal
+  description: File.read with user path
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - ruby
+  confidence: 0.89
+  patterns:
+  - type: regex
+    pattern: File\.read\s*\([^)]*(?:params\[|request\.)
+    confidence: 0.89
+  fix: Validate path against whitelist
+  tags:
+  - path
+  - traversal
+- id: GHOST-RB-PATH-002
+  name: send_file traversal
+  description: send_file with user path
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - ruby
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: send_file\s*\([^)]*params\[
+    confidence: 0.9
+  fix: Validate file path before send_file
+  tags:
+  - path
+  - rails
+- id: GHOST-RB-MASS-001
+  name: Mass assignment Rails
+  description: Strong parameters not used
+  severity: HIGH
+  cwe: CWE-915
+  owasp: A03:2021
+  languages:
+  - ruby
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: \.update_attributes\s*\(\s*params\[|\.create\s*\(\s*params\[
+    confidence: 0.9
+  fix: Use strong parameters with permit()
+  tags:
+  - mass_assignment
+  - rails
+- id: GHOST-RB-REDIRECT-001
+  name: redirect_to user URL
+  description: redirect_to with user URL
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A03:2021
+  languages:
+  - ruby
+  confidence: 0.89
+  patterns:
+  - type: regex
+    pattern: redirect_to\s+params\[
+    confidence: 0.89
+  fix: Validate URL with URI.parse and check host
+  tags:
+  - redirect
+  - rails
+- id: GHOST-RB-CRYPTO-001
+  name: MD5 Ruby
+  description: Digest::MD5 for password
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A03:2021
+  languages:
+  - ruby
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: Digest::MD5\.(?:hexdigest|digest)\s*\([^)]*(?:password|passwd)
+    confidence: 0.91
+  fix: Use bcrypt gem for password hashing
+  tags:
+  - crypto
+  - md5
+- id: GHOST-RB-CRYPTO-002
+  name: SHA1 Ruby
+  description: Digest::SHA1 for security
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A03:2021
+  languages:
+  - ruby
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: Digest::SHA1\.(?:hexdigest|digest)\s*\(
+    confidence: 0.9
+  fix: Use SHA-256 minimum
+  tags:
+  - crypto
+  - sha1
+- id: GHOST-RB-CRYPTO-003
+  name: rand() Ruby
+  description: Kernel#rand for token
+  severity: HIGH
+  cwe: CWE-338
+  owasp: A03:2021
+  languages:
+  - ruby
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: \brand\s*\([^)]*\)(?=[\s\S]{0,100}(?:token|secret|key))
+    confidence: 0.87
+  fix: Use SecureRandom.hex or urlsafe_base64
+  tags:
+  - crypto
+  - random
+- id: GHOST-RB-CRYPTO-004
+  name: Hardcoded secret Ruby
+  description: Secret string literal
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A03:2021
+  languages:
+  - ruby
+  confidence: 0.89
+  patterns:
+  - type: regex
+    pattern: (?:secret_key_base|api_secret|password)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.89
+  fix: Use Rails credentials or ENV
+  tags:
+  - hardcoded
+  - secret
+- id: GHOST-RB-SSRF-001
+  name: open-uri SSRF
+  description: open() with user URL
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A03:2021
+  languages:
+  - ruby
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: \bopen\s*\([^)]*(?:params\[|request\.)
+    confidence: 0.9
+  fix: Validate URL against allowlist; avoid Kernel#open
+  tags:
+  - ssrf
+  - openuri
+- id: GHOST-RB-REGEX-001
+  name: ReDoS Ruby
+  description: Regexp.new with user pattern
+  severity: HIGH
+  cwe: CWE-730
+  owasp: A03:2021
+  languages:
+  - ruby
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: Regexp\.new\s*\([^)]*(?:params\[|request\.)
+    confidence: 0.87
+  fix: Never compile user-supplied regex
+  tags:
+  - redos
+  - regex

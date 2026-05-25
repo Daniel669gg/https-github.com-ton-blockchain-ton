@@ -1,0 +1,680 @@
+- id: GHOST-CS-001
+  name: SQL injection SqlCommand
+  description: SQL injection SqlCommand detected in C#
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: SqlCommand\s*\([^)]*\+
+    confidence: 0.86
+  fix: Use SqlParameter
+  tags:
+  - cwe_89
+  - csharp
+- id: GHOST-CS-002
+  name: ExecuteNonQuery with concat
+  description: ExecuteNonQuery with concat detected in C#
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: ExecuteNonQuery\s*\(\s*\)(?=[\s\S]{0,200}CommandText\s*=.*\+)
+    confidence: 0.86
+  fix: Use parameters
+  tags:
+  - cwe_89
+  - csharp
+- id: GHOST-CS-003
+  name: SQL injection OleDbCommand
+  description: SQL injection OleDbCommand detected in C#
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: OleDbCommand\s*\([^)]*\+
+    confidence: 0.86
+  fix: Use parameterized OleDb
+  tags:
+  - cwe_89
+  - csharp
+- id: GHOST-CS-004
+  name: Process.Start injection
+  description: Process.Start injection detected in C#
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: Process\.Start\s*\([^)]*(?:Request\.|req\.)
+    confidence: 0.86
+  fix: Validate process args
+  tags:
+  - cwe_78
+  - csharp
+- id: GHOST-CS-005
+  name: Response.Write XSS
+  description: Response.Write XSS detected in C#
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: Response\.Write\s*\([^)]*Request\.
+    confidence: 0.86
+  fix: Use HtmlEncode before Write
+  tags:
+  - cwe_79
+  - csharp
+- id: GHOST-CS-006
+  name: Raw HTML XSS
+  description: Raw HTML XSS detected in C#
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: HtmlHelper\.Raw\s*\([^)]*Request\.
+    confidence: 0.86
+  fix: Use Html.Encode
+  tags:
+  - cwe_79
+  - csharp
+- id: GHOST-CS-007
+  name: Server.Transfer open redirect
+  description: Server.Transfer open redirect detected in C#
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: Server\.Transfer\s*\([^)]*Request\.
+    confidence: 0.86
+  fix: Validate URL before Transfer
+  tags:
+  - cwe_601
+  - csharp
+- id: GHOST-CS-008
+  name: XmlDocument XXE
+  description: XmlDocument XXE detected in C#
+  severity: HIGH
+  cwe: CWE-611
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: new\s+XmlDocument\s*\(\s*\)(?![\s\S]{0,200}ProhibitDtd\s*=\s*true|[\s\S]{0,200}XmlResolver\s*=\s*null)
+    confidence: 0.86
+  fix: Set XmlResolver=null
+  tags:
+  - cwe_611
+  - csharp
+- id: GHOST-CS-009
+  name: BinaryFormatter unsafe
+  description: BinaryFormatter unsafe detected in C#
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: BinaryFormatter\.Deserialize\s*\(
+    confidence: 0.86
+  fix: Use System.Text.Json
+  tags:
+  - cwe_502
+  - csharp
+- id: GHOST-CS-010
+  name: SoapFormatter unsafe
+  description: SoapFormatter unsafe detected in C#
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: SoapFormatter\.Deserialize\s*\(
+    confidence: 0.86
+  fix: Use modern serializer
+  tags:
+  - cwe_502
+  - csharp
+- id: GHOST-CS-011
+  name: NetDataContractSerializer unsafe
+  description: NetDataContractSerializer unsafe detected in C#
+  severity: HIGH
+  cwe: CWE-502
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: NetDataContractSerializer\.ReadObject\s*\(
+    confidence: 0.86
+  fix: Use DataContractSerializer
+  tags:
+  - cwe_502
+  - csharp
+- id: GHOST-CS-012
+  name: LosFormatter unsafe
+  description: LosFormatter unsafe detected in C#
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: LosFormatter\.Deserialize\s*\(
+    confidence: 0.86
+  fix: Use modern serializer
+  tags:
+  - cwe_502
+  - csharp
+- id: GHOST-CS-013
+  name: ObjectStateFormatter unsafe
+  description: ObjectStateFormatter unsafe detected in C#
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: ObjectStateFormatter\.Deserialize\s*\(
+    confidence: 0.86
+  fix: Use modern serializer
+  tags:
+  - cwe_502
+  - csharp
+- id: GHOST-CS-014
+  name: Assembly.Load injection
+  description: Assembly.Load injection detected in C#
+  severity: CRITICAL
+  cwe: CWE-470
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: Assembly\.Load\s*\([^)]*(?:Request\.|req\.)
+    confidence: 0.86
+  fix: Whitelist allowed assemblies
+  tags:
+  - cwe_470
+  - csharp
+- id: GHOST-CS-015
+  name: Type.GetType injection
+  description: Type.GetType injection detected in C#
+  severity: HIGH
+  cwe: CWE-470
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: Type\.GetType\s*\([^)]*(?:Request\.|req\.)
+    confidence: 0.86
+  fix: Whitelist allowed types
+  tags:
+  - cwe_470
+  - csharp
+- id: GHOST-CS-016
+  name: Activator.CreateInstance
+  description: Activator.CreateInstance detected in C#
+  severity: HIGH
+  cwe: CWE-470
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: Activator\.CreateInstance\s*\([^)]*(?:Request\.|req\.)
+    confidence: 0.86
+  fix: Whitelist allowed types
+  tags:
+  - cwe_470
+  - csharp
+- id: GHOST-CS-017
+  name: InvokeMember reflection inject
+  description: InvokeMember reflection inject detected in C#
+  severity: HIGH
+  cwe: CWE-470
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: \.InvokeMember\s*\([^)]*(?:Request\.|req\.)
+    confidence: 0.86
+  fix: Whitelist method names
+  tags:
+  - cwe_470
+  - csharp
+- id: GHOST-CS-018
+  name: MD5 in C#
+  description: MD5 in C# detected in C#
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: MD5\.Create\s*\(\s*\)
+    confidence: 0.86
+  fix: Use SHA-256 minimum
+  tags:
+  - cwe_327
+  - csharp
+- id: GHOST-CS-019
+  name: SHA1 in C#
+  description: SHA1 in C# detected in C#
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: SHA1\.Create\s*\(\s*\)
+    confidence: 0.86
+  fix: Use SHA-256 minimum
+  tags:
+  - cwe_327
+  - csharp
+- id: GHOST-CS-020
+  name: DES cipher in C#
+  description: DES cipher in C# detected in C#
+  severity: CRITICAL
+  cwe: CWE-327
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: DES\.Create\s*\(\s*\)
+    confidence: 0.86
+  fix: Use AES
+  tags:
+  - cwe_327
+  - csharp
+- id: GHOST-CS-021
+  name: RC2 cipher in C#
+  description: RC2 cipher in C# detected in C#
+  severity: CRITICAL
+  cwe: CWE-327
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: RC2\.Create\s*\(\s*\)
+    confidence: 0.86
+  fix: Use AES
+  tags:
+  - cwe_327
+  - csharp
+- id: GHOST-CS-022
+  name: Random not cryptographic
+  description: Random not cryptographic detected in C#
+  severity: HIGH
+  cwe: CWE-338
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: new\s+Random\s*\(\s*\)(?=[\s\S]{0,200}(?:token|secret|password|key))
+    confidence: 0.86
+  fix: Use RNGCryptoServiceProvider
+  tags:
+  - cwe_338
+  - csharp
+- id: GHOST-CS-023
+  name: SSL bypass callback
+  description: SSL bypass callback detected in C#
+  severity: CRITICAL
+  cwe: CWE-295
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: ServicePointManager\.ServerCertificateValidationCallback\s*=
+    confidence: 0.86
+  fix: Implement proper cert validation
+  tags:
+  - cwe_295
+  - csharp
+- id: GHOST-CS-024
+  name: Auto redirect SSRF
+  description: Auto redirect SSRF detected in C#
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: HttpWebRequest.*?AllowAutoRedirect\s*=\s*true(?=[\s\S]{0,200}(?:Location|url))
+    confidence: 0.86
+  fix: Validate redirect URL
+  tags:
+  - cwe_918
+  - csharp
+- id: GHOST-CS-025
+  name: WebClient download user URL
+  description: WebClient download user URL detected in C#
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: WebClient\.DownloadString\s*\([^)]*(?:Request\.|req\.)
+    confidence: 0.86
+  fix: Validate URL before download
+  tags:
+  - cwe_918
+  - csharp
+- id: GHOST-CS-026
+  name: File.ReadAllText traversal
+  description: File.ReadAllText traversal detected in C#
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: File\.ReadAllText\s*\([^)]*(?:Request\.|req\.)
+    confidence: 0.86
+  fix: Validate file path
+  tags:
+  - cwe_22
+  - csharp
+- id: GHOST-CS-027
+  name: Path.Combine traversal
+  description: Path.Combine traversal detected in C#
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: Path\.Combine\s*\([^)]*(?:Request\.|req\.)
+    confidence: 0.86
+  fix: Validate and normalize path
+  tags:
+  - cwe_22
+  - csharp
+- id: GHOST-CS-028
+  name: Directory.Delete user path
+  description: Directory.Delete user path detected in C#
+  severity: CRITICAL
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: Directory\.Delete\s*\([^)]*(?:Request\.|req\.)
+    confidence: 0.86
+  fix: Validate path before delete
+  tags:
+  - cwe_22
+  - csharp
+- id: GHOST-CS-029
+  name: File.Delete user path
+  description: File.Delete user path detected in C#
+  severity: CRITICAL
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: File\.Delete\s*\([^)]*(?:Request\.|req\.)
+    confidence: 0.86
+  fix: Validate path before delete
+  tags:
+  - cwe_22
+  - csharp
+- id: GHOST-CS-030
+  name: Regex with user pattern
+  description: Regex with user pattern detected in C#
+  severity: HIGH
+  cwe: CWE-730
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: Regex\.Match\s*\([^,]+,\s*[^)]*(?:Request\.|req\.)
+    confidence: 0.86
+  fix: Never compile user regex
+  tags:
+  - cwe_730
+  - csharp
+- id: GHOST-CS-031
+  name: String.Format injection
+  description: String.Format injection detected in C#
+  severity: HIGH
+  cwe: CWE-134
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: string\.Format\s*\([^,]+,\s*[^)]*(?:Request\.|req\.)
+    confidence: 0.86
+  fix: Validate format args
+  tags:
+  - cwe_134
+  - csharp
+- id: GHOST-CS-032
+  name: Env var from user input
+  description: Env var from user input detected in C#
+  severity: HIGH
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: Environment\.SetEnvironmentVariable\s*\([^,]+,\s*[^)]*(?:Request\.|req\.)
+    confidence: 0.86
+  fix: Validate before setting env
+  tags:
+  - cwe_94
+  - csharp
+- id: GHOST-CS-033
+  name: Hardcoded secret C#
+  description: Hardcoded secret C# detected in C#
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: '["\''](?:password|passwd|secret|key|token)\s*=\s*[A-Za-z0-9+/=!@#$%^&*]{8,}["\'']'
+    confidence: 0.86
+  fix: Use configuration/vault
+  tags:
+  - cwe_798
+  - csharp
+- id: GHOST-CS-034
+  name: Base64 decode user input
+  description: Base64 decode user input detected in C#
+  severity: MEDIUM
+  cwe: CWE-20
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: Convert\.FromBase64String\s*\([^)]*(?:Request\.|req\.)
+    confidence: 0.86
+  fix: Validate decoded content
+  tags:
+  - cwe_20
+  - csharp
+- id: GHOST-CS-035
+  name: JS deserialize user data
+  description: JS deserialize user data detected in C#
+  severity: HIGH
+  cwe: CWE-502
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: JavaScriptSerializer\.Deserialize\s*\([^)]*(?:Request\.|req\.)
+    confidence: 0.86
+  fix: Use System.Text.Json with schema
+  tags:
+  - cwe_502
+  - csharp
+- id: GHOST-CS-036
+  name: DataContractJson ReadObject
+  description: DataContractJson ReadObject detected in C#
+  severity: MEDIUM
+  cwe: CWE-502
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: DataContractJsonSerializer.*ReadObject\s*\(
+    confidence: 0.86
+  fix: Validate schema after deserialization
+  tags:
+  - cwe_502
+  - csharp
+- id: GHOST-CS-037
+  name: XmlSerializer user data
+  description: XmlSerializer user data detected in C#
+  severity: HIGH
+  cwe: CWE-611
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: XmlSerializer.*Deserialize\s*\([^)]*(?:Request\.|req\.)
+    confidence: 0.86
+  fix: Validate XML schema
+  tags:
+  - cwe_611
+  - csharp
+- id: GHOST-CS-038
+  name: ExecuteScalar SQL inject
+  description: ExecuteScalar SQL inject detected in C#
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: \.ExecuteScalar\s*\(\s*\)(?=[\s\S]{0,300}CommandText.*\+)
+    confidence: 0.86
+  fix: Use SqlParameter
+  tags:
+  - cwe_89
+  - csharp
+- id: GHOST-CS-039
+  name: NHibernate HQL inject
+  description: NHibernate HQL inject detected in C#
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: NHibernate.*CreateQuery\s*\([^)]*\+
+    confidence: 0.86
+  fix: Use parameterized HQL
+  tags:
+  - cwe_89
+  - csharp
+- id: GHOST-CS-040
+  name: Entity SQL inject
+  description: Entity SQL inject detected in C#
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - csharp
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: EntityCommand.*CommandText\s*=\s*[^;]*\+
+    confidence: 0.86
+  fix: Use parameterized Entity SQL
+  tags:
+  - cwe_89
+  - csharp

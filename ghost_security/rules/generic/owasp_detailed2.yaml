@@ -1,0 +1,7200 @@
+- id: GHOST-OWASP-A07-00-00
+  name: Auth Failure (python)
+  description: Auth Failure vulnerability pattern in python
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - python
+- id: GHOST-OWASP-A07-00-01
+  name: Auth Failure (javascript)
+  description: Auth Failure vulnerability pattern in javascript
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - javascript
+- id: GHOST-OWASP-A07-00-02
+  name: Auth Failure (java)
+  description: Auth Failure vulnerability pattern in java
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - java
+- id: GHOST-OWASP-A07-00-03
+  name: Auth Failure (go)
+  description: Auth Failure vulnerability pattern in go
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - go
+- id: GHOST-OWASP-A07-00-04
+  name: Auth Failure (php)
+  description: Auth Failure vulnerability pattern in php
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - php
+- id: GHOST-OWASP-A07-00-05
+  name: Auth Failure (ruby)
+  description: Auth Failure vulnerability pattern in ruby
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - ruby
+- id: GHOST-OWASP-A07-00-06
+  name: Auth Failure (rust)
+  description: Auth Failure vulnerability pattern in rust
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - rust
+- id: GHOST-OWASP-A07-00-07
+  name: Auth Failure (typescript)
+  description: Auth Failure vulnerability pattern in typescript
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - typescript
+- id: GHOST-OWASP-A07-00-08
+  name: Auth Failure (kotlin)
+  description: Auth Failure vulnerability pattern in kotlin
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - kotlin
+- id: GHOST-OWASP-A07-00-09
+  name: Auth Failure (csharp)
+  description: Auth Failure vulnerability pattern in csharp
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - csharp
+- id: GHOST-OWASP-A07-01-00
+  name: Auth Failure (python)
+  description: Auth Failure vulnerability pattern in python
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - python
+- id: GHOST-OWASP-A07-01-01
+  name: Auth Failure (javascript)
+  description: Auth Failure vulnerability pattern in javascript
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - javascript
+- id: GHOST-OWASP-A07-01-02
+  name: Auth Failure (java)
+  description: Auth Failure vulnerability pattern in java
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - java
+- id: GHOST-OWASP-A07-01-03
+  name: Auth Failure (go)
+  description: Auth Failure vulnerability pattern in go
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - go
+- id: GHOST-OWASP-A07-01-04
+  name: Auth Failure (php)
+  description: Auth Failure vulnerability pattern in php
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - php
+- id: GHOST-OWASP-A07-01-05
+  name: Auth Failure (ruby)
+  description: Auth Failure vulnerability pattern in ruby
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - ruby
+- id: GHOST-OWASP-A07-01-06
+  name: Auth Failure (rust)
+  description: Auth Failure vulnerability pattern in rust
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - rust
+- id: GHOST-OWASP-A07-01-07
+  name: Auth Failure (typescript)
+  description: Auth Failure vulnerability pattern in typescript
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - typescript
+- id: GHOST-OWASP-A07-01-08
+  name: Auth Failure (kotlin)
+  description: Auth Failure vulnerability pattern in kotlin
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - kotlin
+- id: GHOST-OWASP-A07-01-09
+  name: Auth Failure (csharp)
+  description: Auth Failure vulnerability pattern in csharp
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - csharp
+- id: GHOST-OWASP-A07-02-00
+  name: Auth Failure (python)
+  description: Auth Failure vulnerability pattern in python
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - python
+- id: GHOST-OWASP-A07-02-01
+  name: Auth Failure (javascript)
+  description: Auth Failure vulnerability pattern in javascript
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - javascript
+- id: GHOST-OWASP-A07-02-02
+  name: Auth Failure (java)
+  description: Auth Failure vulnerability pattern in java
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - java
+- id: GHOST-OWASP-A07-02-03
+  name: Auth Failure (go)
+  description: Auth Failure vulnerability pattern in go
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - go
+- id: GHOST-OWASP-A07-02-04
+  name: Auth Failure (php)
+  description: Auth Failure vulnerability pattern in php
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - php
+- id: GHOST-OWASP-A07-02-05
+  name: Auth Failure (ruby)
+  description: Auth Failure vulnerability pattern in ruby
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - ruby
+- id: GHOST-OWASP-A07-02-06
+  name: Auth Failure (rust)
+  description: Auth Failure vulnerability pattern in rust
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - rust
+- id: GHOST-OWASP-A07-02-07
+  name: Auth Failure (typescript)
+  description: Auth Failure vulnerability pattern in typescript
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - typescript
+- id: GHOST-OWASP-A07-02-08
+  name: Auth Failure (kotlin)
+  description: Auth Failure vulnerability pattern in kotlin
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - kotlin
+- id: GHOST-OWASP-A07-02-09
+  name: Auth Failure (csharp)
+  description: Auth Failure vulnerability pattern in csharp
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - csharp
+- id: GHOST-OWASP-A07-03-00
+  name: Auth Failure (python)
+  description: Auth Failure vulnerability pattern in python
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - python
+- id: GHOST-OWASP-A07-03-01
+  name: Auth Failure (javascript)
+  description: Auth Failure vulnerability pattern in javascript
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - javascript
+- id: GHOST-OWASP-A07-03-02
+  name: Auth Failure (java)
+  description: Auth Failure vulnerability pattern in java
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - java
+- id: GHOST-OWASP-A07-03-03
+  name: Auth Failure (go)
+  description: Auth Failure vulnerability pattern in go
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - go
+- id: GHOST-OWASP-A07-03-04
+  name: Auth Failure (php)
+  description: Auth Failure vulnerability pattern in php
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - php
+- id: GHOST-OWASP-A07-03-05
+  name: Auth Failure (ruby)
+  description: Auth Failure vulnerability pattern in ruby
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - ruby
+- id: GHOST-OWASP-A07-03-06
+  name: Auth Failure (rust)
+  description: Auth Failure vulnerability pattern in rust
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - rust
+- id: GHOST-OWASP-A07-03-07
+  name: Auth Failure (typescript)
+  description: Auth Failure vulnerability pattern in typescript
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - typescript
+- id: GHOST-OWASP-A07-03-08
+  name: Auth Failure (kotlin)
+  description: Auth Failure vulnerability pattern in kotlin
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - kotlin
+- id: GHOST-OWASP-A07-03-09
+  name: Auth Failure (csharp)
+  description: Auth Failure vulnerability pattern in csharp
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - csharp
+- id: GHOST-OWASP-A07-04-00
+  name: Auth Failure (python)
+  description: Auth Failure vulnerability pattern in python
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - python
+- id: GHOST-OWASP-A07-04-01
+  name: Auth Failure (javascript)
+  description: Auth Failure vulnerability pattern in javascript
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - javascript
+- id: GHOST-OWASP-A07-04-02
+  name: Auth Failure (java)
+  description: Auth Failure vulnerability pattern in java
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - java
+- id: GHOST-OWASP-A07-04-03
+  name: Auth Failure (go)
+  description: Auth Failure vulnerability pattern in go
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - go
+- id: GHOST-OWASP-A07-04-04
+  name: Auth Failure (php)
+  description: Auth Failure vulnerability pattern in php
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - php
+- id: GHOST-OWASP-A07-04-05
+  name: Auth Failure (ruby)
+  description: Auth Failure vulnerability pattern in ruby
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - ruby
+- id: GHOST-OWASP-A07-04-06
+  name: Auth Failure (rust)
+  description: Auth Failure vulnerability pattern in rust
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - rust
+- id: GHOST-OWASP-A07-04-07
+  name: Auth Failure (typescript)
+  description: Auth Failure vulnerability pattern in typescript
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - typescript
+- id: GHOST-OWASP-A07-04-08
+  name: Auth Failure (kotlin)
+  description: Auth Failure vulnerability pattern in kotlin
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - kotlin
+- id: GHOST-OWASP-A07-04-09
+  name: Auth Failure (csharp)
+  description: Auth Failure vulnerability pattern in csharp
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - csharp
+- id: GHOST-OWASP-A07-05-00
+  name: Auth Failure (python)
+  description: Auth Failure vulnerability pattern in python
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - python
+- id: GHOST-OWASP-A07-05-01
+  name: Auth Failure (javascript)
+  description: Auth Failure vulnerability pattern in javascript
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - javascript
+- id: GHOST-OWASP-A07-05-02
+  name: Auth Failure (java)
+  description: Auth Failure vulnerability pattern in java
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - java
+- id: GHOST-OWASP-A07-05-03
+  name: Auth Failure (go)
+  description: Auth Failure vulnerability pattern in go
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - go
+- id: GHOST-OWASP-A07-05-04
+  name: Auth Failure (php)
+  description: Auth Failure vulnerability pattern in php
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - php
+- id: GHOST-OWASP-A07-05-05
+  name: Auth Failure (ruby)
+  description: Auth Failure vulnerability pattern in ruby
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - ruby
+- id: GHOST-OWASP-A07-05-06
+  name: Auth Failure (rust)
+  description: Auth Failure vulnerability pattern in rust
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - rust
+- id: GHOST-OWASP-A07-05-07
+  name: Auth Failure (typescript)
+  description: Auth Failure vulnerability pattern in typescript
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - typescript
+- id: GHOST-OWASP-A07-05-08
+  name: Auth Failure (kotlin)
+  description: Auth Failure vulnerability pattern in kotlin
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - kotlin
+- id: GHOST-OWASP-A07-05-09
+  name: Auth Failure (csharp)
+  description: Auth Failure vulnerability pattern in csharp
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - csharp
+- id: GHOST-OWASP-A07-06-00
+  name: Auth Failure (python)
+  description: Auth Failure vulnerability pattern in python
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - python
+- id: GHOST-OWASP-A07-06-01
+  name: Auth Failure (javascript)
+  description: Auth Failure vulnerability pattern in javascript
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - javascript
+- id: GHOST-OWASP-A07-06-02
+  name: Auth Failure (java)
+  description: Auth Failure vulnerability pattern in java
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - java
+- id: GHOST-OWASP-A07-06-03
+  name: Auth Failure (go)
+  description: Auth Failure vulnerability pattern in go
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - go
+- id: GHOST-OWASP-A07-06-04
+  name: Auth Failure (php)
+  description: Auth Failure vulnerability pattern in php
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - php
+- id: GHOST-OWASP-A07-06-05
+  name: Auth Failure (ruby)
+  description: Auth Failure vulnerability pattern in ruby
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - ruby
+- id: GHOST-OWASP-A07-06-06
+  name: Auth Failure (rust)
+  description: Auth Failure vulnerability pattern in rust
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - rust
+- id: GHOST-OWASP-A07-06-07
+  name: Auth Failure (typescript)
+  description: Auth Failure vulnerability pattern in typescript
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - typescript
+- id: GHOST-OWASP-A07-06-08
+  name: Auth Failure (kotlin)
+  description: Auth Failure vulnerability pattern in kotlin
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - kotlin
+- id: GHOST-OWASP-A07-06-09
+  name: Auth Failure (csharp)
+  description: Auth Failure vulnerability pattern in csharp
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - csharp
+- id: GHOST-OWASP-A07-07-00
+  name: Auth Failure (python)
+  description: Auth Failure vulnerability pattern in python
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - python
+- id: GHOST-OWASP-A07-07-01
+  name: Auth Failure (javascript)
+  description: Auth Failure vulnerability pattern in javascript
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - javascript
+- id: GHOST-OWASP-A07-07-02
+  name: Auth Failure (java)
+  description: Auth Failure vulnerability pattern in java
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - java
+- id: GHOST-OWASP-A07-07-03
+  name: Auth Failure (go)
+  description: Auth Failure vulnerability pattern in go
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - go
+- id: GHOST-OWASP-A07-07-04
+  name: Auth Failure (php)
+  description: Auth Failure vulnerability pattern in php
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - php
+- id: GHOST-OWASP-A07-07-05
+  name: Auth Failure (ruby)
+  description: Auth Failure vulnerability pattern in ruby
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - ruby
+- id: GHOST-OWASP-A07-07-06
+  name: Auth Failure (rust)
+  description: Auth Failure vulnerability pattern in rust
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - rust
+- id: GHOST-OWASP-A07-07-07
+  name: Auth Failure (typescript)
+  description: Auth Failure vulnerability pattern in typescript
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - typescript
+- id: GHOST-OWASP-A07-07-08
+  name: Auth Failure (kotlin)
+  description: Auth Failure vulnerability pattern in kotlin
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - kotlin
+- id: GHOST-OWASP-A07-07-09
+  name: Auth Failure (csharp)
+  description: Auth Failure vulnerability pattern in csharp
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - csharp
+- id: GHOST-OWASP-A07-08-00
+  name: Auth Failure (python)
+  description: Auth Failure vulnerability pattern in python
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - python
+- id: GHOST-OWASP-A07-08-01
+  name: Auth Failure (javascript)
+  description: Auth Failure vulnerability pattern in javascript
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - javascript
+- id: GHOST-OWASP-A07-08-02
+  name: Auth Failure (java)
+  description: Auth Failure vulnerability pattern in java
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - java
+- id: GHOST-OWASP-A07-08-03
+  name: Auth Failure (go)
+  description: Auth Failure vulnerability pattern in go
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - go
+- id: GHOST-OWASP-A07-08-04
+  name: Auth Failure (php)
+  description: Auth Failure vulnerability pattern in php
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - php
+- id: GHOST-OWASP-A07-08-05
+  name: Auth Failure (ruby)
+  description: Auth Failure vulnerability pattern in ruby
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - ruby
+- id: GHOST-OWASP-A07-08-06
+  name: Auth Failure (rust)
+  description: Auth Failure vulnerability pattern in rust
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - rust
+- id: GHOST-OWASP-A07-08-07
+  name: Auth Failure (typescript)
+  description: Auth Failure vulnerability pattern in typescript
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - typescript
+- id: GHOST-OWASP-A07-08-08
+  name: Auth Failure (kotlin)
+  description: Auth Failure vulnerability pattern in kotlin
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - kotlin
+- id: GHOST-OWASP-A07-08-09
+  name: Auth Failure (csharp)
+  description: Auth Failure vulnerability pattern in csharp
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - csharp
+- id: GHOST-OWASP-A07-09-00
+  name: Auth Failure (python)
+  description: Auth Failure vulnerability pattern in python
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - python
+- id: GHOST-OWASP-A07-09-01
+  name: Auth Failure (javascript)
+  description: Auth Failure vulnerability pattern in javascript
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - javascript
+- id: GHOST-OWASP-A07-09-02
+  name: Auth Failure (java)
+  description: Auth Failure vulnerability pattern in java
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - java
+- id: GHOST-OWASP-A07-09-03
+  name: Auth Failure (go)
+  description: Auth Failure vulnerability pattern in go
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - go
+- id: GHOST-OWASP-A07-09-04
+  name: Auth Failure (php)
+  description: Auth Failure vulnerability pattern in php
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - php
+- id: GHOST-OWASP-A07-09-05
+  name: Auth Failure (ruby)
+  description: Auth Failure vulnerability pattern in ruby
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - ruby
+- id: GHOST-OWASP-A07-09-06
+  name: Auth Failure (rust)
+  description: Auth Failure vulnerability pattern in rust
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - rust
+- id: GHOST-OWASP-A07-09-07
+  name: Auth Failure (typescript)
+  description: Auth Failure vulnerability pattern in typescript
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - typescript
+- id: GHOST-OWASP-A07-09-08
+  name: Auth Failure (kotlin)
+  description: Auth Failure vulnerability pattern in kotlin
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - kotlin
+- id: GHOST-OWASP-A07-09-09
+  name: Auth Failure (csharp)
+  description: Auth Failure vulnerability pattern in csharp
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate Auth Failure vulnerability
+  tags:
+  - a07
+  - auth_failure
+  - csharp
+- id: GHOST-OWASP-A08-00-00
+  name: Software Integrity (python)
+  description: Software Integrity vulnerability pattern in python
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - python
+- id: GHOST-OWASP-A08-00-01
+  name: Software Integrity (javascript)
+  description: Software Integrity vulnerability pattern in javascript
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - javascript
+- id: GHOST-OWASP-A08-00-02
+  name: Software Integrity (java)
+  description: Software Integrity vulnerability pattern in java
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - java
+- id: GHOST-OWASP-A08-00-03
+  name: Software Integrity (go)
+  description: Software Integrity vulnerability pattern in go
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - go
+- id: GHOST-OWASP-A08-00-04
+  name: Software Integrity (php)
+  description: Software Integrity vulnerability pattern in php
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - php
+- id: GHOST-OWASP-A08-00-05
+  name: Software Integrity (ruby)
+  description: Software Integrity vulnerability pattern in ruby
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - ruby
+- id: GHOST-OWASP-A08-00-06
+  name: Software Integrity (rust)
+  description: Software Integrity vulnerability pattern in rust
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - rust
+- id: GHOST-OWASP-A08-00-07
+  name: Software Integrity (typescript)
+  description: Software Integrity vulnerability pattern in typescript
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - typescript
+- id: GHOST-OWASP-A08-00-08
+  name: Software Integrity (kotlin)
+  description: Software Integrity vulnerability pattern in kotlin
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - kotlin
+- id: GHOST-OWASP-A08-00-09
+  name: Software Integrity (csharp)
+  description: Software Integrity vulnerability pattern in csharp
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - csharp
+- id: GHOST-OWASP-A08-01-00
+  name: Software Integrity (python)
+  description: Software Integrity vulnerability pattern in python
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - python
+- id: GHOST-OWASP-A08-01-01
+  name: Software Integrity (javascript)
+  description: Software Integrity vulnerability pattern in javascript
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - javascript
+- id: GHOST-OWASP-A08-01-02
+  name: Software Integrity (java)
+  description: Software Integrity vulnerability pattern in java
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - java
+- id: GHOST-OWASP-A08-01-03
+  name: Software Integrity (go)
+  description: Software Integrity vulnerability pattern in go
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - go
+- id: GHOST-OWASP-A08-01-04
+  name: Software Integrity (php)
+  description: Software Integrity vulnerability pattern in php
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - php
+- id: GHOST-OWASP-A08-01-05
+  name: Software Integrity (ruby)
+  description: Software Integrity vulnerability pattern in ruby
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - ruby
+- id: GHOST-OWASP-A08-01-06
+  name: Software Integrity (rust)
+  description: Software Integrity vulnerability pattern in rust
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - rust
+- id: GHOST-OWASP-A08-01-07
+  name: Software Integrity (typescript)
+  description: Software Integrity vulnerability pattern in typescript
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - typescript
+- id: GHOST-OWASP-A08-01-08
+  name: Software Integrity (kotlin)
+  description: Software Integrity vulnerability pattern in kotlin
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - kotlin
+- id: GHOST-OWASP-A08-01-09
+  name: Software Integrity (csharp)
+  description: Software Integrity vulnerability pattern in csharp
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - csharp
+- id: GHOST-OWASP-A08-02-00
+  name: Software Integrity (python)
+  description: Software Integrity vulnerability pattern in python
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - python
+- id: GHOST-OWASP-A08-02-01
+  name: Software Integrity (javascript)
+  description: Software Integrity vulnerability pattern in javascript
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - javascript
+- id: GHOST-OWASP-A08-02-02
+  name: Software Integrity (java)
+  description: Software Integrity vulnerability pattern in java
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - java
+- id: GHOST-OWASP-A08-02-03
+  name: Software Integrity (go)
+  description: Software Integrity vulnerability pattern in go
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - go
+- id: GHOST-OWASP-A08-02-04
+  name: Software Integrity (php)
+  description: Software Integrity vulnerability pattern in php
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - php
+- id: GHOST-OWASP-A08-02-05
+  name: Software Integrity (ruby)
+  description: Software Integrity vulnerability pattern in ruby
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - ruby
+- id: GHOST-OWASP-A08-02-06
+  name: Software Integrity (rust)
+  description: Software Integrity vulnerability pattern in rust
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - rust
+- id: GHOST-OWASP-A08-02-07
+  name: Software Integrity (typescript)
+  description: Software Integrity vulnerability pattern in typescript
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - typescript
+- id: GHOST-OWASP-A08-02-08
+  name: Software Integrity (kotlin)
+  description: Software Integrity vulnerability pattern in kotlin
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - kotlin
+- id: GHOST-OWASP-A08-02-09
+  name: Software Integrity (csharp)
+  description: Software Integrity vulnerability pattern in csharp
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - csharp
+- id: GHOST-OWASP-A08-03-00
+  name: Software Integrity (python)
+  description: Software Integrity vulnerability pattern in python
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - python
+- id: GHOST-OWASP-A08-03-01
+  name: Software Integrity (javascript)
+  description: Software Integrity vulnerability pattern in javascript
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - javascript
+- id: GHOST-OWASP-A08-03-02
+  name: Software Integrity (java)
+  description: Software Integrity vulnerability pattern in java
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - java
+- id: GHOST-OWASP-A08-03-03
+  name: Software Integrity (go)
+  description: Software Integrity vulnerability pattern in go
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - go
+- id: GHOST-OWASP-A08-03-04
+  name: Software Integrity (php)
+  description: Software Integrity vulnerability pattern in php
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - php
+- id: GHOST-OWASP-A08-03-05
+  name: Software Integrity (ruby)
+  description: Software Integrity vulnerability pattern in ruby
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - ruby
+- id: GHOST-OWASP-A08-03-06
+  name: Software Integrity (rust)
+  description: Software Integrity vulnerability pattern in rust
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - rust
+- id: GHOST-OWASP-A08-03-07
+  name: Software Integrity (typescript)
+  description: Software Integrity vulnerability pattern in typescript
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - typescript
+- id: GHOST-OWASP-A08-03-08
+  name: Software Integrity (kotlin)
+  description: Software Integrity vulnerability pattern in kotlin
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - kotlin
+- id: GHOST-OWASP-A08-03-09
+  name: Software Integrity (csharp)
+  description: Software Integrity vulnerability pattern in csharp
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - csharp
+- id: GHOST-OWASP-A08-04-00
+  name: Software Integrity (python)
+  description: Software Integrity vulnerability pattern in python
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - python
+- id: GHOST-OWASP-A08-04-01
+  name: Software Integrity (javascript)
+  description: Software Integrity vulnerability pattern in javascript
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - javascript
+- id: GHOST-OWASP-A08-04-02
+  name: Software Integrity (java)
+  description: Software Integrity vulnerability pattern in java
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - java
+- id: GHOST-OWASP-A08-04-03
+  name: Software Integrity (go)
+  description: Software Integrity vulnerability pattern in go
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - go
+- id: GHOST-OWASP-A08-04-04
+  name: Software Integrity (php)
+  description: Software Integrity vulnerability pattern in php
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - php
+- id: GHOST-OWASP-A08-04-05
+  name: Software Integrity (ruby)
+  description: Software Integrity vulnerability pattern in ruby
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - ruby
+- id: GHOST-OWASP-A08-04-06
+  name: Software Integrity (rust)
+  description: Software Integrity vulnerability pattern in rust
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - rust
+- id: GHOST-OWASP-A08-04-07
+  name: Software Integrity (typescript)
+  description: Software Integrity vulnerability pattern in typescript
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - typescript
+- id: GHOST-OWASP-A08-04-08
+  name: Software Integrity (kotlin)
+  description: Software Integrity vulnerability pattern in kotlin
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - kotlin
+- id: GHOST-OWASP-A08-04-09
+  name: Software Integrity (csharp)
+  description: Software Integrity vulnerability pattern in csharp
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - csharp
+- id: GHOST-OWASP-A08-05-00
+  name: Software Integrity (python)
+  description: Software Integrity vulnerability pattern in python
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - python
+- id: GHOST-OWASP-A08-05-01
+  name: Software Integrity (javascript)
+  description: Software Integrity vulnerability pattern in javascript
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - javascript
+- id: GHOST-OWASP-A08-05-02
+  name: Software Integrity (java)
+  description: Software Integrity vulnerability pattern in java
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - java
+- id: GHOST-OWASP-A08-05-03
+  name: Software Integrity (go)
+  description: Software Integrity vulnerability pattern in go
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - go
+- id: GHOST-OWASP-A08-05-04
+  name: Software Integrity (php)
+  description: Software Integrity vulnerability pattern in php
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - php
+- id: GHOST-OWASP-A08-05-05
+  name: Software Integrity (ruby)
+  description: Software Integrity vulnerability pattern in ruby
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - ruby
+- id: GHOST-OWASP-A08-05-06
+  name: Software Integrity (rust)
+  description: Software Integrity vulnerability pattern in rust
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - rust
+- id: GHOST-OWASP-A08-05-07
+  name: Software Integrity (typescript)
+  description: Software Integrity vulnerability pattern in typescript
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - typescript
+- id: GHOST-OWASP-A08-05-08
+  name: Software Integrity (kotlin)
+  description: Software Integrity vulnerability pattern in kotlin
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - kotlin
+- id: GHOST-OWASP-A08-05-09
+  name: Software Integrity (csharp)
+  description: Software Integrity vulnerability pattern in csharp
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - csharp
+- id: GHOST-OWASP-A08-06-00
+  name: Software Integrity (python)
+  description: Software Integrity vulnerability pattern in python
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - python
+- id: GHOST-OWASP-A08-06-01
+  name: Software Integrity (javascript)
+  description: Software Integrity vulnerability pattern in javascript
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - javascript
+- id: GHOST-OWASP-A08-06-02
+  name: Software Integrity (java)
+  description: Software Integrity vulnerability pattern in java
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - java
+- id: GHOST-OWASP-A08-06-03
+  name: Software Integrity (go)
+  description: Software Integrity vulnerability pattern in go
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - go
+- id: GHOST-OWASP-A08-06-04
+  name: Software Integrity (php)
+  description: Software Integrity vulnerability pattern in php
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - php
+- id: GHOST-OWASP-A08-06-05
+  name: Software Integrity (ruby)
+  description: Software Integrity vulnerability pattern in ruby
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - ruby
+- id: GHOST-OWASP-A08-06-06
+  name: Software Integrity (rust)
+  description: Software Integrity vulnerability pattern in rust
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - rust
+- id: GHOST-OWASP-A08-06-07
+  name: Software Integrity (typescript)
+  description: Software Integrity vulnerability pattern in typescript
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - typescript
+- id: GHOST-OWASP-A08-06-08
+  name: Software Integrity (kotlin)
+  description: Software Integrity vulnerability pattern in kotlin
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - kotlin
+- id: GHOST-OWASP-A08-06-09
+  name: Software Integrity (csharp)
+  description: Software Integrity vulnerability pattern in csharp
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - csharp
+- id: GHOST-OWASP-A08-07-00
+  name: Software Integrity (python)
+  description: Software Integrity vulnerability pattern in python
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - python
+- id: GHOST-OWASP-A08-07-01
+  name: Software Integrity (javascript)
+  description: Software Integrity vulnerability pattern in javascript
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - javascript
+- id: GHOST-OWASP-A08-07-02
+  name: Software Integrity (java)
+  description: Software Integrity vulnerability pattern in java
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - java
+- id: GHOST-OWASP-A08-07-03
+  name: Software Integrity (go)
+  description: Software Integrity vulnerability pattern in go
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - go
+- id: GHOST-OWASP-A08-07-04
+  name: Software Integrity (php)
+  description: Software Integrity vulnerability pattern in php
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - php
+- id: GHOST-OWASP-A08-07-05
+  name: Software Integrity (ruby)
+  description: Software Integrity vulnerability pattern in ruby
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - ruby
+- id: GHOST-OWASP-A08-07-06
+  name: Software Integrity (rust)
+  description: Software Integrity vulnerability pattern in rust
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - rust
+- id: GHOST-OWASP-A08-07-07
+  name: Software Integrity (typescript)
+  description: Software Integrity vulnerability pattern in typescript
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - typescript
+- id: GHOST-OWASP-A08-07-08
+  name: Software Integrity (kotlin)
+  description: Software Integrity vulnerability pattern in kotlin
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - kotlin
+- id: GHOST-OWASP-A08-07-09
+  name: Software Integrity (csharp)
+  description: Software Integrity vulnerability pattern in csharp
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - csharp
+- id: GHOST-OWASP-A08-08-00
+  name: Software Integrity (python)
+  description: Software Integrity vulnerability pattern in python
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - python
+- id: GHOST-OWASP-A08-08-01
+  name: Software Integrity (javascript)
+  description: Software Integrity vulnerability pattern in javascript
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - javascript
+- id: GHOST-OWASP-A08-08-02
+  name: Software Integrity (java)
+  description: Software Integrity vulnerability pattern in java
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - java
+- id: GHOST-OWASP-A08-08-03
+  name: Software Integrity (go)
+  description: Software Integrity vulnerability pattern in go
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - go
+- id: GHOST-OWASP-A08-08-04
+  name: Software Integrity (php)
+  description: Software Integrity vulnerability pattern in php
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - php
+- id: GHOST-OWASP-A08-08-05
+  name: Software Integrity (ruby)
+  description: Software Integrity vulnerability pattern in ruby
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - ruby
+- id: GHOST-OWASP-A08-08-06
+  name: Software Integrity (rust)
+  description: Software Integrity vulnerability pattern in rust
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - rust
+- id: GHOST-OWASP-A08-08-07
+  name: Software Integrity (typescript)
+  description: Software Integrity vulnerability pattern in typescript
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - typescript
+- id: GHOST-OWASP-A08-08-08
+  name: Software Integrity (kotlin)
+  description: Software Integrity vulnerability pattern in kotlin
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - kotlin
+- id: GHOST-OWASP-A08-08-09
+  name: Software Integrity (csharp)
+  description: Software Integrity vulnerability pattern in csharp
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - csharp
+- id: GHOST-OWASP-A08-09-00
+  name: Software Integrity (python)
+  description: Software Integrity vulnerability pattern in python
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - python
+- id: GHOST-OWASP-A08-09-01
+  name: Software Integrity (javascript)
+  description: Software Integrity vulnerability pattern in javascript
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - javascript
+- id: GHOST-OWASP-A08-09-02
+  name: Software Integrity (java)
+  description: Software Integrity vulnerability pattern in java
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - java
+- id: GHOST-OWASP-A08-09-03
+  name: Software Integrity (go)
+  description: Software Integrity vulnerability pattern in go
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - go
+- id: GHOST-OWASP-A08-09-04
+  name: Software Integrity (php)
+  description: Software Integrity vulnerability pattern in php
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - php
+- id: GHOST-OWASP-A08-09-05
+  name: Software Integrity (ruby)
+  description: Software Integrity vulnerability pattern in ruby
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - ruby
+- id: GHOST-OWASP-A08-09-06
+  name: Software Integrity (rust)
+  description: Software Integrity vulnerability pattern in rust
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - rust
+- id: GHOST-OWASP-A08-09-07
+  name: Software Integrity (typescript)
+  description: Software Integrity vulnerability pattern in typescript
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - typescript
+- id: GHOST-OWASP-A08-09-08
+  name: Software Integrity (kotlin)
+  description: Software Integrity vulnerability pattern in kotlin
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - kotlin
+- id: GHOST-OWASP-A08-09-09
+  name: Software Integrity (csharp)
+  description: Software Integrity vulnerability pattern in csharp
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A08:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate Software Integrity vulnerability
+  tags:
+  - a08
+  - software_integrity
+  - csharp
+- id: GHOST-OWASP-A09-00-00
+  name: Logging Failure (python)
+  description: Logging Failure vulnerability pattern in python
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - python
+- id: GHOST-OWASP-A09-00-01
+  name: Logging Failure (javascript)
+  description: Logging Failure vulnerability pattern in javascript
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - javascript
+- id: GHOST-OWASP-A09-00-02
+  name: Logging Failure (java)
+  description: Logging Failure vulnerability pattern in java
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - java
+- id: GHOST-OWASP-A09-00-03
+  name: Logging Failure (go)
+  description: Logging Failure vulnerability pattern in go
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - go
+- id: GHOST-OWASP-A09-00-04
+  name: Logging Failure (php)
+  description: Logging Failure vulnerability pattern in php
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - php
+- id: GHOST-OWASP-A09-00-05
+  name: Logging Failure (ruby)
+  description: Logging Failure vulnerability pattern in ruby
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - ruby
+- id: GHOST-OWASP-A09-00-06
+  name: Logging Failure (rust)
+  description: Logging Failure vulnerability pattern in rust
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - rust
+- id: GHOST-OWASP-A09-00-07
+  name: Logging Failure (typescript)
+  description: Logging Failure vulnerability pattern in typescript
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - typescript
+- id: GHOST-OWASP-A09-00-08
+  name: Logging Failure (kotlin)
+  description: Logging Failure vulnerability pattern in kotlin
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - kotlin
+- id: GHOST-OWASP-A09-00-09
+  name: Logging Failure (csharp)
+  description: Logging Failure vulnerability pattern in csharp
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - csharp
+- id: GHOST-OWASP-A09-01-00
+  name: Logging Failure (python)
+  description: Logging Failure vulnerability pattern in python
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - python
+- id: GHOST-OWASP-A09-01-01
+  name: Logging Failure (javascript)
+  description: Logging Failure vulnerability pattern in javascript
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - javascript
+- id: GHOST-OWASP-A09-01-02
+  name: Logging Failure (java)
+  description: Logging Failure vulnerability pattern in java
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - java
+- id: GHOST-OWASP-A09-01-03
+  name: Logging Failure (go)
+  description: Logging Failure vulnerability pattern in go
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - go
+- id: GHOST-OWASP-A09-01-04
+  name: Logging Failure (php)
+  description: Logging Failure vulnerability pattern in php
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - php
+- id: GHOST-OWASP-A09-01-05
+  name: Logging Failure (ruby)
+  description: Logging Failure vulnerability pattern in ruby
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - ruby
+- id: GHOST-OWASP-A09-01-06
+  name: Logging Failure (rust)
+  description: Logging Failure vulnerability pattern in rust
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - rust
+- id: GHOST-OWASP-A09-01-07
+  name: Logging Failure (typescript)
+  description: Logging Failure vulnerability pattern in typescript
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - typescript
+- id: GHOST-OWASP-A09-01-08
+  name: Logging Failure (kotlin)
+  description: Logging Failure vulnerability pattern in kotlin
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - kotlin
+- id: GHOST-OWASP-A09-01-09
+  name: Logging Failure (csharp)
+  description: Logging Failure vulnerability pattern in csharp
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - csharp
+- id: GHOST-OWASP-A09-02-00
+  name: Logging Failure (python)
+  description: Logging Failure vulnerability pattern in python
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - python
+- id: GHOST-OWASP-A09-02-01
+  name: Logging Failure (javascript)
+  description: Logging Failure vulnerability pattern in javascript
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - javascript
+- id: GHOST-OWASP-A09-02-02
+  name: Logging Failure (java)
+  description: Logging Failure vulnerability pattern in java
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - java
+- id: GHOST-OWASP-A09-02-03
+  name: Logging Failure (go)
+  description: Logging Failure vulnerability pattern in go
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - go
+- id: GHOST-OWASP-A09-02-04
+  name: Logging Failure (php)
+  description: Logging Failure vulnerability pattern in php
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - php
+- id: GHOST-OWASP-A09-02-05
+  name: Logging Failure (ruby)
+  description: Logging Failure vulnerability pattern in ruby
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - ruby
+- id: GHOST-OWASP-A09-02-06
+  name: Logging Failure (rust)
+  description: Logging Failure vulnerability pattern in rust
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - rust
+- id: GHOST-OWASP-A09-02-07
+  name: Logging Failure (typescript)
+  description: Logging Failure vulnerability pattern in typescript
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - typescript
+- id: GHOST-OWASP-A09-02-08
+  name: Logging Failure (kotlin)
+  description: Logging Failure vulnerability pattern in kotlin
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - kotlin
+- id: GHOST-OWASP-A09-02-09
+  name: Logging Failure (csharp)
+  description: Logging Failure vulnerability pattern in csharp
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - csharp
+- id: GHOST-OWASP-A09-03-00
+  name: Logging Failure (python)
+  description: Logging Failure vulnerability pattern in python
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - python
+- id: GHOST-OWASP-A09-03-01
+  name: Logging Failure (javascript)
+  description: Logging Failure vulnerability pattern in javascript
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - javascript
+- id: GHOST-OWASP-A09-03-02
+  name: Logging Failure (java)
+  description: Logging Failure vulnerability pattern in java
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - java
+- id: GHOST-OWASP-A09-03-03
+  name: Logging Failure (go)
+  description: Logging Failure vulnerability pattern in go
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - go
+- id: GHOST-OWASP-A09-03-04
+  name: Logging Failure (php)
+  description: Logging Failure vulnerability pattern in php
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - php
+- id: GHOST-OWASP-A09-03-05
+  name: Logging Failure (ruby)
+  description: Logging Failure vulnerability pattern in ruby
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - ruby
+- id: GHOST-OWASP-A09-03-06
+  name: Logging Failure (rust)
+  description: Logging Failure vulnerability pattern in rust
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - rust
+- id: GHOST-OWASP-A09-03-07
+  name: Logging Failure (typescript)
+  description: Logging Failure vulnerability pattern in typescript
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - typescript
+- id: GHOST-OWASP-A09-03-08
+  name: Logging Failure (kotlin)
+  description: Logging Failure vulnerability pattern in kotlin
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - kotlin
+- id: GHOST-OWASP-A09-03-09
+  name: Logging Failure (csharp)
+  description: Logging Failure vulnerability pattern in csharp
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - csharp
+- id: GHOST-OWASP-A09-04-00
+  name: Logging Failure (python)
+  description: Logging Failure vulnerability pattern in python
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - python
+- id: GHOST-OWASP-A09-04-01
+  name: Logging Failure (javascript)
+  description: Logging Failure vulnerability pattern in javascript
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - javascript
+- id: GHOST-OWASP-A09-04-02
+  name: Logging Failure (java)
+  description: Logging Failure vulnerability pattern in java
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - java
+- id: GHOST-OWASP-A09-04-03
+  name: Logging Failure (go)
+  description: Logging Failure vulnerability pattern in go
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - go
+- id: GHOST-OWASP-A09-04-04
+  name: Logging Failure (php)
+  description: Logging Failure vulnerability pattern in php
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - php
+- id: GHOST-OWASP-A09-04-05
+  name: Logging Failure (ruby)
+  description: Logging Failure vulnerability pattern in ruby
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - ruby
+- id: GHOST-OWASP-A09-04-06
+  name: Logging Failure (rust)
+  description: Logging Failure vulnerability pattern in rust
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - rust
+- id: GHOST-OWASP-A09-04-07
+  name: Logging Failure (typescript)
+  description: Logging Failure vulnerability pattern in typescript
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - typescript
+- id: GHOST-OWASP-A09-04-08
+  name: Logging Failure (kotlin)
+  description: Logging Failure vulnerability pattern in kotlin
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - kotlin
+- id: GHOST-OWASP-A09-04-09
+  name: Logging Failure (csharp)
+  description: Logging Failure vulnerability pattern in csharp
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - csharp
+- id: GHOST-OWASP-A09-05-00
+  name: Logging Failure (python)
+  description: Logging Failure vulnerability pattern in python
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - python
+- id: GHOST-OWASP-A09-05-01
+  name: Logging Failure (javascript)
+  description: Logging Failure vulnerability pattern in javascript
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - javascript
+- id: GHOST-OWASP-A09-05-02
+  name: Logging Failure (java)
+  description: Logging Failure vulnerability pattern in java
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - java
+- id: GHOST-OWASP-A09-05-03
+  name: Logging Failure (go)
+  description: Logging Failure vulnerability pattern in go
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - go
+- id: GHOST-OWASP-A09-05-04
+  name: Logging Failure (php)
+  description: Logging Failure vulnerability pattern in php
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - php
+- id: GHOST-OWASP-A09-05-05
+  name: Logging Failure (ruby)
+  description: Logging Failure vulnerability pattern in ruby
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - ruby
+- id: GHOST-OWASP-A09-05-06
+  name: Logging Failure (rust)
+  description: Logging Failure vulnerability pattern in rust
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - rust
+- id: GHOST-OWASP-A09-05-07
+  name: Logging Failure (typescript)
+  description: Logging Failure vulnerability pattern in typescript
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - typescript
+- id: GHOST-OWASP-A09-05-08
+  name: Logging Failure (kotlin)
+  description: Logging Failure vulnerability pattern in kotlin
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - kotlin
+- id: GHOST-OWASP-A09-05-09
+  name: Logging Failure (csharp)
+  description: Logging Failure vulnerability pattern in csharp
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - csharp
+- id: GHOST-OWASP-A09-06-00
+  name: Logging Failure (python)
+  description: Logging Failure vulnerability pattern in python
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - python
+- id: GHOST-OWASP-A09-06-01
+  name: Logging Failure (javascript)
+  description: Logging Failure vulnerability pattern in javascript
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - javascript
+- id: GHOST-OWASP-A09-06-02
+  name: Logging Failure (java)
+  description: Logging Failure vulnerability pattern in java
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - java
+- id: GHOST-OWASP-A09-06-03
+  name: Logging Failure (go)
+  description: Logging Failure vulnerability pattern in go
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - go
+- id: GHOST-OWASP-A09-06-04
+  name: Logging Failure (php)
+  description: Logging Failure vulnerability pattern in php
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - php
+- id: GHOST-OWASP-A09-06-05
+  name: Logging Failure (ruby)
+  description: Logging Failure vulnerability pattern in ruby
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - ruby
+- id: GHOST-OWASP-A09-06-06
+  name: Logging Failure (rust)
+  description: Logging Failure vulnerability pattern in rust
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - rust
+- id: GHOST-OWASP-A09-06-07
+  name: Logging Failure (typescript)
+  description: Logging Failure vulnerability pattern in typescript
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - typescript
+- id: GHOST-OWASP-A09-06-08
+  name: Logging Failure (kotlin)
+  description: Logging Failure vulnerability pattern in kotlin
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - kotlin
+- id: GHOST-OWASP-A09-06-09
+  name: Logging Failure (csharp)
+  description: Logging Failure vulnerability pattern in csharp
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - csharp
+- id: GHOST-OWASP-A09-07-00
+  name: Logging Failure (python)
+  description: Logging Failure vulnerability pattern in python
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - python
+- id: GHOST-OWASP-A09-07-01
+  name: Logging Failure (javascript)
+  description: Logging Failure vulnerability pattern in javascript
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - javascript
+- id: GHOST-OWASP-A09-07-02
+  name: Logging Failure (java)
+  description: Logging Failure vulnerability pattern in java
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - java
+- id: GHOST-OWASP-A09-07-03
+  name: Logging Failure (go)
+  description: Logging Failure vulnerability pattern in go
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - go
+- id: GHOST-OWASP-A09-07-04
+  name: Logging Failure (php)
+  description: Logging Failure vulnerability pattern in php
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - php
+- id: GHOST-OWASP-A09-07-05
+  name: Logging Failure (ruby)
+  description: Logging Failure vulnerability pattern in ruby
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - ruby
+- id: GHOST-OWASP-A09-07-06
+  name: Logging Failure (rust)
+  description: Logging Failure vulnerability pattern in rust
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - rust
+- id: GHOST-OWASP-A09-07-07
+  name: Logging Failure (typescript)
+  description: Logging Failure vulnerability pattern in typescript
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - typescript
+- id: GHOST-OWASP-A09-07-08
+  name: Logging Failure (kotlin)
+  description: Logging Failure vulnerability pattern in kotlin
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - kotlin
+- id: GHOST-OWASP-A09-07-09
+  name: Logging Failure (csharp)
+  description: Logging Failure vulnerability pattern in csharp
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - csharp
+- id: GHOST-OWASP-A09-08-00
+  name: Logging Failure (python)
+  description: Logging Failure vulnerability pattern in python
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - python
+- id: GHOST-OWASP-A09-08-01
+  name: Logging Failure (javascript)
+  description: Logging Failure vulnerability pattern in javascript
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - javascript
+- id: GHOST-OWASP-A09-08-02
+  name: Logging Failure (java)
+  description: Logging Failure vulnerability pattern in java
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - java
+- id: GHOST-OWASP-A09-08-03
+  name: Logging Failure (go)
+  description: Logging Failure vulnerability pattern in go
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - go
+- id: GHOST-OWASP-A09-08-04
+  name: Logging Failure (php)
+  description: Logging Failure vulnerability pattern in php
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - php
+- id: GHOST-OWASP-A09-08-05
+  name: Logging Failure (ruby)
+  description: Logging Failure vulnerability pattern in ruby
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - ruby
+- id: GHOST-OWASP-A09-08-06
+  name: Logging Failure (rust)
+  description: Logging Failure vulnerability pattern in rust
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - rust
+- id: GHOST-OWASP-A09-08-07
+  name: Logging Failure (typescript)
+  description: Logging Failure vulnerability pattern in typescript
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - typescript
+- id: GHOST-OWASP-A09-08-08
+  name: Logging Failure (kotlin)
+  description: Logging Failure vulnerability pattern in kotlin
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - kotlin
+- id: GHOST-OWASP-A09-08-09
+  name: Logging Failure (csharp)
+  description: Logging Failure vulnerability pattern in csharp
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - csharp
+- id: GHOST-OWASP-A09-09-00
+  name: Logging Failure (python)
+  description: Logging Failure vulnerability pattern in python
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - python
+- id: GHOST-OWASP-A09-09-01
+  name: Logging Failure (javascript)
+  description: Logging Failure vulnerability pattern in javascript
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - javascript
+- id: GHOST-OWASP-A09-09-02
+  name: Logging Failure (java)
+  description: Logging Failure vulnerability pattern in java
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - java
+- id: GHOST-OWASP-A09-09-03
+  name: Logging Failure (go)
+  description: Logging Failure vulnerability pattern in go
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - go
+- id: GHOST-OWASP-A09-09-04
+  name: Logging Failure (php)
+  description: Logging Failure vulnerability pattern in php
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - php
+- id: GHOST-OWASP-A09-09-05
+  name: Logging Failure (ruby)
+  description: Logging Failure vulnerability pattern in ruby
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - ruby
+- id: GHOST-OWASP-A09-09-06
+  name: Logging Failure (rust)
+  description: Logging Failure vulnerability pattern in rust
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - rust
+- id: GHOST-OWASP-A09-09-07
+  name: Logging Failure (typescript)
+  description: Logging Failure vulnerability pattern in typescript
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - typescript
+- id: GHOST-OWASP-A09-09-08
+  name: Logging Failure (kotlin)
+  description: Logging Failure vulnerability pattern in kotlin
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - kotlin
+- id: GHOST-OWASP-A09-09-09
+  name: Logging Failure (csharp)
+  description: Logging Failure vulnerability pattern in csharp
+  severity: MEDIUM
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate Logging Failure vulnerability
+  tags:
+  - a09
+  - logging_failure
+  - csharp
+- id: GHOST-OWASP-A10-00-00
+  name: SSRF (python)
+  description: SSRF vulnerability pattern in python
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - python
+- id: GHOST-OWASP-A10-00-01
+  name: SSRF (javascript)
+  description: SSRF vulnerability pattern in javascript
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - javascript
+- id: GHOST-OWASP-A10-00-02
+  name: SSRF (java)
+  description: SSRF vulnerability pattern in java
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - java
+- id: GHOST-OWASP-A10-00-03
+  name: SSRF (go)
+  description: SSRF vulnerability pattern in go
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - go
+- id: GHOST-OWASP-A10-00-04
+  name: SSRF (php)
+  description: SSRF vulnerability pattern in php
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - php
+- id: GHOST-OWASP-A10-00-05
+  name: SSRF (ruby)
+  description: SSRF vulnerability pattern in ruby
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - ruby
+- id: GHOST-OWASP-A10-00-06
+  name: SSRF (rust)
+  description: SSRF vulnerability pattern in rust
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - rust
+- id: GHOST-OWASP-A10-00-07
+  name: SSRF (typescript)
+  description: SSRF vulnerability pattern in typescript
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - typescript
+- id: GHOST-OWASP-A10-00-08
+  name: SSRF (kotlin)
+  description: SSRF vulnerability pattern in kotlin
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - kotlin
+- id: GHOST-OWASP-A10-00-09
+  name: SSRF (csharp)
+  description: SSRF vulnerability pattern in csharp
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:execute|query|find|search)\s*\([^)]*\+[^)]*(?:user|input|param)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - csharp
+- id: GHOST-OWASP-A10-01-00
+  name: SSRF (python)
+  description: SSRF vulnerability pattern in python
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - python
+- id: GHOST-OWASP-A10-01-01
+  name: SSRF (javascript)
+  description: SSRF vulnerability pattern in javascript
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - javascript
+- id: GHOST-OWASP-A10-01-02
+  name: SSRF (java)
+  description: SSRF vulnerability pattern in java
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - java
+- id: GHOST-OWASP-A10-01-03
+  name: SSRF (go)
+  description: SSRF vulnerability pattern in go
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - go
+- id: GHOST-OWASP-A10-01-04
+  name: SSRF (php)
+  description: SSRF vulnerability pattern in php
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - php
+- id: GHOST-OWASP-A10-01-05
+  name: SSRF (ruby)
+  description: SSRF vulnerability pattern in ruby
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - ruby
+- id: GHOST-OWASP-A10-01-06
+  name: SSRF (rust)
+  description: SSRF vulnerability pattern in rust
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - rust
+- id: GHOST-OWASP-A10-01-07
+  name: SSRF (typescript)
+  description: SSRF vulnerability pattern in typescript
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - typescript
+- id: GHOST-OWASP-A10-01-08
+  name: SSRF (kotlin)
+  description: SSRF vulnerability pattern in kotlin
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - kotlin
+- id: GHOST-OWASP-A10-01-09
+  name: SSRF (csharp)
+  description: SSRF vulnerability pattern in csharp
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*["\'][^"\']{8,}["\']
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - csharp
+- id: GHOST-OWASP-A10-02-00
+  name: SSRF (python)
+  description: SSRF vulnerability pattern in python
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - python
+- id: GHOST-OWASP-A10-02-01
+  name: SSRF (javascript)
+  description: SSRF vulnerability pattern in javascript
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - javascript
+- id: GHOST-OWASP-A10-02-02
+  name: SSRF (java)
+  description: SSRF vulnerability pattern in java
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - java
+- id: GHOST-OWASP-A10-02-03
+  name: SSRF (go)
+  description: SSRF vulnerability pattern in go
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - go
+- id: GHOST-OWASP-A10-02-04
+  name: SSRF (php)
+  description: SSRF vulnerability pattern in php
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - php
+- id: GHOST-OWASP-A10-02-05
+  name: SSRF (ruby)
+  description: SSRF vulnerability pattern in ruby
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - ruby
+- id: GHOST-OWASP-A10-02-06
+  name: SSRF (rust)
+  description: SSRF vulnerability pattern in rust
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - rust
+- id: GHOST-OWASP-A10-02-07
+  name: SSRF (typescript)
+  description: SSRF vulnerability pattern in typescript
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - typescript
+- id: GHOST-OWASP-A10-02-08
+  name: SSRF (kotlin)
+  description: SSRF vulnerability pattern in kotlin
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - kotlin
+- id: GHOST-OWASP-A10-02-09
+  name: SSRF (csharp)
+  description: SSRF vulnerability pattern in csharp
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - csharp
+- id: GHOST-OWASP-A10-03-00
+  name: SSRF (python)
+  description: SSRF vulnerability pattern in python
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - python
+- id: GHOST-OWASP-A10-03-01
+  name: SSRF (javascript)
+  description: SSRF vulnerability pattern in javascript
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - javascript
+- id: GHOST-OWASP-A10-03-02
+  name: SSRF (java)
+  description: SSRF vulnerability pattern in java
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - java
+- id: GHOST-OWASP-A10-03-03
+  name: SSRF (go)
+  description: SSRF vulnerability pattern in go
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - go
+- id: GHOST-OWASP-A10-03-04
+  name: SSRF (php)
+  description: SSRF vulnerability pattern in php
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - php
+- id: GHOST-OWASP-A10-03-05
+  name: SSRF (ruby)
+  description: SSRF vulnerability pattern in ruby
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - ruby
+- id: GHOST-OWASP-A10-03-06
+  name: SSRF (rust)
+  description: SSRF vulnerability pattern in rust
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - rust
+- id: GHOST-OWASP-A10-03-07
+  name: SSRF (typescript)
+  description: SSRF vulnerability pattern in typescript
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - typescript
+- id: GHOST-OWASP-A10-03-08
+  name: SSRF (kotlin)
+  description: SSRF vulnerability pattern in kotlin
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - kotlin
+- id: GHOST-OWASP-A10-03-09
+  name: SSRF (csharp)
+  description: SSRF vulnerability pattern in csharp
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:eval|exec|system|shell)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - csharp
+- id: GHOST-OWASP-A10-04-00
+  name: SSRF (python)
+  description: SSRF vulnerability pattern in python
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - python
+- id: GHOST-OWASP-A10-04-01
+  name: SSRF (javascript)
+  description: SSRF vulnerability pattern in javascript
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - javascript
+- id: GHOST-OWASP-A10-04-02
+  name: SSRF (java)
+  description: SSRF vulnerability pattern in java
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - java
+- id: GHOST-OWASP-A10-04-03
+  name: SSRF (go)
+  description: SSRF vulnerability pattern in go
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - go
+- id: GHOST-OWASP-A10-04-04
+  name: SSRF (php)
+  description: SSRF vulnerability pattern in php
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - php
+- id: GHOST-OWASP-A10-04-05
+  name: SSRF (ruby)
+  description: SSRF vulnerability pattern in ruby
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - ruby
+- id: GHOST-OWASP-A10-04-06
+  name: SSRF (rust)
+  description: SSRF vulnerability pattern in rust
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - rust
+- id: GHOST-OWASP-A10-04-07
+  name: SSRF (typescript)
+  description: SSRF vulnerability pattern in typescript
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - typescript
+- id: GHOST-OWASP-A10-04-08
+  name: SSRF (kotlin)
+  description: SSRF vulnerability pattern in kotlin
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - kotlin
+- id: GHOST-OWASP-A10-04-09
+  name: SSRF (csharp)
+  description: SSRF vulnerability pattern in csharp
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:redirect|location)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - csharp
+- id: GHOST-OWASP-A10-05-00
+  name: SSRF (python)
+  description: SSRF vulnerability pattern in python
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - python
+- id: GHOST-OWASP-A10-05-01
+  name: SSRF (javascript)
+  description: SSRF vulnerability pattern in javascript
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - javascript
+- id: GHOST-OWASP-A10-05-02
+  name: SSRF (java)
+  description: SSRF vulnerability pattern in java
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - java
+- id: GHOST-OWASP-A10-05-03
+  name: SSRF (go)
+  description: SSRF vulnerability pattern in go
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - go
+- id: GHOST-OWASP-A10-05-04
+  name: SSRF (php)
+  description: SSRF vulnerability pattern in php
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - php
+- id: GHOST-OWASP-A10-05-05
+  name: SSRF (ruby)
+  description: SSRF vulnerability pattern in ruby
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - ruby
+- id: GHOST-OWASP-A10-05-06
+  name: SSRF (rust)
+  description: SSRF vulnerability pattern in rust
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - rust
+- id: GHOST-OWASP-A10-05-07
+  name: SSRF (typescript)
+  description: SSRF vulnerability pattern in typescript
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - typescript
+- id: GHOST-OWASP-A10-05-08
+  name: SSRF (kotlin)
+  description: SSRF vulnerability pattern in kotlin
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - kotlin
+- id: GHOST-OWASP-A10-05-09
+  name: SSRF (csharp)
+  description: SSRF vulnerability pattern in csharp
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?)\s*\([^)]*(?:user|input|body)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - csharp
+- id: GHOST-OWASP-A10-06-00
+  name: SSRF (python)
+  description: SSRF vulnerability pattern in python
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - python
+- id: GHOST-OWASP-A10-06-01
+  name: SSRF (javascript)
+  description: SSRF vulnerability pattern in javascript
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - javascript
+- id: GHOST-OWASP-A10-06-02
+  name: SSRF (java)
+  description: SSRF vulnerability pattern in java
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - java
+- id: GHOST-OWASP-A10-06-03
+  name: SSRF (go)
+  description: SSRF vulnerability pattern in go
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - go
+- id: GHOST-OWASP-A10-06-04
+  name: SSRF (php)
+  description: SSRF vulnerability pattern in php
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - php
+- id: GHOST-OWASP-A10-06-05
+  name: SSRF (ruby)
+  description: SSRF vulnerability pattern in ruby
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - ruby
+- id: GHOST-OWASP-A10-06-06
+  name: SSRF (rust)
+  description: SSRF vulnerability pattern in rust
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - rust
+- id: GHOST-OWASP-A10-06-07
+  name: SSRF (typescript)
+  description: SSRF vulnerability pattern in typescript
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - typescript
+- id: GHOST-OWASP-A10-06-08
+  name: SSRF (kotlin)
+  description: SSRF vulnerability pattern in kotlin
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - kotlin
+- id: GHOST-OWASP-A10-06-09
+  name: SSRF (csharp)
+  description: SSRF vulnerability pattern in csharp
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:render|template)\s*\([^)]*(?:user|input|request)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - csharp
+- id: GHOST-OWASP-A10-07-00
+  name: SSRF (python)
+  description: SSRF vulnerability pattern in python
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - python
+- id: GHOST-OWASP-A10-07-01
+  name: SSRF (javascript)
+  description: SSRF vulnerability pattern in javascript
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - javascript
+- id: GHOST-OWASP-A10-07-02
+  name: SSRF (java)
+  description: SSRF vulnerability pattern in java
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - java
+- id: GHOST-OWASP-A10-07-03
+  name: SSRF (go)
+  description: SSRF vulnerability pattern in go
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - go
+- id: GHOST-OWASP-A10-07-04
+  name: SSRF (php)
+  description: SSRF vulnerability pattern in php
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - php
+- id: GHOST-OWASP-A10-07-05
+  name: SSRF (ruby)
+  description: SSRF vulnerability pattern in ruby
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - ruby
+- id: GHOST-OWASP-A10-07-06
+  name: SSRF (rust)
+  description: SSRF vulnerability pattern in rust
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - rust
+- id: GHOST-OWASP-A10-07-07
+  name: SSRF (typescript)
+  description: SSRF vulnerability pattern in typescript
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - typescript
+- id: GHOST-OWASP-A10-07-08
+  name: SSRF (kotlin)
+  description: SSRF vulnerability pattern in kotlin
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - kotlin
+- id: GHOST-OWASP-A10-07-09
+  name: SSRF (csharp)
+  description: SSRF vulnerability pattern in csharp
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:ssrf|fetch|request|http)\s*\([^)]*(?:user|input|url)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - csharp
+- id: GHOST-OWASP-A10-08-00
+  name: SSRF (python)
+  description: SSRF vulnerability pattern in python
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - python
+- id: GHOST-OWASP-A10-08-01
+  name: SSRF (javascript)
+  description: SSRF vulnerability pattern in javascript
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - javascript
+- id: GHOST-OWASP-A10-08-02
+  name: SSRF (java)
+  description: SSRF vulnerability pattern in java
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - java
+- id: GHOST-OWASP-A10-08-03
+  name: SSRF (go)
+  description: SSRF vulnerability pattern in go
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - go
+- id: GHOST-OWASP-A10-08-04
+  name: SSRF (php)
+  description: SSRF vulnerability pattern in php
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - php
+- id: GHOST-OWASP-A10-08-05
+  name: SSRF (ruby)
+  description: SSRF vulnerability pattern in ruby
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - ruby
+- id: GHOST-OWASP-A10-08-06
+  name: SSRF (rust)
+  description: SSRF vulnerability pattern in rust
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - rust
+- id: GHOST-OWASP-A10-08-07
+  name: SSRF (typescript)
+  description: SSRF vulnerability pattern in typescript
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - typescript
+- id: GHOST-OWASP-A10-08-08
+  name: SSRF (kotlin)
+  description: SSRF vulnerability pattern in kotlin
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - kotlin
+- id: GHOST-OWASP-A10-08-09
+  name: SSRF (csharp)
+  description: SSRF vulnerability pattern in csharp
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:user|input|file)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - csharp
+- id: GHOST-OWASP-A10-09-00
+  name: SSRF (python)
+  description: SSRF vulnerability pattern in python
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - python
+- id: GHOST-OWASP-A10-09-01
+  name: SSRF (javascript)
+  description: SSRF vulnerability pattern in javascript
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - javascript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - javascript
+- id: GHOST-OWASP-A10-09-02
+  name: SSRF (java)
+  description: SSRF vulnerability pattern in java
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - java
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - java
+- id: GHOST-OWASP-A10-09-03
+  name: SSRF (go)
+  description: SSRF vulnerability pattern in go
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - go
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - go
+- id: GHOST-OWASP-A10-09-04
+  name: SSRF (php)
+  description: SSRF vulnerability pattern in php
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - php
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - php
+- id: GHOST-OWASP-A10-09-05
+  name: SSRF (ruby)
+  description: SSRF vulnerability pattern in ruby
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - ruby
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - ruby
+- id: GHOST-OWASP-A10-09-06
+  name: SSRF (rust)
+  description: SSRF vulnerability pattern in rust
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - rust
+- id: GHOST-OWASP-A10-09-07
+  name: SSRF (typescript)
+  description: SSRF vulnerability pattern in typescript
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - typescript
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - typescript
+- id: GHOST-OWASP-A10-09-08
+  name: SSRF (kotlin)
+  description: SSRF vulnerability pattern in kotlin
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - kotlin
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - kotlin
+- id: GHOST-OWASP-A10-09-09
+  name: SSRF (csharp)
+  description: SSRF vulnerability pattern in csharp
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - csharp
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.75
+  fix: Remediate SSRF vulnerability
+  tags:
+  - a10
+  - ssrf
+  - csharp

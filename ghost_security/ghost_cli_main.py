@@ -60,7 +60,7 @@ _SEV_ICON = {"CRITICAL": "🔴", "HIGH": "🟠", "MEDIUM": "🟡", "LOW": "🟢"
 
 def _print_banner():
     print(BOLD("\n👻 Ghost Security Platform"))
-    print(DIM("   AI-native AppSec · 250+ rules · TON · K8s · Multi-LLM\n"))
+    print(DIM("   AI-native AppSec · 3000+ rules · TON · K8s · Multi-LLM\n"))
 
 def _print_findings(findings: list, max_show: int = 50, output_fmt: str = "table"):
     if output_fmt == "json":
@@ -1120,7 +1120,11 @@ def cmd_rules(args) -> int:
         out = create_example_rules(path)
         print(GREEN(f"✅  Example rules written: {out}"))
         return 0
-    extra = [getattr(args, "rules_dir")] if getattr(args, "rules_dir", None) else []
+    # Always include bundled rules from the package rules/ directory
+    bundled_rules = str(Path(__file__).parent / "rules")
+    extra = [bundled_rules]
+    if getattr(args, "rules_dir", None):
+        extra.append(args.rules_dir)
     print(BLUE(f"📏  Custom rules scan: {path}"))
     t0 = time.time()
     from core.rules.custom_rules import CustomRuleScanner
@@ -1138,6 +1142,85 @@ def cmd_rules(args) -> int:
     if getattr(args, "save", None):
         Path(args.save).write_text(json.dumps(findings, indent=2))
         print(GREEN(f"💾  Saved to {args.save}"))
+    return 0
+
+
+def cmd_ide(args) -> int:
+    """ghost ide <install|status|rules> — IDE plugin management."""
+    action = getattr(args, "action", "status")
+    plugin_dir = Path(__file__).parent / "vscode_extension"
+
+    if action == "install":
+        print(BOLD("\n🔌  Ghost Security VS Code Extension"))
+        print(DIM("   Real-time security scanning · 3000+ rules · SARIF export\n"))
+        print(BLUE("📦  Installation options:\n"))
+        print(f"   1. VS Code Marketplace (recommended):")
+        print(f"      Open VS Code → Extensions → Search 'Ghost Security'\n")
+        print(f"   2. Install from local VSIX:")
+        if plugin_dir.exists():
+            print(f"      Extension path: {plugin_dir}")
+            print(f"      Run: cd {plugin_dir} && npm install && vsce package")
+            print(f"      Then: code --install-extension ghost-security-*.vsix\n")
+        else:
+            print(f"      Extension not found at {plugin_dir}\n")
+        print(f"   3. Keyboard shortcuts after install:")
+        print(f"      Ctrl+Shift+G S — scan current file")
+        print(f"      Ctrl+Shift+G W — scan workspace")
+        print(f"      Ctrl+Shift+G F — show findings panel\n")
+        return 0
+
+    if action == "rules":
+        rules_dir = Path(__file__).parent / "rules"
+        if not rules_dir.exists():
+            print(YELLOW(f"⚠️   Rules directory not found: {rules_dir}"))
+            return 1
+        yaml_files = list(rules_dir.rglob("*.yaml")) + list(rules_dir.rglob("*.yml"))
+        total_rules = 0
+        categories: dict = {}
+        for f in yaml_files:
+            try:
+                import yaml as _yaml
+                data = _yaml.safe_load(f.read_text())
+                if isinstance(data, list):
+                    count = len(data)
+                elif isinstance(data, dict) and "rules" in data:
+                    count = len(data["rules"])
+                else:
+                    count = 0
+                total_rules += count
+                cat = f.parent.name
+                categories[cat] = categories.get(cat, 0) + count
+            except Exception:
+                pass
+        print(BOLD(f"\n📏  Ghost Security Rules: {total_rules} total\n"))
+        for cat, cnt in sorted(categories.items(), key=lambda x: -x[1]):
+            bar = "█" * min(30, cnt // 10)
+            print(f"   {cat:<20} {cnt:>5}  {bar}")
+        print()
+        return 0
+
+    # status (default)
+    print(BOLD("\n🔌  Ghost Security IDE Integration Status\n"))
+    print(f"   VS Code extension : {plugin_dir}")
+    ext_js = plugin_dir / "out" / "extension.js"
+    pkg_json = plugin_dir / "package.json"
+    if ext_js.exists() and pkg_json.exists():
+        import json as _json
+        try:
+            pkg = _json.loads(pkg_json.read_text())
+            version = pkg.get("version", "?")
+            cmd_count = len(pkg.get("contributes", {}).get("commands", []))
+            print(GREEN(f"   Status           : ✅  Ready (v{version}, {cmd_count} commands)"))
+        except Exception:
+            print(GREEN("   Status           : ✅  Ready"))
+    else:
+        print(YELLOW("   Status           : ⚠️   Not compiled (run: ghost ide install)"))
+    rules_dir = Path(__file__).parent / "rules"
+    yaml_count = len(list(rules_dir.rglob("*.yaml"))) + len(list(rules_dir.rglob("*.yml"))) if rules_dir.exists() else 0
+    print(f"   Rules directory  : {rules_dir}")
+    print(f"   Rule files       : {yaml_count}")
+    print(DIM("\n   Run 'ghost ide install' for installation instructions."))
+    print(DIM("   Run 'ghost ide rules' to list rule categories.\n"))
     return 0
 
 
@@ -1977,6 +2060,12 @@ def main():
     p_audit.add_argument("--export", dest="export_path", metavar="FILE",
                          help="Export audit log to CSV")
 
+    # ide — VS Code / JetBrains IDE plugin management
+    p_ide = sub.add_parser("ide", help="IDE plugin management (install, status, rules)")
+    p_ide.add_argument("action", nargs="?", default="status",
+                       choices=["install", "status", "rules"],
+                       help="Action: install | status | rules (default: status)")
+
     # ── Parse (must be AFTER all sub.add_parser calls) ────────────────────────
     args = parser.parse_args()
     if not args.command:
@@ -2019,6 +2108,7 @@ def main():
         "notify":       cmd_notify,
         "sla":          cmd_sla,
         "audit-log":    cmd_audit_log,
+        "ide":          cmd_ide,
     }
     handler = dispatch.get(args.command)
     if handler:

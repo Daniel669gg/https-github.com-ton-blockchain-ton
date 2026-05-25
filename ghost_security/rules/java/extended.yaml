@@ -1,0 +1,170 @@
+- id: GHOST-JAVA2-001
+  name: Java XXE TransformerFactory
+  description: TransformerFactory without secure processing
+  severity: HIGH
+  cwe: CWE-611
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: TransformerFactory\.newInstance\s*\(\s*\)(?![\s\S]{0,100}XMLConstants)
+    confidence: 0.87
+  fix: Enable FEATURE_SECURE_PROCESSING
+  tags:
+  - java
+  - xxe
+- id: GHOST-JAVA2-002
+  name: Java expression injection
+  description: OGNL expression from user input
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: Ognl\.getValue\s*\([^)]*(?:request\.|req\.|getParameter)
+    confidence: 0.87
+  fix: Never evaluate user input as OGNL
+  tags:
+  - java
+  - ognl
+- id: GHOST-JAVA2-003
+  name: Java deserialization filter
+  description: ObjectInputStream no filter
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: new\s+ObjectInputStream\s*\([^)]+\)(?![\s\S]{0,200}setObjectInputFilter|[\s\S]{0,200}ObjectInputFilter)
+    confidence: 0.87
+  fix: Set ObjectInputFilter whitelist
+  tags:
+  - java
+  - deserialization
+- id: GHOST-JAVA2-004
+  name: Java SSRF HttpClient
+  description: HttpClient with user URL
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: HttpClient\.newHttpClient\s*\(\s*\)[\s\S]{0,200}\.send\s*\([^)]*(?:request\.|req\.|userUri)
+    confidence: 0.87
+  fix: Validate URI against allowlist
+  tags:
+  - java
+  - ssrf
+- id: GHOST-JAVA2-005
+  name: Java path traversal NIO
+  description: Path.of with user input
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: Path\.of\s*\([^)]*(?:request\.|req\.|getParameter)
+    confidence: 0.87
+  fix: Validate path within allowed root
+  tags:
+  - java
+  - path
+- id: GHOST-JAVA2-006
+  name: Java regex injection
+  description: Pattern.compile user regex
+  severity: HIGH
+  cwe: CWE-730
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: Pattern\.compile\s*\([^)]*(?:request\.|req\.|getParameter)
+    confidence: 0.87
+  fix: Never compile user-supplied regex
+  tags:
+  - java
+  - redos
+- id: GHOST-JAVA2-007
+  name: Java log4j JNDI
+  description: Log4j JNDI lookup enabled
+  severity: CRITICAL
+  cwe: CWE-917
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: log4j\.(?:debug|info|warn|error|fatal)\s*\([^)]*\$\{jndi
+    confidence: 0.87
+  fix: Upgrade Log4j; set log4j2.formatMsgNoLookups
+  tags:
+  - java
+  - log4shell
+- id: GHOST-JAVA2-008
+  name: Java script engine inject
+  description: Nashorn eval with user code
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: scriptEngine\.eval\s*\([^)]*(?:request\.|req\.)
+    confidence: 0.87
+  fix: Never eval user code in ScriptEngine
+  tags:
+  - java
+  - eval
+- id: GHOST-JAVA2-009
+  name: Java zip slip
+  description: ZipEntry extraction traversal
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: new\s+FileOutputStream\s*\([^)]*entry\.getName\s*\(\s*\)
+    confidence: 0.87
+  fix: Validate ZipEntry path against target dir
+  tags:
+  - java
+  - zip
+- id: GHOST-JAVA2-010
+  name: Java XXE StAX
+  description: XMLStreamReader without entity disable
+  severity: HIGH
+  cwe: CWE-611
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: XMLStreamReader\s+\w+\s*=\s*\w+\.createXMLStreamReader\s*\(
+    confidence: 0.87
+  fix: Configure XMLInputFactory to disable entities
+  tags:
+  - java
+  - xxe

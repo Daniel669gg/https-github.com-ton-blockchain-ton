@@ -1,0 +1,414 @@
+- id: GHOST-CI-INJECT-001
+  name: Script injection via env
+  description: GitHub Actions script injection
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: \$\{\{\s*(?:github\.event\.|env\.|inputs\.)[^}]+\}\}
+    confidence: 0.92
+  fix: Use env vars instead of direct expression interpolation
+  tags:
+  - injection
+  - github-actions
+- id: GHOST-CI-INJECT-002
+  name: Pull request title injection
+  description: Injection via PR title
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: \$\{\{\s*github\.event\.pull_request\.title\s*\}\}
+    confidence: 0.93
+  fix: Sanitize or quote PR title before shell use
+  tags:
+  - injection
+  - github-actions
+- id: GHOST-CI-INJECT-003
+  name: PR body injection
+  description: Injection via PR body
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: \$\{\{\s*github\.event\.pull_request\.body\s*\}\}
+    confidence: 0.93
+  fix: Never interpolate PR body in run steps
+  tags:
+  - injection
+  - github-actions
+- id: GHOST-CI-INJECT-004
+  name: Issue title injection
+  description: Injection via issue title
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: \$\{\{\s*github\.event\.issue\.title\s*\}\}
+    confidence: 0.92
+  fix: Use env var to pass issue title to scripts
+  tags:
+  - injection
+  - github-actions
+- id: GHOST-CI-INJECT-005
+  name: Commit message injection
+  description: Injection via commit message
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: \$\{\{\s*github\.event\.commits\[0\]\.message\s*\}\}
+    confidence: 0.92
+  fix: Never use commit messages in shell run steps
+  tags:
+  - injection
+  - github-actions
+- id: GHOST-CI-INJECT-006
+  name: Ref name injection
+  description: Injection via branch/tag name
+  severity: HIGH
+  cwe: CWE-78
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: \$\{\{\s*github\.ref_name\s*\}\}
+    confidence: 0.9
+  fix: Use github.ref which is sanitized
+  tags:
+  - injection
+  - github-actions
+- id: GHOST-CI-INJECT-007
+  name: Actor name injection
+  description: github.actor in shell
+  severity: HIGH
+  cwe: CWE-78
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: \$\{\{\s*github\.actor\s*\}\}
+    confidence: 0.88
+  fix: Pass actor through env var
+  tags:
+  - injection
+  - github-actions
+- id: GHOST-CI-INJECT-008
+  name: Head ref injection
+  description: github.head_ref in shell
+  severity: HIGH
+  cwe: CWE-78
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: \$\{\{\s*github\.head_ref\s*\}\}
+    confidence: 0.9
+  fix: Pass head_ref through env var and sanitize
+  tags:
+  - injection
+  - github-actions
+- id: GHOST-CI-PERM-001
+  name: Overly permissive token
+  description: GITHUB_TOKEN with write-all
+  severity: HIGH
+  cwe: CWE-285
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: permissions:\s*write-all
+    confidence: 0.92
+  fix: Use minimal required permissions
+  tags:
+  - permissions
+  - github-actions
+- id: GHOST-CI-PERM-002
+  name: Dangerous pull_request_target
+  description: pull_request_target with checkout
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: on:\s*pull_request_target(?=[\s\S]*?uses:\s*actions/checkout)
+    confidence: 0.91
+  fix: Avoid checkout in pull_request_target without ref
+  tags:
+  - github-actions
+  - pwn_request
+- id: GHOST-CI-PERM-003
+  name: Workflow dispatch no validation
+  description: workflow_dispatch inputs not validated
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: workflow_dispatch:\s*\n\s*inputs:(?!.*required:\s*true)
+    confidence: 0.82
+  fix: Validate all workflow_dispatch inputs
+  tags:
+  - github-actions
+  - inputs
+- id: GHOST-CI-PIN-001
+  name: Unpinned action
+  description: GitHub Action not pinned to SHA
+  severity: HIGH
+  cwe: CWE-1104
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: uses:\s*[^@]+@(?:main|master|latest|v\d+\s*$)
+    confidence: 0.9
+  fix: Pin actions to full commit SHA
+  tags:
+  - supply-chain
+  - github-actions
+- id: GHOST-CI-PIN-002
+  name: Unpinned Docker image
+  description: Docker image not pinned in workflow
+  severity: HIGH
+  cwe: CWE-1104
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  confidence: 0.89
+  patterns:
+  - type: regex
+    pattern: image:\s*[^\s:]+:latest
+    confidence: 0.89
+  fix: Pin Docker images to specific digest
+  tags:
+  - supply-chain
+  - docker
+- id: GHOST-CI-SECRET-001
+  name: Secret in run command
+  description: Secret value echoed in run
+  severity: CRITICAL
+  cwe: CWE-312
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: echo\s+\$\{\{\s*secrets\.
+    confidence: 0.95
+  fix: Never echo secrets in workflow logs
+  tags:
+  - secrets
+  - github-actions
+- id: GHOST-CI-SECRET-002
+  name: Secret in if condition
+  description: Secret used in if expression
+  severity: HIGH
+  cwe: CWE-312
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: if:\s*\$\{\{\s*secrets\.
+    confidence: 0.88
+  fix: Avoid using secrets in conditionals
+  tags:
+  - secrets
+  - github-actions
+- id: GHOST-CI-SELF-001
+  name: Self-hosted runner public
+  description: Self-hosted runner for public repo
+  severity: HIGH
+  cwe: CWE-829
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: runs-on:\s*self-hosted(?=[\s\S]*?pull_request)
+    confidence: 0.85
+  fix: Use isolated/ephemeral runners for public repos
+  tags:
+  - github-actions
+  - runner
+- id: GHOST-CI-DOWNLOAD-001
+  name: Artifact without integrity
+  description: Download artifact without hash check
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: actions/download-artifact(?![\s\S]{0,200}sha256|checksum)
+    confidence: 0.82
+  fix: Verify downloaded artifact checksums
+  tags:
+  - supply-chain
+  - artifact
+- id: GHOST-CI-ENV-001
+  name: Env from user input
+  description: GITHUB_ENV set from user input
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: echo\s+"\w+=\$\{\{\s*github\.event\.
+    confidence: 0.91
+  fix: Sanitize user input before writing to GITHUB_ENV
+  tags:
+  - injection
+  - env
+- id: GHOST-CI-ENV-002
+  name: PATH manipulation
+  description: GITHUB_PATH modification
+  severity: HIGH
+  cwe: CWE-78
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: echo\s+"[^"]*"\s*>>\s*\$GITHUB_PATH
+    confidence: 0.85
+  fix: Validate paths before adding to GITHUB_PATH
+  tags:
+  - injection
+  - path
+- id: GHOST-CI-CREDS-001
+  name: AWS credentials in env
+  description: AWS credentials hardcoded in workflow
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: AWS_ACCESS_KEY_ID:\s*["\']AKIA[0-9A-Z]{16}["\']
+    confidence: 0.95
+  fix: Use GitHub OIDC with IAM role assumption
+  tags:
+  - secrets
+  - aws
+- id: GHOST-CI-CREDS-002
+  name: Token in workflow env
+  description: GitHub token hardcoded
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: GITHUB_TOKEN:\s*["\']gh[pousr]_[A-Za-z0-9]{36}["\']
+    confidence: 0.95
+  fix: Use secrets.GITHUB_TOKEN from environment
+  tags:
+  - secrets
+  - github
+- id: GHOST-CI-REVIEW-001
+  name: Auto-merge without review
+  description: PR merged without review requirement
+  severity: HIGH
+  cwe: CWE-693
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: gh pr merge.*--auto(?!.*--min-approvals)
+    confidence: 0.82
+  fix: Require at least 1 review before auto-merge
+  tags:
+  - github-actions
+  - merge
+- id: GHOST-CI-TIMEOUT-001
+  name: No job timeout
+  description: Job without timeout-minutes
+  severity: MEDIUM
+  cwe: CWE-400
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  confidence: 0.79
+  patterns:
+  - type: regex
+    pattern: 'jobs:\s*\n\s*\w+:\s*\n(?:(?!timeout-minutes:).)*\n.*runs-on:'
+    confidence: 0.79
+  fix: Set timeout-minutes to prevent runaway jobs
+  tags:
+  - github-actions
+  - timeout

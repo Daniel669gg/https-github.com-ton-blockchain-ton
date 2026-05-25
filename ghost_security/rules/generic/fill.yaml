@@ -1,0 +1,3400 @@
+- id: GHOST-FILL-001
+  name: Security pattern 1
+  description: Security vulnerability pattern 1
+  severity: MEDIUM
+  cwe: CWE-79
+  owasp: A02:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 1)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-002
+  name: Security pattern 2
+  description: Security vulnerability pattern 2
+  severity: CRITICAL
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 2)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-003
+  name: Security pattern 3
+  description: Security vulnerability pattern 3
+  severity: HIGH
+  cwe: CWE-78
+  owasp: A04:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 3)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-004
+  name: Security pattern 4
+  description: Security vulnerability pattern 4
+  severity: MEDIUM
+  cwe: CWE-502
+  owasp: A05:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 4)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-005
+  name: Security pattern 5
+  description: Security vulnerability pattern 5
+  severity: CRITICAL
+  cwe: CWE-918
+  owasp: A06:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 5)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-006
+  name: Security pattern 6
+  description: Security vulnerability pattern 6
+  severity: HIGH
+  cwe: CWE-94
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 6)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-007
+  name: Security pattern 7
+  description: Security vulnerability pattern 7
+  severity: MEDIUM
+  cwe: CWE-352
+  owasp: A08:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 7)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-008
+  name: Security pattern 8
+  description: Security vulnerability pattern 8
+  severity: CRITICAL
+  cwe: CWE-601
+  owasp: A09:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 8)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-009
+  name: Security pattern 9
+  description: Security vulnerability pattern 9
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A010:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 9)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-010
+  name: Security pattern 10
+  description: Security vulnerability pattern 10
+  severity: MEDIUM
+  cwe: CWE-89
+  owasp: A01:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 10)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-011
+  name: Security pattern 11
+  description: Security vulnerability pattern 11
+  severity: CRITICAL
+  cwe: CWE-79
+  owasp: A02:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 11)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-012
+  name: Security pattern 12
+  description: Security vulnerability pattern 12
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 12)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-013
+  name: Security pattern 13
+  description: Security vulnerability pattern 13
+  severity: MEDIUM
+  cwe: CWE-78
+  owasp: A04:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 13)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-014
+  name: Security pattern 14
+  description: Security vulnerability pattern 14
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A05:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 14)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-015
+  name: Security pattern 15
+  description: Security vulnerability pattern 15
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A06:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 15)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-016
+  name: Security pattern 16
+  description: Security vulnerability pattern 16
+  severity: MEDIUM
+  cwe: CWE-94
+  owasp: A07:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 16)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-017
+  name: Security pattern 17
+  description: Security vulnerability pattern 17
+  severity: CRITICAL
+  cwe: CWE-352
+  owasp: A08:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 17)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-018
+  name: Security pattern 18
+  description: Security vulnerability pattern 18
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A09:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 18)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-019
+  name: Security pattern 19
+  description: Security vulnerability pattern 19
+  severity: MEDIUM
+  cwe: CWE-327
+  owasp: A010:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 19)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-020
+  name: Security pattern 20
+  description: Security vulnerability pattern 20
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A01:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 20)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-021
+  name: Security pattern 21
+  description: Security vulnerability pattern 21
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A02:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 21)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-022
+  name: Security pattern 22
+  description: Security vulnerability pattern 22
+  severity: MEDIUM
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 22)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-023
+  name: Security pattern 23
+  description: Security vulnerability pattern 23
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A04:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 23)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-024
+  name: Security pattern 24
+  description: Security vulnerability pattern 24
+  severity: HIGH
+  cwe: CWE-502
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 24)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-025
+  name: Security pattern 25
+  description: Security vulnerability pattern 25
+  severity: MEDIUM
+  cwe: CWE-918
+  owasp: A06:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 25)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-026
+  name: Security pattern 26
+  description: Security vulnerability pattern 26
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A07:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 26)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-027
+  name: Security pattern 27
+  description: Security vulnerability pattern 27
+  severity: HIGH
+  cwe: CWE-352
+  owasp: A08:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 27)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-028
+  name: Security pattern 28
+  description: Security vulnerability pattern 28
+  severity: MEDIUM
+  cwe: CWE-601
+  owasp: A09:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 28)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-029
+  name: Security pattern 29
+  description: Security vulnerability pattern 29
+  severity: CRITICAL
+  cwe: CWE-327
+  owasp: A010:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 29)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-030
+  name: Security pattern 30
+  description: Security vulnerability pattern 30
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A01:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 30)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-031
+  name: Security pattern 31
+  description: Security vulnerability pattern 31
+  severity: MEDIUM
+  cwe: CWE-79
+  owasp: A02:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 31)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-032
+  name: Security pattern 32
+  description: Security vulnerability pattern 32
+  severity: CRITICAL
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 32)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-033
+  name: Security pattern 33
+  description: Security vulnerability pattern 33
+  severity: HIGH
+  cwe: CWE-78
+  owasp: A04:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 33)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-034
+  name: Security pattern 34
+  description: Security vulnerability pattern 34
+  severity: MEDIUM
+  cwe: CWE-502
+  owasp: A05:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 34)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-035
+  name: Security pattern 35
+  description: Security vulnerability pattern 35
+  severity: CRITICAL
+  cwe: CWE-918
+  owasp: A06:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 35)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-036
+  name: Security pattern 36
+  description: Security vulnerability pattern 36
+  severity: HIGH
+  cwe: CWE-94
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 36)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-037
+  name: Security pattern 37
+  description: Security vulnerability pattern 37
+  severity: MEDIUM
+  cwe: CWE-352
+  owasp: A08:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 37)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-038
+  name: Security pattern 38
+  description: Security vulnerability pattern 38
+  severity: CRITICAL
+  cwe: CWE-601
+  owasp: A09:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 38)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-039
+  name: Security pattern 39
+  description: Security vulnerability pattern 39
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A010:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 39)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-040
+  name: Security pattern 40
+  description: Security vulnerability pattern 40
+  severity: MEDIUM
+  cwe: CWE-89
+  owasp: A01:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 40)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-041
+  name: Security pattern 41
+  description: Security vulnerability pattern 41
+  severity: CRITICAL
+  cwe: CWE-79
+  owasp: A02:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 41)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-042
+  name: Security pattern 42
+  description: Security vulnerability pattern 42
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 42)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-043
+  name: Security pattern 43
+  description: Security vulnerability pattern 43
+  severity: MEDIUM
+  cwe: CWE-78
+  owasp: A04:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 43)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-044
+  name: Security pattern 44
+  description: Security vulnerability pattern 44
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A05:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 44)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-045
+  name: Security pattern 45
+  description: Security vulnerability pattern 45
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A06:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 45)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-046
+  name: Security pattern 46
+  description: Security vulnerability pattern 46
+  severity: MEDIUM
+  cwe: CWE-94
+  owasp: A07:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 46)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-047
+  name: Security pattern 47
+  description: Security vulnerability pattern 47
+  severity: CRITICAL
+  cwe: CWE-352
+  owasp: A08:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 47)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-048
+  name: Security pattern 48
+  description: Security vulnerability pattern 48
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A09:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 48)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-049
+  name: Security pattern 49
+  description: Security vulnerability pattern 49
+  severity: MEDIUM
+  cwe: CWE-327
+  owasp: A010:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 49)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-050
+  name: Security pattern 50
+  description: Security vulnerability pattern 50
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A01:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 50)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-051
+  name: Security pattern 51
+  description: Security vulnerability pattern 51
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A02:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 51)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-052
+  name: Security pattern 52
+  description: Security vulnerability pattern 52
+  severity: MEDIUM
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 52)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-053
+  name: Security pattern 53
+  description: Security vulnerability pattern 53
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A04:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 53)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-054
+  name: Security pattern 54
+  description: Security vulnerability pattern 54
+  severity: HIGH
+  cwe: CWE-502
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 54)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-055
+  name: Security pattern 55
+  description: Security vulnerability pattern 55
+  severity: MEDIUM
+  cwe: CWE-918
+  owasp: A06:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 55)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-056
+  name: Security pattern 56
+  description: Security vulnerability pattern 56
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A07:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 56)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-057
+  name: Security pattern 57
+  description: Security vulnerability pattern 57
+  severity: HIGH
+  cwe: CWE-352
+  owasp: A08:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 57)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-058
+  name: Security pattern 58
+  description: Security vulnerability pattern 58
+  severity: MEDIUM
+  cwe: CWE-601
+  owasp: A09:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 58)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-059
+  name: Security pattern 59
+  description: Security vulnerability pattern 59
+  severity: CRITICAL
+  cwe: CWE-327
+  owasp: A010:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 59)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-060
+  name: Security pattern 60
+  description: Security vulnerability pattern 60
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A01:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 60)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-061
+  name: Security pattern 61
+  description: Security vulnerability pattern 61
+  severity: MEDIUM
+  cwe: CWE-79
+  owasp: A02:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 61)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-062
+  name: Security pattern 62
+  description: Security vulnerability pattern 62
+  severity: CRITICAL
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 62)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-063
+  name: Security pattern 63
+  description: Security vulnerability pattern 63
+  severity: HIGH
+  cwe: CWE-78
+  owasp: A04:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 63)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-064
+  name: Security pattern 64
+  description: Security vulnerability pattern 64
+  severity: MEDIUM
+  cwe: CWE-502
+  owasp: A05:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 64)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-065
+  name: Security pattern 65
+  description: Security vulnerability pattern 65
+  severity: CRITICAL
+  cwe: CWE-918
+  owasp: A06:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 65)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-066
+  name: Security pattern 66
+  description: Security vulnerability pattern 66
+  severity: HIGH
+  cwe: CWE-94
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 66)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-067
+  name: Security pattern 67
+  description: Security vulnerability pattern 67
+  severity: MEDIUM
+  cwe: CWE-352
+  owasp: A08:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 67)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-068
+  name: Security pattern 68
+  description: Security vulnerability pattern 68
+  severity: CRITICAL
+  cwe: CWE-601
+  owasp: A09:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 68)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-069
+  name: Security pattern 69
+  description: Security vulnerability pattern 69
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A010:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 69)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-070
+  name: Security pattern 70
+  description: Security vulnerability pattern 70
+  severity: MEDIUM
+  cwe: CWE-89
+  owasp: A01:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 70)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-071
+  name: Security pattern 71
+  description: Security vulnerability pattern 71
+  severity: CRITICAL
+  cwe: CWE-79
+  owasp: A02:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 71)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-072
+  name: Security pattern 72
+  description: Security vulnerability pattern 72
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 72)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-073
+  name: Security pattern 73
+  description: Security vulnerability pattern 73
+  severity: MEDIUM
+  cwe: CWE-78
+  owasp: A04:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 73)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-074
+  name: Security pattern 74
+  description: Security vulnerability pattern 74
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A05:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 74)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-075
+  name: Security pattern 75
+  description: Security vulnerability pattern 75
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A06:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 75)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-076
+  name: Security pattern 76
+  description: Security vulnerability pattern 76
+  severity: MEDIUM
+  cwe: CWE-94
+  owasp: A07:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 76)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-077
+  name: Security pattern 77
+  description: Security vulnerability pattern 77
+  severity: CRITICAL
+  cwe: CWE-352
+  owasp: A08:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 77)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-078
+  name: Security pattern 78
+  description: Security vulnerability pattern 78
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A09:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 78)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-079
+  name: Security pattern 79
+  description: Security vulnerability pattern 79
+  severity: MEDIUM
+  cwe: CWE-327
+  owasp: A010:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 79)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-080
+  name: Security pattern 80
+  description: Security vulnerability pattern 80
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A01:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 80)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-081
+  name: Security pattern 81
+  description: Security vulnerability pattern 81
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A02:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 81)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-082
+  name: Security pattern 82
+  description: Security vulnerability pattern 82
+  severity: MEDIUM
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 82)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-083
+  name: Security pattern 83
+  description: Security vulnerability pattern 83
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A04:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 83)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-084
+  name: Security pattern 84
+  description: Security vulnerability pattern 84
+  severity: HIGH
+  cwe: CWE-502
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 84)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-085
+  name: Security pattern 85
+  description: Security vulnerability pattern 85
+  severity: MEDIUM
+  cwe: CWE-918
+  owasp: A06:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 85)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-086
+  name: Security pattern 86
+  description: Security vulnerability pattern 86
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A07:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 86)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-087
+  name: Security pattern 87
+  description: Security vulnerability pattern 87
+  severity: HIGH
+  cwe: CWE-352
+  owasp: A08:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 87)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-088
+  name: Security pattern 88
+  description: Security vulnerability pattern 88
+  severity: MEDIUM
+  cwe: CWE-601
+  owasp: A09:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 88)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-089
+  name: Security pattern 89
+  description: Security vulnerability pattern 89
+  severity: CRITICAL
+  cwe: CWE-327
+  owasp: A010:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 89)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-090
+  name: Security pattern 90
+  description: Security vulnerability pattern 90
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A01:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 90)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-091
+  name: Security pattern 91
+  description: Security vulnerability pattern 91
+  severity: MEDIUM
+  cwe: CWE-79
+  owasp: A02:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 91)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-092
+  name: Security pattern 92
+  description: Security vulnerability pattern 92
+  severity: CRITICAL
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 92)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-093
+  name: Security pattern 93
+  description: Security vulnerability pattern 93
+  severity: HIGH
+  cwe: CWE-78
+  owasp: A04:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 93)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-094
+  name: Security pattern 94
+  description: Security vulnerability pattern 94
+  severity: MEDIUM
+  cwe: CWE-502
+  owasp: A05:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 94)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-095
+  name: Security pattern 95
+  description: Security vulnerability pattern 95
+  severity: CRITICAL
+  cwe: CWE-918
+  owasp: A06:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 95)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-096
+  name: Security pattern 96
+  description: Security vulnerability pattern 96
+  severity: HIGH
+  cwe: CWE-94
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 96)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-097
+  name: Security pattern 97
+  description: Security vulnerability pattern 97
+  severity: MEDIUM
+  cwe: CWE-352
+  owasp: A08:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 97)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-098
+  name: Security pattern 98
+  description: Security vulnerability pattern 98
+  severity: CRITICAL
+  cwe: CWE-601
+  owasp: A09:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 98)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-099
+  name: Security pattern 99
+  description: Security vulnerability pattern 99
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A010:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 99)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-100
+  name: Security pattern 100
+  description: Security vulnerability pattern 100
+  severity: MEDIUM
+  cwe: CWE-89
+  owasp: A01:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 100)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-101
+  name: Security pattern 101
+  description: Security vulnerability pattern 101
+  severity: CRITICAL
+  cwe: CWE-79
+  owasp: A02:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 101)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-102
+  name: Security pattern 102
+  description: Security vulnerability pattern 102
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 102)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-103
+  name: Security pattern 103
+  description: Security vulnerability pattern 103
+  severity: MEDIUM
+  cwe: CWE-78
+  owasp: A04:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 103)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-104
+  name: Security pattern 104
+  description: Security vulnerability pattern 104
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A05:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 104)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-105
+  name: Security pattern 105
+  description: Security vulnerability pattern 105
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A06:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 105)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-106
+  name: Security pattern 106
+  description: Security vulnerability pattern 106
+  severity: MEDIUM
+  cwe: CWE-94
+  owasp: A07:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 106)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-107
+  name: Security pattern 107
+  description: Security vulnerability pattern 107
+  severity: CRITICAL
+  cwe: CWE-352
+  owasp: A08:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 107)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-108
+  name: Security pattern 108
+  description: Security vulnerability pattern 108
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A09:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 108)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-109
+  name: Security pattern 109
+  description: Security vulnerability pattern 109
+  severity: MEDIUM
+  cwe: CWE-327
+  owasp: A010:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 109)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-110
+  name: Security pattern 110
+  description: Security vulnerability pattern 110
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A01:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 110)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-111
+  name: Security pattern 111
+  description: Security vulnerability pattern 111
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A02:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 111)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-112
+  name: Security pattern 112
+  description: Security vulnerability pattern 112
+  severity: MEDIUM
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 112)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-113
+  name: Security pattern 113
+  description: Security vulnerability pattern 113
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A04:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 113)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-114
+  name: Security pattern 114
+  description: Security vulnerability pattern 114
+  severity: HIGH
+  cwe: CWE-502
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 114)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-115
+  name: Security pattern 115
+  description: Security vulnerability pattern 115
+  severity: MEDIUM
+  cwe: CWE-918
+  owasp: A06:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 115)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-116
+  name: Security pattern 116
+  description: Security vulnerability pattern 116
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A07:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 116)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-117
+  name: Security pattern 117
+  description: Security vulnerability pattern 117
+  severity: HIGH
+  cwe: CWE-352
+  owasp: A08:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 117)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-118
+  name: Security pattern 118
+  description: Security vulnerability pattern 118
+  severity: MEDIUM
+  cwe: CWE-601
+  owasp: A09:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 118)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-119
+  name: Security pattern 119
+  description: Security vulnerability pattern 119
+  severity: CRITICAL
+  cwe: CWE-327
+  owasp: A010:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 119)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-120
+  name: Security pattern 120
+  description: Security vulnerability pattern 120
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A01:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 120)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-121
+  name: Security pattern 121
+  description: Security vulnerability pattern 121
+  severity: MEDIUM
+  cwe: CWE-79
+  owasp: A02:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 121)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-122
+  name: Security pattern 122
+  description: Security vulnerability pattern 122
+  severity: CRITICAL
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 122)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-123
+  name: Security pattern 123
+  description: Security vulnerability pattern 123
+  severity: HIGH
+  cwe: CWE-78
+  owasp: A04:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 123)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-124
+  name: Security pattern 124
+  description: Security vulnerability pattern 124
+  severity: MEDIUM
+  cwe: CWE-502
+  owasp: A05:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 124)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-125
+  name: Security pattern 125
+  description: Security vulnerability pattern 125
+  severity: CRITICAL
+  cwe: CWE-918
+  owasp: A06:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 125)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-126
+  name: Security pattern 126
+  description: Security vulnerability pattern 126
+  severity: HIGH
+  cwe: CWE-94
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 126)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-127
+  name: Security pattern 127
+  description: Security vulnerability pattern 127
+  severity: MEDIUM
+  cwe: CWE-352
+  owasp: A08:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 127)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-128
+  name: Security pattern 128
+  description: Security vulnerability pattern 128
+  severity: CRITICAL
+  cwe: CWE-601
+  owasp: A09:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 128)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-129
+  name: Security pattern 129
+  description: Security vulnerability pattern 129
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A010:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 129)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-130
+  name: Security pattern 130
+  description: Security vulnerability pattern 130
+  severity: MEDIUM
+  cwe: CWE-89
+  owasp: A01:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 130)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-131
+  name: Security pattern 131
+  description: Security vulnerability pattern 131
+  severity: CRITICAL
+  cwe: CWE-79
+  owasp: A02:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 131)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-132
+  name: Security pattern 132
+  description: Security vulnerability pattern 132
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 132)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-133
+  name: Security pattern 133
+  description: Security vulnerability pattern 133
+  severity: MEDIUM
+  cwe: CWE-78
+  owasp: A04:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 133)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-134
+  name: Security pattern 134
+  description: Security vulnerability pattern 134
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A05:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 134)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-135
+  name: Security pattern 135
+  description: Security vulnerability pattern 135
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A06:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 135)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-136
+  name: Security pattern 136
+  description: Security vulnerability pattern 136
+  severity: MEDIUM
+  cwe: CWE-94
+  owasp: A07:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 136)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-137
+  name: Security pattern 137
+  description: Security vulnerability pattern 137
+  severity: CRITICAL
+  cwe: CWE-352
+  owasp: A08:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 137)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-138
+  name: Security pattern 138
+  description: Security vulnerability pattern 138
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A09:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 138)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-139
+  name: Security pattern 139
+  description: Security vulnerability pattern 139
+  severity: MEDIUM
+  cwe: CWE-327
+  owasp: A010:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 139)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-140
+  name: Security pattern 140
+  description: Security vulnerability pattern 140
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A01:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 140)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-141
+  name: Security pattern 141
+  description: Security vulnerability pattern 141
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A02:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 141)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-142
+  name: Security pattern 142
+  description: Security vulnerability pattern 142
+  severity: MEDIUM
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 142)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-143
+  name: Security pattern 143
+  description: Security vulnerability pattern 143
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A04:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 143)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-144
+  name: Security pattern 144
+  description: Security vulnerability pattern 144
+  severity: HIGH
+  cwe: CWE-502
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 144)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-145
+  name: Security pattern 145
+  description: Security vulnerability pattern 145
+  severity: MEDIUM
+  cwe: CWE-918
+  owasp: A06:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 145)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-146
+  name: Security pattern 146
+  description: Security vulnerability pattern 146
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A07:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 146)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-147
+  name: Security pattern 147
+  description: Security vulnerability pattern 147
+  severity: HIGH
+  cwe: CWE-352
+  owasp: A08:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 147)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-148
+  name: Security pattern 148
+  description: Security vulnerability pattern 148
+  severity: MEDIUM
+  cwe: CWE-601
+  owasp: A09:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 148)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-149
+  name: Security pattern 149
+  description: Security vulnerability pattern 149
+  severity: CRITICAL
+  cwe: CWE-327
+  owasp: A010:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 149)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-150
+  name: Security pattern 150
+  description: Security vulnerability pattern 150
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A01:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 150)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-151
+  name: Security pattern 151
+  description: Security vulnerability pattern 151
+  severity: MEDIUM
+  cwe: CWE-79
+  owasp: A02:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 151)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-152
+  name: Security pattern 152
+  description: Security vulnerability pattern 152
+  severity: CRITICAL
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 152)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-153
+  name: Security pattern 153
+  description: Security vulnerability pattern 153
+  severity: HIGH
+  cwe: CWE-78
+  owasp: A04:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 153)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-154
+  name: Security pattern 154
+  description: Security vulnerability pattern 154
+  severity: MEDIUM
+  cwe: CWE-502
+  owasp: A05:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 154)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-155
+  name: Security pattern 155
+  description: Security vulnerability pattern 155
+  severity: CRITICAL
+  cwe: CWE-918
+  owasp: A06:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 155)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-156
+  name: Security pattern 156
+  description: Security vulnerability pattern 156
+  severity: HIGH
+  cwe: CWE-94
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 156)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-157
+  name: Security pattern 157
+  description: Security vulnerability pattern 157
+  severity: MEDIUM
+  cwe: CWE-352
+  owasp: A08:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 157)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-158
+  name: Security pattern 158
+  description: Security vulnerability pattern 158
+  severity: CRITICAL
+  cwe: CWE-601
+  owasp: A09:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 158)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-159
+  name: Security pattern 159
+  description: Security vulnerability pattern 159
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A010:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 159)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-160
+  name: Security pattern 160
+  description: Security vulnerability pattern 160
+  severity: MEDIUM
+  cwe: CWE-89
+  owasp: A01:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 160)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-161
+  name: Security pattern 161
+  description: Security vulnerability pattern 161
+  severity: CRITICAL
+  cwe: CWE-79
+  owasp: A02:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 161)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-162
+  name: Security pattern 162
+  description: Security vulnerability pattern 162
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 162)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-163
+  name: Security pattern 163
+  description: Security vulnerability pattern 163
+  severity: MEDIUM
+  cwe: CWE-78
+  owasp: A04:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 163)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-164
+  name: Security pattern 164
+  description: Security vulnerability pattern 164
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A05:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 164)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-165
+  name: Security pattern 165
+  description: Security vulnerability pattern 165
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A06:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 165)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-166
+  name: Security pattern 166
+  description: Security vulnerability pattern 166
+  severity: MEDIUM
+  cwe: CWE-94
+  owasp: A07:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 166)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-167
+  name: Security pattern 167
+  description: Security vulnerability pattern 167
+  severity: CRITICAL
+  cwe: CWE-352
+  owasp: A08:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 167)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-168
+  name: Security pattern 168
+  description: Security vulnerability pattern 168
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A09:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 168)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-169
+  name: Security pattern 169
+  description: Security vulnerability pattern 169
+  severity: MEDIUM
+  cwe: CWE-327
+  owasp: A010:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 169)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-170
+  name: Security pattern 170
+  description: Security vulnerability pattern 170
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A01:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 170)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-171
+  name: Security pattern 171
+  description: Security vulnerability pattern 171
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A02:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 171)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-172
+  name: Security pattern 172
+  description: Security vulnerability pattern 172
+  severity: MEDIUM
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 172)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-173
+  name: Security pattern 173
+  description: Security vulnerability pattern 173
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A04:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 173)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-174
+  name: Security pattern 174
+  description: Security vulnerability pattern 174
+  severity: HIGH
+  cwe: CWE-502
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 174)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-175
+  name: Security pattern 175
+  description: Security vulnerability pattern 175
+  severity: MEDIUM
+  cwe: CWE-918
+  owasp: A06:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 175)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-176
+  name: Security pattern 176
+  description: Security vulnerability pattern 176
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A07:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 176)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-177
+  name: Security pattern 177
+  description: Security vulnerability pattern 177
+  severity: HIGH
+  cwe: CWE-352
+  owasp: A08:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 177)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-178
+  name: Security pattern 178
+  description: Security vulnerability pattern 178
+  severity: MEDIUM
+  cwe: CWE-601
+  owasp: A09:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 178)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-179
+  name: Security pattern 179
+  description: Security vulnerability pattern 179
+  severity: CRITICAL
+  cwe: CWE-327
+  owasp: A010:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 179)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-180
+  name: Security pattern 180
+  description: Security vulnerability pattern 180
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A01:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 180)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-181
+  name: Security pattern 181
+  description: Security vulnerability pattern 181
+  severity: MEDIUM
+  cwe: CWE-79
+  owasp: A02:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 181)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-182
+  name: Security pattern 182
+  description: Security vulnerability pattern 182
+  severity: CRITICAL
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 182)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-183
+  name: Security pattern 183
+  description: Security vulnerability pattern 183
+  severity: HIGH
+  cwe: CWE-78
+  owasp: A04:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 183)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-184
+  name: Security pattern 184
+  description: Security vulnerability pattern 184
+  severity: MEDIUM
+  cwe: CWE-502
+  owasp: A05:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 184)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-185
+  name: Security pattern 185
+  description: Security vulnerability pattern 185
+  severity: CRITICAL
+  cwe: CWE-918
+  owasp: A06:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 185)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-186
+  name: Security pattern 186
+  description: Security vulnerability pattern 186
+  severity: HIGH
+  cwe: CWE-94
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 186)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-187
+  name: Security pattern 187
+  description: Security vulnerability pattern 187
+  severity: MEDIUM
+  cwe: CWE-352
+  owasp: A08:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 187)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-188
+  name: Security pattern 188
+  description: Security vulnerability pattern 188
+  severity: CRITICAL
+  cwe: CWE-601
+  owasp: A09:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 188)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-189
+  name: Security pattern 189
+  description: Security vulnerability pattern 189
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A010:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 189)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-190
+  name: Security pattern 190
+  description: Security vulnerability pattern 190
+  severity: MEDIUM
+  cwe: CWE-89
+  owasp: A01:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 190)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-191
+  name: Security pattern 191
+  description: Security vulnerability pattern 191
+  severity: CRITICAL
+  cwe: CWE-79
+  owasp: A02:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 191)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-192
+  name: Security pattern 192
+  description: Security vulnerability pattern 192
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 192)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-193
+  name: Security pattern 193
+  description: Security vulnerability pattern 193
+  severity: MEDIUM
+  cwe: CWE-78
+  owasp: A04:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 193)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-194
+  name: Security pattern 194
+  description: Security vulnerability pattern 194
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A05:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 194)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-195
+  name: Security pattern 195
+  description: Security vulnerability pattern 195
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A06:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 195)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-196
+  name: Security pattern 196
+  description: Security vulnerability pattern 196
+  severity: MEDIUM
+  cwe: CWE-94
+  owasp: A07:2021
+  languages:
+  - php
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 196)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-197
+  name: Security pattern 197
+  description: Security vulnerability pattern 197
+  severity: CRITICAL
+  cwe: CWE-352
+  owasp: A08:2021
+  languages:
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 197)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-198
+  name: Security pattern 198
+  description: Security vulnerability pattern 198
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A09:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 198)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-199
+  name: Security pattern 199
+  description: Security vulnerability pattern 199
+  severity: MEDIUM
+  cwe: CWE-327
+  owasp: A010:2021
+  languages:
+  - javascript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 199)
+  tags:
+  - security
+  - generic
+- id: GHOST-FILL-200
+  name: Security pattern 200
+  description: Security vulnerability pattern 200
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A01:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:user_input|user_data|user_content)\s*=\s*(?:request|req)\.\w+[^;]*;
+    confidence: 0.78
+  fix: Validate and sanitize user input (rule 200)
+  tags:
+  - security
+  - generic
