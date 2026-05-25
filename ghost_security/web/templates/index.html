@@ -105,6 +105,8 @@ pre.ev{background:var(--bg);border:1px solid var(--s3);border-radius:5px;padding
 .data-table tr:hover td{background:var(--s2)}
 /* ── Empty state ── */
 .empty{text-align:center;padding:3rem;color:var(--muted)}
+/* ── WS live row animation ── */
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
@@ -133,6 +135,9 @@ pre.ev{background:var(--bg);border:1px solid var(--s3);border-radius:5px;padding
     <div id="llm-status" style="font-size:.78rem;color:var(--muted)">
       <span class="status-dot dot-off" id="dot-llm"></span><span id="label-llm">LLM: checking…</span>
     </div>
+    <div id="ws-status" style="font-size:.78rem;color:var(--muted);margin-top:.4rem">
+      <span class="status-dot dot-off" id="dot-ws"></span><span id="label-ws">Live feed: connecting…</span>
+    </div>
   </div>
 </div>
 
@@ -149,6 +154,16 @@ pre.ev{background:var(--bg);border:1px solid var(--s3);border-radius:5px;padding
 
     <!-- DASHBOARD PAGE -->
     <div id="page-dashboard" class="page active">
+      <!-- Live scan progress bar (shown during active WS scan) -->
+      <div id="ws-progress-bar" style="display:none;margin-bottom:.75rem">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.3rem">
+          <span id="ws-progress-label" style="font-size:.8rem;color:var(--muted)">Scanning…</span>
+          <span id="ws-progress-pct" style="font-size:.8rem;color:var(--accent)">0%</span>
+        </div>
+        <div style="height:4px;background:var(--s3);border-radius:2px;overflow:hidden">
+          <div id="ws-progress-fill" style="height:100%;background:var(--accent);width:0%;transition:width .4s;border-radius:2px"></div>
+        </div>
+      </div>
       <div class="stats-grid">
         <div class="stat"><div class="stat-num" style="color:var(--red)"    id="st-crit">–</div><div class="stat-lbl">Critical</div></div>
         <div class="stat"><div class="stat-num" style="color:var(--orange)" id="st-high">–</div><div class="stat-lbl">High</div></div>
@@ -773,7 +788,117 @@ function toast(msg, type='ok') {
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
-window.onload = () => { loadHealth(); };
+window.onload = () => { loadHealth(); connectScanFeed(); };
+
+// ── WebSocket live scan feed ──────────────────────────────────────────────────
+let scanWs = null;
+let wsReconnectTimer = null;
+
+function connectScanFeed() {
+  if (wsReconnectTimer) { clearTimeout(wsReconnectTimer); wsReconnectTimer = null; }
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const wsUrl = `${proto}//${location.host}/ws/scans`;
+  try {
+    scanWs = new WebSocket(wsUrl);
+  } catch(e) {
+    updateWsStatus('error');
+    wsReconnectTimer = setTimeout(connectScanFeed, 5000);
+    return;
+  }
+  scanWs.onopen = () => updateWsStatus('connected');
+  scanWs.onclose = () => {
+    updateWsStatus('disconnected');
+    wsReconnectTimer = setTimeout(connectScanFeed, 3000);
+  };
+  scanWs.onerror = () => updateWsStatus('error');
+  scanWs.onmessage = (e) => {
+    try { handleScanEvent(JSON.parse(e.data)); } catch(_) {}
+  };
+}
+
+function handleScanEvent(event) {
+  const type = event.event_type;
+  const data = event.data || {};
+
+  if (type === 'scan_started') {
+    // Reset counters and show loading state on dashboard
+    STATE.findings = [];
+    STATE.report = null;
+    document.getElementById('badge-findings').textContent = '0';
+    const dashF = document.getElementById('dash-findings');
+    if (dashF) dashF.innerHTML = '<div class="empty"><div class="spinner" style="display:inline-block"></div> Scan running…</div>';
+    const progressBar = document.getElementById('ws-progress-bar');
+    if (progressBar) {
+      progressBar.style.display = 'block';
+      document.getElementById('ws-progress-fill').style.width = '0%';
+      document.getElementById('ws-progress-pct').textContent = '0%';
+      document.getElementById('ws-progress-label').textContent =
+        'Scanning: ' + (data.path || data.target || '…');
+    }
+
+  } else if (type === 'finding') {
+    // Prepend new row to findings list if on findings page
+    STATE.findings.unshift(data);
+    document.getElementById('badge-findings').textContent = STATE.findings.length;
+    const list = document.getElementById('findings-list');
+    if (list) {
+      // Remove empty-state placeholder if present
+      const empty = list.querySelector('.empty');
+      if (empty) empty.remove();
+      const i = STATE.findings.length - 1;
+      const c = SEV_COLOR(data.severity);
+      const row = document.createElement('div');
+      row.className = 'finding-row';
+      row.dataset.sev = data.severity || 'INFO';
+      row.style.cssText = 'animation:fadeIn .3s ease';
+      row.innerHTML = `<div class="finding-header" style="cursor:default">
+        <span class="sev" style="background:${c}">${data.severity || 'INFO'}</span>
+        <span class="f-id">${data.id || '?'}</span>
+        <span class="f-desc">${data.description || ''}</span>
+        <span class="f-loc">${(data.file || '').split('/').slice(-2).join('/')}${data.line ? ':' + data.line : ''}</span>
+        <span style="font-size:.65rem;color:var(--accent);padding:.1rem .3rem;border:1px solid var(--accent);border-radius:3px;margin-left:.3rem">LIVE</span>
+      </div>`;
+      list.insertBefore(row, list.firstChild);
+    }
+
+  } else if (type === 'scan_progress') {
+    const pct = data.progress || 0;
+    const fill = document.getElementById('ws-progress-fill');
+    const pctEl = document.getElementById('ws-progress-pct');
+    const lbl = document.getElementById('ws-progress-label');
+    if (fill) fill.style.width = pct + '%';
+    if (pctEl) pctEl.textContent = pct + '%';
+    if (lbl && data.scanner) lbl.textContent = 'Running ' + data.scanner + ' scanner…';
+
+  } else if (type === 'scan_completed') {
+    // Hide progress bar, show completion toast
+    const progressBar = document.getElementById('ws-progress-bar');
+    if (progressBar) {
+      document.getElementById('ws-progress-fill').style.width = '100%';
+      document.getElementById('ws-progress-pct').textContent = '100%';
+      document.getElementById('ws-progress-label').textContent = 'Scan complete';
+      setTimeout(() => { progressBar.style.display = 'none'; }, 2000);
+    }
+    const total = data.total_findings != null ? data.total_findings : STATE.findings.length;
+    toast('Live scan complete — ' + total + ' findings', 'ok');
+    // Re-render findings list cleanly
+    if (STATE.findings.length) renderFindings(STATE.findings);
+  }
+}
+
+function updateWsStatus(status) {
+  const dot = document.getElementById('dot-ws');
+  const lbl = document.getElementById('label-ws');
+  if (!dot || !lbl) return;
+  const map = {
+    connected:    { cls: 'dot-ok',   text: 'Live feed: connected' },
+    disconnected: { cls: 'dot-off',  text: 'Live feed: reconnecting…' },
+    error:        { cls: 'dot-warn', text: 'Live feed: error' },
+  };
+  const s = map[status] || map.disconnected;
+  dot.className = 'status-dot ' + s.cls;
+  lbl.textContent = s.text;
+}
 </script>
 </body>
 </html>
