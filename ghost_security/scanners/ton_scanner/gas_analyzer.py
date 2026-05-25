@@ -323,10 +323,16 @@ class GasAnalyzer:
         """
         GAS-004: dict_get or udict_get called inside a while/repeat loop body.
         We detect this by tracking brace depth for loop bodies.
+
+        Strategy: when we see a while/repeat line, record the brace depth
+        AFTER that line's braces are processed.  Any subsequent line whose
+        brace depth is still >= that saved depth is inside the loop body.
+        We pop the saved depth when brace_depth drops below it.
         """
         findings: List[GasRisk] = []
-        loop_depth = 0        # increments when we enter a loop, decrements on }
-        loop_brace_stack: List[int] = []   # brace depth at loop entry
+        # Each entry is the brace depth at which the loop body begins
+        # (i.e. the depth after the opening '{' of the while/repeat line).
+        loop_body_depths: List[int] = []
         brace_depth = 0
 
         for i, raw in enumerate(lines, start=1):
@@ -334,23 +340,28 @@ class GasAnalyzer:
                 continue
             stripped = _strip_comment(raw)
 
-            # Track brace depth
             opens  = stripped.count("{")
             closes = stripped.count("}")
 
-            # Did we enter a loop on this line?
-            if _WHILE_RE.search(stripped) or _REPEAT_RE.search(stripped):
-                # Push brace depth AFTER processing opens on this line
-                loop_brace_stack.append(brace_depth + opens - closes)
-
+            # Update depth first so we can record the post-open depth
             brace_depth += opens - closes
 
-            # Check if we exited a loop
-            while loop_brace_stack and brace_depth <= loop_brace_stack[-1]:
-                loop_brace_stack.pop()
+            # Did we enter a loop on this line?
+            if _WHILE_RE.search(stripped) or _REPEAT_RE.search(stripped):
+                # The body starts at the current brace_depth (after the '{').
+                # We only push if the line actually opened a brace for the body.
+                if opens > 0:
+                    loop_body_depths.append(brace_depth)
+                else:
+                    # Multi-line: while (...) \n { — next line will open
+                    loop_body_depths.append(brace_depth + 1)
 
-            # Are we inside any loop?
-            inside_loop = len(loop_brace_stack) > 0
+            # Pop any loop depths we have exited
+            while loop_body_depths and brace_depth < loop_body_depths[-1]:
+                loop_body_depths.pop()
+
+            # Are we inside a loop body right now?
+            inside_loop = bool(loop_body_depths) and brace_depth >= loop_body_depths[-1]
 
             if inside_loop and _DICT_GET_RE.search(stripped):
                 findings.append(GasRisk(
