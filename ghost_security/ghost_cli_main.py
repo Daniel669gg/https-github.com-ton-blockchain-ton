@@ -5,7 +5,14 @@ Ghost Security Platform — Production CLI
   ghost scan --incremental .      # только изменённые файлы
   ghost ton ./contracts/          # TON bug bounty скан
   ghost k8s ./manifests/          # Kubernetes аудит
-  ghost fix findings.json         # авто-фиксы
+  ghost deps .                    # live CVE scan (OSV.dev)
+  ghost iac .                     # IaC scan (Docker/Terraform/Ansible/Helm/CFN)
+  ghost container nginx:1.21.0    # container image CVE scan
+  ghost sbom .                    # generate SPDX 2.3 / CycloneDX SBOM
+  ghost compliance .              # compliance gap report (PCI-DSS/SOC2/HIPAA/NIST)
+  ghost fix-deps .                # auto-fix vulnerable dependency versions
+  ghost suppress .ghostignore     # manage finding suppressions
+  ghost fix findings.json         # авто-фиксы кода
   ghost serve                     # запустить API сервер
   ghost benchmark                 # тест точности
   ghost status                    # статус всех компонентов
@@ -352,16 +359,25 @@ def cmd_status(args) -> int:
     from scanners.cpp_scanner import CppScanner
     from scanners.iac_scanner import IaCScanner
     from scanners.osv_scanner import OSVScanner
-    cpp_count = CppScanner().pattern_count()
+    from scanners.container_scanner import ContainerScanner
+    cpp_count  = CppScanner().pattern_count()
     osv_online = OSVScanner().is_online()
     osv_status = GREEN("live OSV.dev") if osv_online else YELLOW("offline (static DB)")
+    container  = ContainerScanner()
+    cont_back  = container.backend()
+    cont_color = GREEN(cont_back) if cont_back in ("trivy", "grype") else YELLOW("static DB")
     print(f"\n  {BOLD('Scanners:')}")
-    print(f"    SAST    : OWASP(35) · Secrets(45) · JS(25) · C/C++({cpp_count})")
-    print(f"    IaC     : Dockerfile(17) · Terraform(18) · docker-compose(9) · GitHub Actions(7)")
-    print(f"    Deps    : {osv_status}")
-    print(f"    Infra   : Kubernetes(18)")
-    print(f"    Blockchain: TON(87) · Solidity(15)")
-    print(f"  {BOLD('Tests:')} 230 passing")
+    print(f"    SAST       : OWASP(35) · Secrets(45) · JS(25) · C/C++({cpp_count}) · Cross-file taint")
+    print(f"    IaC        : Dockerfile(17) · Terraform(18) · docker-compose(9) · GitHub Actions(7)")
+    print(f"               : Ansible(11) · Helm(13) · CloudFormation(16)")
+    print(f"    Deps       : {osv_status} + EPSS enrichment + CISA KEV")
+    print(f"    Container  : {cont_color} (Trivy > Grype > static)")
+    print(f"    SBOM       : SPDX 2.3 · CycloneDX 1.4")
+    print(f"    Compliance : PCI-DSS 4.0 · SOC2 · HIPAA · NIST 800-53 · ISO27001 · ASVS")
+    print(f"    Infra      : Kubernetes(18)")
+    print(f"    Blockchain : TON(87) · Solidity(15)")
+    print(f"  {BOLD('Suppression:')} .ghostignore (YAML · expiry dates · file patterns)")
+    print(f"  {BOLD('Auto-fix:')}   Dep bumps (PyPI/npm/Go/Rust) · Code patches · GitHub PR")
 
     # API server
     import urllib.request
@@ -479,10 +495,11 @@ def cmd_deps(args) -> int:
 
 
 def cmd_iac(args) -> int:
-    """ghost iac <path> [--output json|table] [--save FILE]
+    """ghost iac <path> [--output json|table] [--save FILE] [--format docker|terraform|ansible|helm|cfn]
 
     Scan Infrastructure-as-Code files for security misconfigurations:
       Dockerfile · docker-compose.yml · Terraform (.tf) · GitHub Actions
+      Ansible playbooks · Helm charts · AWS CloudFormation templates
     """
     path = str(Path(args.path).resolve())
     if not Path(path).exists():
@@ -493,11 +510,24 @@ def cmd_iac(args) -> int:
     t0 = time.time()
 
     from scanners.iac_scanner import IaCScanner
-    result   = IaCScanner().scan_directory(path)
-    findings = result.get("findings", [])
-    duration = time.time() - t0
+    from scanners.iac_extended import IaCExtendedScanner
 
-    print(DIM(f"   IaC files scanned: {result.get('files_scanned', 0)}\n"))
+    result1  = IaCScanner().scan_directory(path)
+    result2  = IaCExtendedScanner().scan_directory(path)
+    findings = result1.get("findings", []) + result2.get("findings", [])
+
+    # Sort combined by severity
+    _sev_order = {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3}
+    findings.sort(key=lambda f: _sev_order.get(f.get("severity", "LOW"), 4))
+
+    files_scanned = result1.get("files_scanned", 0) + result2.get("files_scanned", 0)
+    breakdown     = result2.get("breakdown", {})
+    duration      = time.time() - t0
+
+    print(DIM(f"   IaC files scanned: {files_scanned}"
+              f"  (Docker/TF/compose + Ansible:{breakdown.get('ansible',0)}"
+              f"  Helm:{breakdown.get('helm',0)}"
+              f"  CloudFormation:{breakdown.get('cloudformation',0)})\n"))
 
     order   = ["INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
     min_sev = getattr(args, "min_severity", "LOW")
@@ -516,6 +546,364 @@ def cmd_iac(args) -> int:
 
     crits = sum(1 for f in findings if f.get("severity") == "CRITICAL")
     return 1 if crits > 0 and not getattr(args, "no_fail", False) else 0
+
+
+def cmd_container(args) -> int:
+    """ghost container <image|dockerfile> [--output json|table] [--save FILE]
+
+    Scan a Docker image (or all Dockerfiles in a directory) for OS-level CVEs.
+    Uses Trivy (preferred) → Grype → static known-vulnerable image database.
+    """
+    target   = getattr(args, "target", "")
+    t0       = time.time()
+    from scanners.container_scanner import ContainerScanner
+    scanner  = ContainerScanner()
+    backend  = scanner.backend()
+    print(BLUE(f"🐳  Container scan: {target}"))
+    print(DIM(f"   Backend: {backend}"))
+
+    p = Path(target)
+    if p.is_dir():
+        result   = scanner.scan_directory(target)
+        findings = result.get("findings", [])
+        print(DIM(f"   Dockerfiles: {result.get('dockerfiles_scanned', 0)}\n"))
+    elif p.is_file() and p.name.lower().startswith("dockerfile"):
+        findings = scanner.scan_dockerfile(target)
+        print(DIM(f"   Dockerfile: {target}\n"))
+    else:
+        # Treat as image name/tag
+        findings = scanner.scan_image(target)
+        print(DIM(f"   Image: {target}\n"))
+
+    duration = time.time() - t0
+    order    = ["INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
+    min_sev  = getattr(args, "min_severity", "LOW")
+    min_idx  = order.index(min_sev) if min_sev in order else 1
+    findings = [f for f in findings if order.index(f.get("severity", "MEDIUM")) >= min_idx]
+
+    if getattr(args, "output", "table") == "json":
+        print(json.dumps(findings, indent=2))
+    else:
+        _print_findings(findings, max_show=50)
+        _print_summary({"total_findings": len(findings), "findings": findings}, duration)
+
+    if getattr(args, "save", None):
+        Path(args.save).write_text(json.dumps(findings, indent=2))
+        print(GREEN(f"💾  Saved to {args.save}"))
+
+    crits = sum(1 for f in findings if f.get("severity") == "CRITICAL")
+    return 1 if crits > 0 and not getattr(args, "no_fail", False) else 0
+
+
+def cmd_sbom(args) -> int:
+    """ghost sbom [--format spdx|cyclonedx] [--out sbom.json] [--name app] [--version 1.0] <path>
+
+    Generate a Software Bill of Materials (SBOM) from dependency manifests.
+    SPDX 2.3 — required by NTIA/US EO 14028 and EU Cyber Resilience Act.
+    CycloneDX 1.4 — used by OWASP Dependency-Track, JFrog, Sonatype Nexus.
+    """
+    path    = str(Path(getattr(args, "path", ".")).resolve())
+    fmt     = getattr(args, "format", "spdx")
+    out     = getattr(args, "out", None)
+    name    = getattr(args, "name", Path(path).name or "project")
+    version = getattr(args, "version", "0.0.0")
+
+    print(BLUE(f"📋  Generating {fmt.upper()} SBOM: {path}"))
+    t0 = time.time()
+
+    if fmt == "spdx":
+        from sbom.spdx_exporter import SPDXExporter
+        exporter = SPDXExporter()
+        sbom     = exporter.from_directory(path, name, version)
+        if not out:
+            out = f"{name}-sbom.spdx.json"
+        exporter.write(sbom, out)
+        pkg_count = len(sbom.get("packages", [])) - 1  # exclude root
+        print(DIM(f"   Packages: {pkg_count}  Format: SPDX {sbom['spdxVersion']}"))
+    else:
+        # CycloneDX — use existing supply chain scanner
+        from sbom.supply_chain import SupplyChainScanner
+        scanner  = SupplyChainScanner()
+        result   = scanner.scan_directory(path)
+        packages = []
+        for m in result.get("manifests", []):
+            packages.extend(m.get("packages", []))
+        if not out:
+            out = f"{name}-sbom.cyclonedx.json"
+        import json as _json
+        import time as _time
+        import uuid as _uuid
+        cdx = {
+            "bomFormat":   "CycloneDX",
+            "specVersion": "1.4",
+            "serialNumber": f"urn:uuid:{_uuid.uuid4()}",
+            "version":     1,
+            "metadata": {
+                "timestamp": _time.strftime("%Y-%m-%dT%H:%M:%SZ", _time.gmtime()),
+                "component": {"type": "application", "name": name, "version": version},
+            },
+            "components": [
+                {
+                    "type":    "library",
+                    "name":    p.get("name", "unknown"),
+                    "version": p.get("version_spec", "").lstrip("=^~><!* ") or "unknown",
+                    "purl":    f"pkg:{'pypi' if p.get('ecosystem','').lower()=='pypi' else p.get('ecosystem','unknown').lower()}/{p.get('name','unknown')}",
+                }
+                for p in packages
+            ],
+        }
+        Path(out).write_text(json.dumps(cdx, indent=2))
+        print(DIM(f"   Components: {len(packages)}  Format: CycloneDX 1.4"))
+
+    duration = time.time() - t0
+    print(GREEN(f"\n✅  SBOM written: {out}  ({duration:.2f}s)"))
+    print(DIM("   Compatible with: syft · FOSSA · Black Duck · dependency-track"))
+    return 0
+
+
+def cmd_compliance(args) -> int:
+    """ghost compliance [--frameworks PCI-DSS,SOC2,HIPAA] [--output md|json] [--save FILE] <path|findings.json>
+
+    Map findings to compliance framework control violations.
+    Frameworks: PCI-DSS 4.0 · SOC 2 · HIPAA · NIST SP 800-53 · ISO 27001 · OWASP ASVS.
+    """
+    target = getattr(args, "path", "findings.json")
+    t0     = time.time()
+
+    from core.compliance.compliance_mapper import ComplianceMapper
+
+    # Accept either a findings.json or a directory to scan
+    tp = Path(target)
+    if tp.suffix == ".json" and tp.exists():
+        findings = json.loads(tp.read_text())
+        print(BLUE(f"📊  Compliance mapping: {target} ({len(findings)} findings)"))
+    elif tp.is_dir():
+        print(BLUE(f"📊  Compliance scan + mapping: {target}"))
+        from scanners.owasp_scanner import OWASPScanner
+        from scanners.secret_scanner.secret_detector import SecretDetector
+        findings = []
+        for fpath in list(tp.rglob("*.py"))[:100]:
+            try:
+                findings += OWASPScanner().scan_file(str(fpath))
+                findings += SecretDetector().scan_file(str(fpath))
+            except Exception:
+                pass
+        print(DIM(f"   Scanned: {len(list(tp.rglob('*.py'))[:100])} files  "
+                  f"Raw findings: {len(findings)}"))
+    else:
+        print(RED(f"❌  Not found: {target}"))
+        return 1
+
+    fw_arg = getattr(args, "frameworks", "")
+    active_fw = [f.strip() for f in fw_arg.split(",")] if fw_arg else None
+
+    mapper  = ComplianceMapper()
+    enriched = mapper.enrich(findings)
+    out_fmt  = getattr(args, "output_fmt", "md")
+
+    if out_fmt == "json":
+        report = mapper.compliance_report(enriched, active_fw)
+        if getattr(args, "save", None):
+            Path(args.save).write_text(json.dumps(report, indent=2))
+            print(GREEN(f"💾  Saved to {args.save}"))
+        else:
+            print(json.dumps(report, indent=2))
+    else:
+        md = mapper.markdown_report(enriched, active_fw)
+        if getattr(args, "save", None):
+            Path(args.save).write_text(md)
+            print(GREEN(f"💾  Report saved: {args.save}  ({time.time()-t0:.2f}s)"))
+        else:
+            print(md)
+
+    return 0
+
+
+def cmd_fix_deps(args) -> int:
+    """ghost fix-deps [--apply] [--backup] [--pr owner/repo --token TOKEN] <path>
+
+    Automatically bump vulnerable dependencies to their safe versions.
+    Reads findings from OSV scan; patches requirements.txt / package.json / go.mod / Cargo.toml.
+    Creates a .ghost.bak backup before modifying files unless --no-backup.
+    """
+    path = str(Path(getattr(args, "path", ".")).resolve())
+    if not Path(path).exists():
+        print(RED(f"❌  Path not found: {path}"))
+        return 1
+
+    print(BLUE(f"🔧  Dependency auto-fix: {path}"))
+    t0 = time.time()
+
+    from scanners.osv_scanner import OSVScanner
+    from remediation.dependency_fixer import DependencyFixer
+
+    # Run live OSV scan to get findings
+    print(DIM("   Running OSV.dev scan..."), end="", flush=True)
+    osv_result = OSVScanner().scan_directory(path)
+    findings   = osv_result.get("findings", [])
+    print(DIM(f" {len(findings)} vulnerabilities found"))
+
+    if not findings:
+        print(GREEN("✅  No vulnerable dependencies found."))
+        return 0
+
+    fixer = DependencyFixer(path)
+    fixes = fixer.compute_fixes(findings)
+
+    if not fixes:
+        print(YELLOW("⚠️   Findings found but no actionable version fixes available."))
+        return 0
+
+    print(f"\n  {BOLD('Proposed fixes')} ({len(fixes)}):\n")
+    for fix in fixes:
+        sev_color = _SEV_COLOR.get(fix.severity, lambda x: x)
+        cves = ", ".join(fix.cve_ids[:2]) + ("…" if len(fix.cve_ids) > 2 else "")
+        print(f"  {sev_color(_SEV_ICON.get(fix.severity,'●') + ' ' + fix.severity.ljust(8))}"
+              f"  {BOLD(fix.package)}: {fix.old_version} → {GREEN(fix.new_version)}"
+              f"  {DIM('(' + cves + ')')}")
+        print(f"    {DIM(Path(fix.file).name + ':' + str(fix.line_number))}")
+    print()
+
+    apply = getattr(args, "apply", False)
+    if not apply:
+        print(DIM("   Run with --apply to patch files. Run with --pr owner/repo to create a GitHub PR."))
+        return 0
+
+    backup = not getattr(args, "no_backup", False)
+    results = fixer.apply_fixes(fixes, backup=backup)
+    for r in results:
+        if r.get("applied"):
+            print(GREEN(f"  ✅  {r['file']}: {r['fixes']} fix(es) applied") +
+                  (DIM(f"  (backup: {r.get('backup')})") if r.get("backup") else ""))
+        else:
+            print(RED(f"  ❌  {r['file']}: {r.get('error')}"))
+
+    pr_target = getattr(args, "pr", None)
+    if pr_target:
+        token = getattr(args, "token", "") or os.getenv("GITHUB_TOKEN", "")
+        if not token:
+            print(RED("  ❌  --token or GITHUB_TOKEN required for PR creation"))
+            return 1
+        parts = pr_target.split("/")
+        if len(parts) < 2:
+            print(RED("  ❌  --pr must be owner/repo"))
+            return 1
+        owner, repo = parts[0], parts[1]
+        pr = fixer.create_pr(fixes, owner=owner, repo=repo, token=token)
+        if "error" in pr:
+            print(RED(f"  ❌  {pr['error']}"))
+        else:
+            print(GREEN(f"\n  PR ready!  Branch: {pr['branch']}"))
+            print(DIM(pr.get("instructions", "")))
+
+    print(DIM(f"\n  Done in {time.time()-t0:.2f}s"))
+    return 0
+
+
+def cmd_suppress(args) -> int:
+    """ghost suppress [--add RULE_ID] [--reason TEXT] [--files GLOB] [--expires DATE] <project>
+                      [--list] [--create-example]
+
+    Manage finding suppressions via .ghostignore file.
+    Suppressions expire automatically on the given date.
+    """
+    path = str(Path(getattr(args, "path", ".")).resolve())
+
+    from core.suppression import SuppressionManager
+    mgr = SuppressionManager(path)
+
+    if getattr(args, "create_example", False):
+        out = mgr.create_example(path)
+        print(GREEN(f"✅  Example .ghostignore created: {out}"))
+        return 0
+
+    if getattr(args, "list", False):
+        sups = mgr.suppressions
+        if not sups:
+            print(DIM("  No suppressions found in .ghostignore"))
+            return 0
+        print(BOLD(f"  Active suppressions ({len(sups)}):\n"))
+        for s in sups:
+            expired = DIM(" [EXPIRED]") if s.is_expired() else ""
+            print(f"  {BOLD(s.raw_id)}{expired}")
+            print(f"    Reason : {s.reason}")
+            if s.expires:
+                print(f"    Expires: {s.expires}")
+            if s.files:
+                print(f"    Files  : {', '.join(s.files)}")
+            print()
+        return 0
+
+    rule_id = getattr(args, "add", None)
+    if rule_id:
+        mgr.add_suppression(
+            rule_id=rule_id,
+            reason=getattr(args, "reason", "Suppressed via CLI"),
+            files=getattr(args, "files", []),
+            expires=getattr(args, "expires", None),
+        )
+        print(GREEN(f"✅  Suppression added: {rule_id}"))
+        print(DIM(f"   Edit .ghostignore to review or remove"))
+        return 0
+
+    # Default: show status
+    sups    = mgr.suppressions
+    active  = [s for s in sups if not s.is_expired()]
+    expired = [s for s in sups if s.is_expired()]
+    print(f"  {BOLD('.ghostignore')} — {len(active)} active, {len(expired)} expired")
+    print(DIM("   Use --list to show all, --add RULE_ID to add, --create-example to scaffold"))
+    return 0
+
+
+def cmd_enrich(args) -> int:
+    """ghost enrich <findings.json> [--kev] [--output json|table] [--save FILE]
+
+    Enrich findings with EPSS exploit probability scores and CISA KEV status.
+    Adds: epss_score, epss_percentile, cisa_kev (bool), priority_score, exploit_status.
+    """
+    findings_path = getattr(args, "findings", "findings.json")
+    if not Path(findings_path).exists():
+        print(RED(f"❌  File not found: {findings_path}"))
+        return 1
+
+    findings = json.loads(Path(findings_path).read_text())
+    print(BLUE(f"🎯  EPSS enrichment: {len(findings)} findings"))
+    t0 = time.time()
+
+    from scanners.epss_enricher import EPSSEnricher
+    enricher = EPSSEnricher()
+    enriched = enricher.enrich(findings)
+
+    kev_count  = sum(1 for f in enriched if f.get("cisa_kev"))
+    high_epss  = sum(1 for f in enriched if f.get("epss_score", 0) > 0.5)
+    duration   = time.time() - t0
+
+    print(DIM(f"   CISA KEV matches: {kev_count}  High EPSS (>50%): {high_epss}  "
+              f"Time: {duration:.2f}s\n"))
+
+    out_fmt = getattr(args, "output", "table")
+    if out_fmt == "json":
+        print(json.dumps(enriched, indent=2))
+    else:
+        # Show top-priority findings
+        top = sorted(enriched, key=lambda f: f.get("priority_score", 0), reverse=True)[:20]
+        for f in top:
+            sev   = f.get("severity", "MEDIUM")
+            color = _SEV_COLOR.get(sev, lambda x: x)
+            icon  = _SEV_ICON.get(sev, "●")
+            epss  = f.get("epss_score", 0)
+            kev   = " 🚨KEV" if f.get("cisa_kev") else ""
+            prio  = f.get("priority_score", 0)
+            msg   = (f.get("message") or "")[:55]
+            cve   = f.get("cve", f.get("id", ""))[:15]
+            print(f"  {color(icon+' '+sev.ljust(8))}  {BOLD(cve.ljust(16))} "
+                  f"EPSS:{epss:.2f} Prio:{prio:.0f}{kev}  {DIM(msg)}")
+
+    if getattr(args, "save", None):
+        Path(args.save).write_text(json.dumps(enriched, indent=2))
+        print(GREEN(f"\n💾  Saved to {args.save}"))
+
+    return 0
 
 
 def cmd_ci(args) -> int:
@@ -570,16 +958,27 @@ def main():
         description="Ghost Security Platform CLI",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""Examples:
-  ghost scan .                         # full SAST scan (Python/JS/C/C++)
-  ghost scan --incremental .           # only changed files (fast)
-  ghost deps .                         # live CVE scan via OSV.dev
-  ghost deps --offline .               # offline CVE scan (static DB)
-  ghost iac .                          # Dockerfile/Terraform/compose scan
-  ghost ci --type github .             # generate GitHub Actions workflow
+  ghost scan .                              # full SAST scan (Python/JS/C/C++)
+  ghost scan --incremental .               # only changed files (fast)
+  ghost deps .                             # live CVE scan via OSV.dev
+  ghost deps --offline .                   # offline CVE scan (static DB)
+  ghost iac .                              # Docker/Terraform/Ansible/Helm/CFN scan
+  ghost container nginx:1.21.0            # container image CVE scan
+  ghost container ./Dockerfile            # scan Dockerfile base images
+  ghost sbom . --format spdx             # generate SPDX 2.3 SBOM
+  ghost sbom . --format cyclonedx        # generate CycloneDX 1.4 SBOM
+  ghost compliance findings.json         # PCI-DSS/SOC2/HIPAA/NIST gap report
+  ghost compliance . --frameworks PCI-DSS,SOC2 --save report.md
+  ghost fix-deps .                       # preview vulnerable dep fixes
+  ghost fix-deps . --apply               # patch manifests (with .ghost.bak backup)
+  ghost fix-deps . --apply --pr org/repo --token ghp_...
+  ghost suppress . --create-example     # scaffold .ghostignore
+  ghost suppress . --add CVE-2023-1234 --reason "Not reachable" --expires 2025-12-31
+  ghost enrich findings.json            # add EPSS scores + CISA KEV flags
+  ghost ci --type github .              # generate GitHub Actions workflow
   ghost ton ./contracts/               # TON bug bounty scan + reports
   ghost k8s ./k8s/manifests/           # Kubernetes CIS audit
-  ghost fix findings.json --diff       # show auto-fixes
-  ghost fix findings.json --apply      # apply safe fixes (with backup)
+  ghost fix findings.json --apply      # apply code-level fixes (with backup)
   ghost serve --port 8000              # start API server
   ghost status                         # component health check
   ghost report findings.json           # generate Immunefi report
@@ -663,6 +1062,56 @@ def main():
     p_ci.add_argument("--min-severity", default="MEDIUM",
                       choices=["INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL"])
 
+    # container — Docker image CVE scanner
+    p_con = sub.add_parser("container", help="Container image CVE scan (Trivy/Grype/static)")
+    p_con.add_argument("target", nargs="?", default=".", help="Image name, Dockerfile, or directory")
+    p_con.add_argument("--output", "-o", choices=["table", "json"], default="table")
+    p_con.add_argument("--min-severity", default="LOW",
+                       choices=["INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL"])
+    p_con.add_argument("--save", metavar="FILE", help="Save findings to JSON file")
+    p_con.add_argument("--no-fail", action="store_true")
+
+    # sbom — SBOM generator (SPDX 2.3 / CycloneDX 1.4)
+    p_sbom = sub.add_parser("sbom", help="Generate SPDX 2.3 or CycloneDX 1.4 SBOM")
+    p_sbom.add_argument("path", nargs="?", default=".")
+    p_sbom.add_argument("--format", dest="format", choices=["spdx", "cyclonedx"], default="spdx")
+    p_sbom.add_argument("--out", metavar="FILE", help="Output file path")
+    p_sbom.add_argument("--name", default="", help="Project name")
+    p_sbom.add_argument("--version", default="0.0.0", help="Project version")
+
+    # compliance — framework compliance report
+    p_comp = sub.add_parser("compliance", help="Compliance gap report (PCI-DSS/SOC2/HIPAA/NIST/ISO27001/ASVS)")
+    p_comp.add_argument("path", nargs="?", default="findings.json",
+                        help="findings.json file or directory to scan")
+    p_comp.add_argument("--frameworks", default="",
+                        help="Comma-separated framework IDs (default: all)")
+    p_comp.add_argument("--output", dest="output_fmt", choices=["md", "json"], default="md")
+    p_comp.add_argument("--save", metavar="FILE")
+
+    # fix-deps — auto-fix vulnerable dependency versions
+    p_fd = sub.add_parser("fix-deps", help="Auto-fix vulnerable dependency versions")
+    p_fd.add_argument("path", nargs="?", default=".")
+    p_fd.add_argument("--apply", action="store_true", help="Patch manifest files (with backup)")
+    p_fd.add_argument("--no-backup", action="store_true", help="Skip .ghost.bak backup")
+    p_fd.add_argument("--pr", metavar="owner/repo", help="Create GitHub PR after patching")
+    p_fd.add_argument("--token", metavar="TOKEN", help="GitHub PAT (or set GITHUB_TOKEN env var)")
+
+    # suppress — .ghostignore management
+    p_sup = sub.add_parser("suppress", help="Manage .ghostignore finding suppressions")
+    p_sup.add_argument("path", nargs="?", default=".", help="Project root")
+    p_sup.add_argument("--add", metavar="RULE_ID", help="Add suppression for rule/CVE")
+    p_sup.add_argument("--reason", default="Suppressed via CLI")
+    p_sup.add_argument("--files", nargs="*", default=[], metavar="GLOB")
+    p_sup.add_argument("--expires", metavar="YYYY-MM-DD", help="Expiry date")
+    p_sup.add_argument("--list", action="store_true", help="List all suppressions")
+    p_sup.add_argument("--create-example", action="store_true", help="Write .ghostignore template")
+
+    # enrich — EPSS + CISA KEV enrichment
+    p_enr = sub.add_parser("enrich", help="Enrich findings with EPSS scores and CISA KEV data")
+    p_enr.add_argument("findings", nargs="?", default="findings.json")
+    p_enr.add_argument("--output", "-o", choices=["table", "json"], default="table")
+    p_enr.add_argument("--save", metavar="FILE")
+
     args = parser.parse_args()
     if not args.command:
         parser.print_help()
@@ -680,6 +1129,12 @@ def main():
         "deps":      cmd_deps,
         "iac":       cmd_iac,
         "ci":        cmd_ci,
+        "container": cmd_container,
+        "sbom":      cmd_sbom,
+        "compliance": cmd_compliance,
+        "fix-deps":  cmd_fix_deps,
+        "suppress":  cmd_suppress,
+        "enrich":    cmd_enrich,
     }
     handler = dispatch.get(args.command)
     if handler:
