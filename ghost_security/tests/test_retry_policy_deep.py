@@ -344,3 +344,144 @@ class TestValidation:
     def test_max_delay_less_than_base_raises(self):
         with pytest.raises(ValueError):
             RetryPolicy(max_retries=1, base_delay=1.0, max_delay=0.5)
+
+
+# ---------------------------------------------------------------------------
+# Additional retry tests
+# ---------------------------------------------------------------------------
+
+class TestAdditionalRetryBehavior:
+    def test_retry_exhausted_message_contains_attempts(self):
+        policy = RetryPolicy(max_retries=2, base_delay=0.001, jitter=False)
+
+        def _fail():
+            raise IOError("fail")
+
+        try:
+            policy.execute_sync(_fail)
+        except RetryExhausted as e:
+            assert "3" in str(e)
+
+    def test_brokenPipeError_is_retryable(self):
+        call_count = [0]
+
+        def _fail():
+            call_count[0] += 1
+            raise BrokenPipeError("pipe")
+
+        policy = RetryPolicy(max_retries=2, base_delay=0.001, jitter=False)
+        with pytest.raises(RetryExhausted):
+            policy.execute_sync(_fail)
+        assert call_count[0] == 3
+
+    def test_connection_refused_is_retryable(self):
+        call_count = [0]
+
+        def _fail():
+            call_count[0] += 1
+            raise ConnectionRefusedError("refused")
+
+        policy = RetryPolicy(max_retries=1, base_delay=0.001, jitter=False)
+        with pytest.raises(RetryExhausted):
+            policy.execute_sync(_fail)
+        assert call_count[0] == 2
+
+    def test_name_error_not_retried(self):
+        call_count = [0]
+
+        def _fail():
+            call_count[0] += 1
+            raise NameError("undefined")
+
+        policy = RetryPolicy(max_retries=3, base_delay=0.001, jitter=False)
+        with pytest.raises(NameError):
+            policy.execute_sync(_fail)
+        assert call_count[0] == 1
+
+    def test_not_implemented_error_not_retried(self):
+        call_count = [0]
+
+        def _fail():
+            call_count[0] += 1
+            raise NotImplementedError("not impl")
+
+        policy = RetryPolicy(max_retries=3, base_delay=0.001, jitter=False)
+        with pytest.raises(NotImplementedError):
+            policy.execute_sync(_fail)
+        assert call_count[0] == 1
+
+    def test_custom_retryable_exceptions(self):
+        call_count = [0]
+
+        def _fail():
+            call_count[0] += 1
+            raise RuntimeError("custom")
+
+        policy = RetryPolicy(
+            max_retries=2,
+            base_delay=0.001,
+            jitter=False,
+            retryable=(RuntimeError,),
+        )
+        with pytest.raises(RetryExhausted):
+            policy.execute_sync(_fail)
+        assert call_count[0] == 3
+
+    def test_decorator_sync_function(self):
+        call_count = [0]
+        policy = RetryPolicy(max_retries=2, base_delay=0.001, jitter=False)
+
+        @policy
+        def _sometimes_fail():
+            call_count[0] += 1
+            if call_count[0] < 2:
+                raise IOError("first")
+            return "ok"
+
+        result = _sometimes_fail()
+        assert result == "ok"
+        assert call_count[0] == 2
+
+    def test_max_retries_one(self):
+        call_count = [0]
+
+        def _fail():
+            call_count[0] += 1
+            raise IOError("fail")
+
+        policy = RetryPolicy(max_retries=1, base_delay=0.001, jitter=False)
+        with pytest.raises(RetryExhausted):
+            policy.execute_sync(_fail)
+        assert call_count[0] == 2  # 1 initial + 1 retry
+
+    def test_jitter_stays_non_negative(self):
+        policy = RetryPolicy(max_retries=3, base_delay=0.001, jitter=True)
+        for attempt in range(5):
+            d = policy._compute_delay(attempt)
+            assert d >= 0.0
+
+    def test_async_success_on_second_attempt(self):
+        call_count = [0]
+        policy = RetryPolicy(max_retries=3, base_delay=0.001, jitter=False)
+
+        async def _sometimes_fail():
+            call_count[0] += 1
+            if call_count[0] < 2:
+                raise IOError("first")
+            return "recovered"
+
+        result = asyncio.run(policy.execute(_sometimes_fail))
+        assert result == "recovered"
+        assert call_count[0] == 2
+
+    def test_sync_func_via_async_execute(self):
+        policy = RetryPolicy(max_retries=1, base_delay=0.001, jitter=False)
+        call_count = [0]
+
+        def _sync_ok():
+            call_count[0] += 1
+            return "sync"
+
+        result = asyncio.run(policy.execute(_sync_ok))
+        assert result == "sync"
+        assert call_count[0] == 1

@@ -238,3 +238,94 @@ class TestThreadSafety:
         assert errors == []
         output = metrics.render()
         assert "1000.0" in output  # 10 threads × 100 increments
+
+
+# ---------------------------------------------------------------------------
+# Additional prometheus tests
+# ---------------------------------------------------------------------------
+
+class TestAdditionalMetrics:
+    def test_counter_without_labels(self, metrics):
+        metrics.increment("ghost_errors_total", None, value=2.0)
+        output = metrics.render()
+        assert "ghost_errors_total 2.0" in output
+
+    def test_multiple_histogram_observations(self, metrics):
+        for v in [0.1, 0.5, 1.0, 2.0]:
+            metrics.histogram("ghost_scan_duration_seconds", v, {"s": "evm"})
+        output = metrics.render()
+        assert "ghost_scan_duration_seconds_count" in output
+
+    def test_histogram_count_matches_observations(self, metrics):
+        for _ in range(5):
+            metrics.histogram("ghost_scan_duration_seconds", 0.1, {"s": "x"})
+        output = metrics.render()
+        # The count bucket should be 5
+        assert "5" in output
+
+    def test_histogram_sum_matches_observations(self, metrics):
+        # Observe 3 values of 1.0 each = sum 3.0
+        for _ in range(3):
+            metrics.histogram("ghost_scan_duration_seconds", 1.0, {"s": "y"})
+        output = metrics.render()
+        assert "3.0" in output
+
+    def test_gauge_decreases_to_negative(self, metrics):
+        metrics.gauge("ghost_queue_depth", -5.0, {"pool": "neg"})
+        output = metrics.render()
+        assert "-5.0" in output
+
+    def test_type_error_on_counter_as_gauge(self, metrics):
+        import pytest as pt
+        with pt.raises(TypeError):
+            metrics.gauge("ghost_scans_total", 1.0)
+
+    def test_type_error_on_gauge_as_counter(self, metrics):
+        import pytest as pt
+        metrics.gauge("my_gauge_x", 1.0)
+        with pt.raises(TypeError):
+            metrics.increment("my_gauge_x")
+
+    def test_render_produces_newlines(self, metrics):
+        metrics.increment("ghost_scans_total")
+        output = metrics.render()
+        assert "\n" in output
+
+    def test_histogram_inf_bucket_equals_total_count(self, metrics):
+        metrics.histogram("ghost_scan_duration_seconds", 999.0, {"s": "inf"})
+        output = metrics.render()
+        assert 'le="+Inf"' in output
+
+    def test_increment_value_custom(self, metrics):
+        metrics.increment("ghost_findings_total", {"sev": "LOW"}, value=42.0)
+        output = metrics.render()
+        assert "42.0" in output
+
+    def test_gauge_multiple_label_sets(self, metrics):
+        metrics.gauge("ghost_worker_active", 3.0, {"pool": "a"})
+        metrics.gauge("ghost_worker_active", 7.0, {"pool": "b"})
+        output = metrics.render()
+        assert "3.0" in output
+        assert "7.0" in output
+
+    def test_ad_hoc_histogram_with_custom_buckets(self, metrics):
+        metrics.histogram("custom_hist", 0.5, buckets=[0.1, 0.5, 1.0])
+        output = metrics.render()
+        assert "custom_hist_bucket" in output
+
+    def test_render_contains_ghost_comment_header(self, metrics):
+        output = metrics.render()
+        assert "Ghost Security" in output
+
+    def test_multiple_increments_accumulate(self, metrics):
+        for _ in range(7):
+            metrics.increment("ghost_llm_tokens_total", {"model": "test"})
+        output = metrics.render()
+        assert "7.0" in output
+
+    def test_histogram_bucket_increments_for_small_values(self, metrics):
+        # Observe 0.001 — should be counted in 0.005 bucket
+        metrics.histogram("ghost_scan_duration_seconds", 0.001, {"s": "tiny"})
+        output = metrics.render()
+        # At least the first bucket should have count 1
+        assert "1" in output

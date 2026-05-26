@@ -346,3 +346,106 @@ class TestCircuitBreakerRegistry:
         assert cb.get_state().state == CBState.OPEN
         self.registry.reset_all()
         assert cb.get_state().state == CBState.CLOSED
+
+
+# ---------------------------------------------------------------------------
+# Additional circuit breaker behavior tests
+# ---------------------------------------------------------------------------
+
+class TestAdditionalBehavior:
+    def test_consecutive_failures_tracked(self):
+        cb = make_cb(min_calls=100)
+        trigger_failures(cb, 3)
+        assert cb.get_state().consecutive_failures == 3
+
+    def test_success_resets_consecutive_failures(self):
+        cb = make_cb(min_calls=100)
+        trigger_failures(cb, 3)
+        cb.call(ok_func)
+        assert cb.get_state().consecutive_failures == 0
+
+    def test_last_failure_time_recorded(self):
+        cb = make_cb(min_calls=100)
+        before = time.time()
+        trigger_failures(cb, 1)
+        after = time.time()
+        lft = cb.get_state().last_failure_time
+        assert before <= lft <= after
+
+    def test_last_failure_zero_initially(self):
+        cb = make_cb()
+        assert cb.get_state().last_failure_time == 0.0
+
+    def test_circuit_stays_closed_under_threshold(self):
+        cb = make_cb(failure_threshold=0.6, min_calls=10)
+        # 4 failures + 7 successes = 36% failure rate < 60%
+        trigger_failures(cb, 4)
+        trigger_successes(cb, 7)
+        assert cb.get_state().state == CBState.CLOSED
+
+    def test_total_successes_count(self):
+        cb = make_cb()
+        trigger_successes(cb, 5)
+        assert cb.get_state().total_successes == 5
+
+    def test_call_returns_function_result(self):
+        cb = make_cb()
+        result = cb.call(lambda: 42)
+        assert result == 42
+
+    def test_call_propagates_exception(self):
+        cb = make_cb(min_calls=100)
+
+        def _fail():
+            raise ValueError("test error")
+
+        with pytest.raises(ValueError, match="test error"):
+            cb.call(_fail)
+
+    def test_multiple_open_reopen_cycles(self):
+        cb = make_cb(
+            failure_threshold=0.5,
+            min_calls=5,
+            open_duration=0.001,
+        )
+        for _ in range(3):
+            trigger_failures(cb, 5)
+            assert cb.get_state().state == CBState.OPEN
+            time.sleep(0.01)
+            # Trigger HALF_OPEN → CLOSED
+            cb.call(ok_func)
+            assert cb.get_state().state == CBState.CLOSED
+
+    def test_registry_remove(self):
+        registry = CircuitBreakerRegistry()
+        registry.get("to_remove")
+        registry.remove("to_remove")
+        states = registry.all_states()
+        assert "to_remove" not in states
+
+    def test_registry_remove_nonexistent_no_error(self):
+        registry = CircuitBreakerRegistry()
+        registry.remove("nonexistent")  # Should not raise
+
+    def test_get_state_is_dataclass(self):
+        cb = make_cb()
+        state = cb.get_state()
+        assert hasattr(state, "state")
+        assert hasattr(state, "failure_rate")
+        assert hasattr(state, "total_calls")
+
+    def test_async_call_failure_opens_circuit(self):
+        cb = make_cb(failure_threshold=0.5, min_calls=5)
+
+        async def _bad():
+            raise IOError("async failure")
+
+        async def _run():
+            for _ in range(5):
+                try:
+                    await cb.async_call(_bad)
+                except Exception:
+                    pass
+
+        asyncio.run(_run())
+        assert cb.get_state().state == CBState.OPEN
