@@ -449,3 +449,91 @@ class TestAdditionalBehavior:
 
         asyncio.run(_run())
         assert cb.get_state().state == CBState.OPEN
+
+
+# ---------------------------------------------------------------------------
+# Final circuit breaker tests for coverage
+# ---------------------------------------------------------------------------
+
+class TestFinalCoverage:
+    def test_cb_name_stored(self):
+        cb = make_cb(name="my_service")
+        assert cb.name == "my_service"
+
+    def test_failure_threshold_stored(self):
+        cb = make_cb(failure_threshold=0.7)
+        assert cb._threshold == 0.7
+
+    def test_min_calls_stored(self):
+        cb = make_cb(min_calls=10)
+        assert cb._min_calls == 10
+
+    def test_open_duration_stored(self):
+        cb = make_cb(open_duration=60.0)
+        assert cb._open_duration == 60.0
+
+    def test_window_seconds_stored(self):
+        cb = make_cb(window_seconds=30.0)
+        assert cb._window == 30.0
+
+    def test_circuit_open_with_high_threshold(self):
+        cb = make_cb(failure_threshold=0.9, min_calls=5)
+        # 5 failures = 100% > 90% threshold
+        trigger_failures(cb, 5)
+        assert cb.get_state().state == CBState.OPEN
+
+    def test_circuit_stays_closed_mixed_calls(self):
+        cb = make_cb(failure_threshold=0.5, min_calls=10)
+        # 4 failures + 6 successes = 40% failure < 50% threshold
+        trigger_failures(cb, 4)
+        trigger_successes(cb, 6)
+        assert cb.get_state().state == CBState.CLOSED
+
+    def test_call_with_args(self):
+        cb = make_cb()
+
+        def _add(a, b):
+            return a + b
+
+        result = cb.call(_add, 3, 4)
+        assert result == 7
+
+    def test_call_with_kwargs(self):
+        cb = make_cb()
+
+        def _greet(name="World"):
+            return f"Hello {name}"
+
+        result = cb.call(_greet, name="Test")
+        assert result == "Hello Test"
+
+    def test_state_enum_values(self):
+        assert CBState.CLOSED == "closed"
+        assert CBState.OPEN == "open"
+        assert CBState.HALF_OPEN == "half_open"
+
+    def test_registry_singleton(self):
+        r1 = CircuitBreakerRegistry.instance()
+        r2 = CircuitBreakerRegistry.instance()
+        assert r1 is r2
+
+    def test_get_state_total_calls_is_int(self):
+        cb = make_cb()
+        cb.call(ok_func)
+        stats = cb.get_state()
+        assert isinstance(stats.total_calls, int)
+
+    def test_circuit_breaker_error_is_exception(self):
+        error = CircuitBreakerError("test error")
+        assert isinstance(error, Exception)
+
+    def test_stats_consecutive_failures_is_int(self):
+        cb = make_cb()
+        stats = cb.get_state()
+        assert isinstance(stats.consecutive_failures, int)
+
+    def test_double_reset_no_error(self):
+        cb = make_cb()
+        cb.reset()
+        cb.reset()
+        assert cb.get_state().state == CBState.CLOSED

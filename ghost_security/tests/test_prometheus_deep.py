@@ -329,3 +329,90 @@ class TestAdditionalMetrics:
         output = metrics.render()
         # At least the first bucket should have count 1
         assert "1" in output
+
+
+# ---------------------------------------------------------------------------
+# Final prometheus tests
+# ---------------------------------------------------------------------------
+
+class TestFinalPrometheus:
+    def test_render_is_non_empty(self, metrics):
+        output = metrics.render()
+        assert len(output) > 0
+
+    def test_render_has_help_for_all_predefined(self, metrics):
+        output = metrics.render()
+        help_count = output.count("# HELP ")
+        # At least 8 pre-defined metrics
+        assert help_count >= 8
+
+    def test_render_has_type_for_all_predefined(self, metrics):
+        output = metrics.render()
+        type_count = output.count("# TYPE ")
+        assert type_count >= 8
+
+    def test_counter_label_str_format(self, metrics):
+        metrics.increment("ghost_errors_total", {"component": "scanner", "type": "timeout"})
+        output = metrics.render()
+        assert 'component="scanner"' in output
+        assert 'type="timeout"' in output
+
+    def test_gauge_set_overwrites(self, metrics):
+        metrics.gauge("ghost_queue_depth", 100.0, {"pool": "x"})
+        metrics.gauge("ghost_queue_depth", 5.0, {"pool": "x"})
+        output = metrics.render()
+        assert "5.0" in output
+        # 100.0 should be overwritten
+        assert "100.0" not in output
+
+    def test_histogram_with_no_labels(self, metrics):
+        metrics.histogram("ghost_scan_duration_seconds", 0.5)
+        output = metrics.render()
+        assert "ghost_scan_duration_seconds_sum" in output
+
+    def test_multiple_gauge_updates(self, metrics):
+        for i in range(5):
+            metrics.gauge("ghost_worker_active", float(i), {"pool": "p"})
+        output = metrics.render()
+        assert "4.0" in output
+
+    def test_counter_zero_value(self, metrics):
+        metrics.increment("ghost_llm_calls_total", {"provider": "ollama"}, value=0.0)
+        output = metrics.render()
+        assert 'provider="ollama"' in output
+
+    def test_ad_hoc_counter_and_gauge_coexist(self, metrics):
+        metrics.increment("custom_counter_abc", value=1.0)
+        metrics.gauge("custom_gauge_abc", 1.0)
+        output = metrics.render()
+        assert "custom_counter_abc" in output
+        assert "custom_gauge_abc" in output
+
+    def test_histogram_large_value_in_inf_bucket(self, metrics):
+        metrics.histogram("ghost_scan_duration_seconds", 1000.0, {"s": "big"})
+        output = metrics.render()
+        # +Inf should have count 1
+        assert '+Inf' in output
+
+    def test_render_has_generated_timestamp(self, metrics):
+        output = metrics.render()
+        assert "Generated:" in output
+
+    def test_increment_same_labels_multiple_times(self, metrics):
+        for _ in range(3):
+            metrics.increment("ghost_scans_total", {"env": "staging"}, value=2.0)
+        output = metrics.render()
+        # 3 * 2.0 = 6.0
+        assert "6.0" in output
+
+    def test_type_counter_in_output(self, metrics):
+        output = metrics.render()
+        assert "counter" in output
+
+    def test_type_histogram_in_output(self, metrics):
+        output = metrics.render()
+        assert "histogram" in output
+
+    def test_type_gauge_in_output(self, metrics):
+        output = metrics.render()
+        assert "gauge" in output

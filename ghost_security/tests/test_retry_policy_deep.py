@@ -485,3 +485,100 @@ class TestAdditionalRetryBehavior:
         result = asyncio.run(policy.execute(_sync_ok))
         assert result == "sync"
         assert call_count[0] == 1
+
+
+# ---------------------------------------------------------------------------
+# Final retry policy coverage tests
+# ---------------------------------------------------------------------------
+
+class TestFinalRetryCoverage:
+    def test_default_max_retries_is_3(self):
+        policy = RetryPolicy(base_delay=0.001)
+        assert policy.max_retries == 3
+
+    def test_default_jitter_is_true(self):
+        policy = RetryPolicy(base_delay=0.001)
+        assert policy.jitter is True
+
+    def test_default_max_delay_is_60(self):
+        policy = RetryPolicy(base_delay=0.001)
+        assert policy.max_delay == 60.0
+
+    def test_execute_sync_returns_value(self):
+        policy = RetryPolicy(max_retries=1, base_delay=0.001, jitter=False)
+        result = policy.execute_sync(lambda: 42)
+        assert result == 42
+
+    def test_retry_exhausted_str_includes_last_error(self):
+        policy = RetryPolicy(max_retries=1, base_delay=0.001, jitter=False)
+
+        def _fail():
+            raise IOError("unique_error_message")
+
+        try:
+            policy.execute_sync(_fail)
+        except RetryExhausted as e:
+            assert "unique_error_message" in str(e)
+
+    def test_compute_delay_capped_at_max(self):
+        policy = RetryPolicy(
+            max_retries=10, base_delay=1.0, max_delay=2.0, jitter=False
+        )
+        for attempt in range(10):
+            d = policy._compute_delay(attempt)
+            assert d <= 2.0
+
+    def test_max_retries_3_means_4_total_attempts(self):
+        count = [0]
+
+        def _fail():
+            count[0] += 1
+            raise IOError("err")
+
+        policy = RetryPolicy(max_retries=3, base_delay=0.001, jitter=False)
+        with pytest.raises(RetryExhausted):
+            policy.execute_sync(_fail)
+        assert count[0] == 4
+
+    def test_retryable_default_is_retryable_tuple(self):
+        policy = RetryPolicy(max_retries=1, base_delay=0.001)
+        assert policy._retryable == RETRYABLE
+
+    def test_decorator_async_function(self):
+        call_count = [0]
+        policy = RetryPolicy(max_retries=2, base_delay=0.001, jitter=False)
+
+        @policy
+        async def _sometimes_fail():
+            call_count[0] += 1
+            if call_count[0] < 2:
+                raise IOError("first")
+            return "async_ok"
+
+        result = asyncio.run(_sometimes_fail())
+        assert result == "async_ok"
+        assert call_count[0] == 2
+
+    def test_connection_reset_error_is_retryable(self):
+        count = [0]
+
+        def _fail():
+            count[0] += 1
+            raise ConnectionResetError("reset")
+
+        policy = RetryPolicy(max_retries=1, base_delay=0.001, jitter=False)
+        with pytest.raises(RetryExhausted):
+            policy.execute_sync(_fail)
+        assert count[0] == 2
+
+    def test_connection_aborted_error_is_retryable(self):
+        count = [0]
+
+        def _fail():
+            count[0] += 1
+            raise ConnectionAbortedError("aborted")
+
+        policy = RetryPolicy(max_retries=1, base_delay=0.001, jitter=False)
+        with pytest.raises(RetryExhausted):
+            policy.execute_sync(_fail)
+        assert count[0] == 2

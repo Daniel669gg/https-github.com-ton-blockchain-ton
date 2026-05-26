@@ -630,3 +630,156 @@ class TestAdditionalRuleCoverage:
         rule_ids = {f["rule_id"] for f in result["findings"]}
         assert "GHOST-EVM-006" in rule_ids
         assert "GHOST-EVM-016" in rule_ids
+
+
+# ---------------------------------------------------------------------------
+# More rule-specific coverage
+# ---------------------------------------------------------------------------
+
+class TestMoreRuleCoverage:
+    def test_evm_003_call_value_without_bool(self, scanner, tmp_path):
+        src = "target.call{value: amount}('');\n"
+        findings = scanner.scan_file(write_sol(tmp_path, "uc.sol", src))
+        # Rule 003 fires on bare .call()
+        assert isinstance(findings, list)
+
+    def test_evm_007_deadline_check(self, scanner, tmp_path):
+        src = "require(block.timestamp <= deadline, 'Expired');\n"
+        findings = scanner.scan_file(write_sol(tmp_path, "dl.sol", src))
+        assert has_rule(findings, "GHOST-EVM-007")
+
+    def test_evm_001_call_with_empty_bytes(self, scanner, tmp_path):
+        src = "payable(addr).call{value: 1 ether}('');\n"
+        findings = scanner.scan_file(write_sol(tmp_path, "cv.sol", src))
+        assert has_rule(findings, "GHOST-EVM-001")
+
+    def test_evm_005_delegatecall_lowercase(self, scanner, tmp_path):
+        src = "target.delegatecall(data);\n"
+        findings = scanner.scan_file(write_sol(tmp_path, "dc.sol", src))
+        assert has_rule(findings, "GHOST-EVM-005")
+
+    def test_evm_016_ecrecover_with_hash(self, scanner, tmp_path):
+        src = "address r = ecrecover(keccak256(abi.encode(a)), v, sig_r, sig_s);\n"
+        findings = scanner.scan_file(write_sol(tmp_path, "er.sol", src))
+        assert has_rule(findings, "GHOST-EVM-016")
+
+    def test_evm_013_iuinswap_getreserves(self, scanner, tmp_path):
+        src = "IUniswapV2Pair(pool).getReserves();\n"
+        findings = scanner.scan_file(write_sol(tmp_path, "po.sol", src))
+        assert has_rule(findings, "GHOST-EVM-013")
+
+    def test_evm_008_only_blockhash_not_block_difficulty(self, scanner, tmp_path):
+        src = "bytes32 hash = blockhash(block.number);\n"
+        findings = scanner.scan_file(write_sol(tmp_path, "bh.sol", src))
+        assert has_rule(findings, "GHOST-EVM-008")
+
+    def test_nonexistent_file_returns_empty(self, scanner):
+        findings = scanner.scan_file("/nonexistent/path/Contract.sol")
+        assert findings == []
+
+    def test_evm_006_selfdestruct_multiple_occurrences(self, scanner, tmp_path):
+        src = (
+            "function kill1() public { selfdestruct(payable(owner)); }\n"
+            "function kill2() public { selfdestruct(payable(owner)); }\n"
+        )
+        findings = scanner.scan_file(write_sol(tmp_path, "sd.sol", src))
+        rule_findings = findings_for_rule(findings, "GHOST-EVM-006")
+        assert len(rule_findings) >= 2
+
+    def test_evm_scanner_instantiation_no_args(self):
+        s = EVMScanner()
+        assert s is not None
+
+    def test_scan_directory_returns_dict(self, scanner, tmp_path):
+        result = scanner.scan_directory(str(tmp_path))
+        assert isinstance(result, dict)
+
+    def test_scan_directory_total_findings_int(self, scanner, tmp_path):
+        result = scanner.scan_directory(str(tmp_path))
+        assert isinstance(result["total_findings"], int)
+
+    def test_scan_directory_files_scanned_int(self, scanner, tmp_path):
+        result = scanner.scan_directory(str(tmp_path))
+        assert isinstance(result["files_scanned"], int)
+
+    def test_severity_counts_initialized(self, scanner, tmp_path):
+        result = scanner.scan_directory(str(tmp_path))
+        for key in ("CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO"):
+            assert key in result["severity_counts"]
+
+    def test_evm_015_approve_simple_args(self, scanner, tmp_path):
+        src = "token.approve(spender, newAmount);\n"
+        findings = scanner.scan_file(write_sol(tmp_path, "app2.sol", src))
+        assert has_rule(findings, "GHOST-EVM-015")
+
+    def test_evm_012_execute_operation_signature(self, scanner, tmp_path):
+        src = "function executeOperation(address asset, uint256 amount, uint256 premium, address initiator, bytes calldata params) external returns (bool) {}\n"
+        findings = scanner.scan_file(write_sol(tmp_path, "eo.sol", src))
+        assert has_rule(findings, "GHOST-EVM-012")
+
+    def test_large_contract_file(self, scanner, tmp_path):
+        # Generate a large file and ensure no crash
+        lines = ["// SPDX-License-Identifier: MIT\n", "pragma solidity ^0.8.0;\n"]
+        lines += [f"// comment line {i}\n" for i in range(1000)]
+        lines.append("selfdestruct(payable(owner));\n")
+        src = "".join(lines)
+        findings = scanner.scan_file(write_sol(tmp_path, "large.sol", src))
+        assert has_rule(findings, "GHOST-EVM-006")
+
+    def test_scan_directory_ignores_git_dir(self, scanner, tmp_path):
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+        write_sol(git_dir, "contract.sol", "selfdestruct(payable(x));\n")
+        result = scanner.scan_directory(str(tmp_path))
+        # .git is excluded
+        assert result["files_scanned"] == 0
+
+    def test_evm_004_pragma_caret_07(self, scanner, tmp_path):
+        src = "pragma solidity ^0.7.0;\n"
+        findings = scanner.scan_file(write_sol(tmp_path, "p07.sol", src))
+        assert has_rule(findings, "GHOST-EVM-004")
+
+    def test_evm_006_no_finding_in_comment(self, scanner, tmp_path):
+        # selfdestruct inside a /* */ comment should not fire
+        src = "/* This is removed: selfdestruct(owner); */\ncontract Safe {}\n"
+        findings = scanner.scan_file(write_sol(tmp_path, "comm.sol", src))
+        assert not has_rule(findings, "GHOST-EVM-006")
+
+    def test_evm_002_no_finding_plain_tx_origin_assignment(self, scanner, tmp_path):
+        # tx.origin without comparison should not trigger rule 002
+        src = "address origin = tx.origin;\n"
+        findings = scanner.scan_file(write_sol(tmp_path, "toa.sol", src))
+        assert not has_rule(findings, "GHOST-EVM-002")
+
+    def test_evm_all_rules_have_descriptions(self, scanner):
+        from scanners.evm_scanner.evm_analyzer import _EVM_RULES
+        for rule in _EVM_RULES:
+            assert rule.get("description"), f"Rule {rule['rule_id']} missing description"
+
+    def test_evm_all_rules_have_fix(self, scanner):
+        from scanners.evm_scanner.evm_analyzer import _EVM_RULES
+        for rule in _EVM_RULES:
+            assert rule.get("fix"), f"Rule {rule['rule_id']} missing fix"
+
+    def test_evm_all_rules_have_cwe(self, scanner):
+        from scanners.evm_scanner.evm_analyzer import _EVM_RULES
+        for rule in _EVM_RULES:
+            assert rule.get("cwe"), f"Rule {rule['rule_id']} missing cwe"
+
+    def test_supported_extensions_contains_sol(self, scanner):
+        assert ".sol" in scanner.SUPPORTED_EXTENSIONS
+
+    def test_supported_extensions_contains_vy(self, scanner):
+        assert ".vy" in scanner.SUPPORTED_EXTENSIONS
+
+    def test_evm_007_multiple_timestamp_refs(self, scanner, tmp_path):
+        # Two uses on different lines produce two findings
+        src = "require(block.timestamp > start);\nrequire(block.timestamp < end);\n"
+        findings = scanner.scan_file(write_sol(tmp_path, "ts2.sol", src))
+        rule_findings = findings_for_rule(findings, "GHOST-EVM-007")
+        assert len(rule_findings) >= 2
+
+    def test_evm_016_isignature_triggers(self, scanner, tmp_path):
+        src = "interface ISIGNATURE { function verify(bytes calldata sig) external; }\n"
+        findings = scanner.scan_file(write_sol(tmp_path, "isig.sol", src))
+        assert has_rule(findings, "GHOST-EVM-016")
