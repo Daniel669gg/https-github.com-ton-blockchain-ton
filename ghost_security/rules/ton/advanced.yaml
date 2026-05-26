@@ -1,0 +1,90 @@
+- id: GHOST-TON-ADV-001
+  name: Missing TVM Exception Handler
+  description: TVM exception not caught properly
+  severity: HIGH
+  cwe: CWE-703
+  owasp: A01:2021
+  languages:
+  - func
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: throw_if\s*\(|throw_unless\s*\((?!.*0)
+    confidence: 0.88
+  fix: Add proper exception handling with error codes
+  tags:
+  - ton
+  - tvm
+  - exception
+- id: GHOST-TON-ADV-002
+  name: Unbounded Dictionary
+  description: Dict iteration without bounds
+  severity: HIGH
+  cwe: CWE-400
+  owasp: A01:2021
+  languages:
+  - func
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: dict_get_next\b|idict_get_next\b
+    confidence: 0.85
+  fix: Limit dictionary iteration
+  tags:
+  - ton
+  - dict
+  - dos
+- id: GHOST-TON-ADV-003
+  name: Message Replay Attack
+  description: Seqno not validated against stored value
+  severity: CRITICAL
+  cwe: CWE-294
+  owasp: A01:2021
+  languages:
+  - func
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: slice_load_uint.*seqno(?!.*equal|.*==)
+    confidence: 0.92
+  fix: Validate and increment seqno atomically
+  tags:
+  - ton
+  - seqno
+  - replay
+- id: GHOST-TON-ADV-004
+  name: Insufficient Gas Check
+  description: Operation without checking gas remaining
+  severity: HIGH
+  cwe: CWE-400
+  owasp: A01:2021
+  languages:
+  - func
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: send_raw_message\b(?!.*gas_remaining|.*check_gas)
+    confidence: 0.85
+  fix: Verify sufficient gas before expensive operations
+  tags:
+  - ton
+  - gas
+  - resource
+- id: GHOST-TON-ADV-005
+  name: Missing Workchain Validation
+  description: Workchain not validated in address
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - func
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: parse_addr\b(?!.*workchain)
+    confidence: 0.88
+  fix: Validate workchain ID in addresses
+  tags:
+  - ton
+  - workchain
+  - validation

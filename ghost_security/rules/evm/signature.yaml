@@ -1,0 +1,137 @@
+- id: GHOST-EVM-SIG-001
+  name: Missing EIP-712 Domain
+  description: Signature without EIP-712
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: ecrecover\s*\((?!.*DOMAIN_SEPARATOR)
+    confidence: 0.88
+  fix: Implement EIP-712
+  tags:
+  - signature
+  - eip712
+- id: GHOST-EVM-SIG-002
+  name: Signature Replay Attack
+  description: Signed message reusable
+  severity: CRITICAL
+  cwe: CWE-294
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: ecrecover\s*\((?!.*nonce|.*used)
+    confidence: 0.92
+  fix: Add nonce and mark signatures as used
+  tags:
+  - signature
+  - replay
+- id: GHOST-EVM-SIG-003
+  name: Malleable Signature
+  description: ecrecover with malleable v,r,s
+  severity: HIGH
+  cwe: CWE-347
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: ecrecover\s*\((?!.*ECDSA\.recover)
+    confidence: 0.9
+  fix: Use OZ ECDSA.recover()
+  tags:
+  - signature
+  - malleable
+- id: GHOST-EVM-SIG-004
+  name: Missing Deadline
+  description: Signed permit has no expiry
+  severity: HIGH
+  cwe: CWE-294
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: permit\s*\([^)]*\)(?!.*deadline)
+    confidence: 0.88
+  fix: Add deadline to permit functions
+  tags:
+  - signature
+  - deadline
+- id: GHOST-EVM-SIG-005
+  name: Cross-Chain Replay
+  description: Signature without chain ID
+  severity: HIGH
+  cwe: CWE-294
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: DOMAIN_SEPARATOR(?!.*chainId|.*chainid)
+    confidence: 0.88
+  fix: Include chainId in domain separator
+  tags:
+  - signature
+  - cross-chain
+  - replay
+- id: GHOST-EVM-SIG-006
+  name: Zero Address Signer
+  description: ecrecover may return address(0)
+  severity: HIGH
+  cwe: CWE-347
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: ecrecover\s*\((?!.*!=.*address\(0\))
+    confidence: 0.92
+  fix: Check signer != address(0)
+  tags:
+  - signature
+  - zero-address
+- id: GHOST-EVM-SIG-007
+  name: Missing ERC-1271 Support
+  description: No smart contract signer support
+  severity: MEDIUM
+  cwe: CWE-347
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: ecrecover\s*\((?!.*IERC1271|.*isValidSignature)
+    confidence: 0.78
+  fix: Support ERC-1271 for contract accounts
+  tags:
+  - signature
+  - erc1271
+- id: GHOST-EVM-SIG-008
+  name: Signature Front-Running
+  description: Signature submittable by frontrunner
+  severity: MEDIUM
+  cwe: CWE-294
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: function.*\(\s*bytes.*calldata.*sig\b
+    confidence: 0.82
+  fix: Use msg.sender checks with signatures
+  tags:
+  - signature
+  - front-running

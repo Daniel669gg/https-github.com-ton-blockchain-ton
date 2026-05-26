@@ -1,0 +1,261 @@
+- id: GHOST-EVM-AC-001
+  name: tx.origin Authentication
+  description: Using tx.origin for auth is phishable
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: tx\.origin\s*==
+    confidence: 0.95
+  fix: Replace tx.origin with msg.sender
+  tags:
+  - access-control
+  - tx-origin
+  - phishing
+- id: GHOST-EVM-AC-002
+  name: Unprotected Initialize
+  description: initialize() callable by anyone
+  severity: CRITICAL
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: function\s+initialize\b(?!.*initializer\b)
+    confidence: 0.93
+  fix: Add Initializable.initializer modifier
+  tags:
+  - access-control
+  - proxy
+  - initialize
+- id: GHOST-EVM-AC-003
+  name: Unprotected selfdestruct
+  description: selfdestruct without access check
+  severity: CRITICAL
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.98
+  patterns:
+  - type: regex
+    pattern: selfdestruct\s*\(
+    confidence: 0.98
+  fix: Add onlyOwner to selfdestruct
+  tags:
+  - access-control
+  - selfdestruct
+- id: GHOST-EVM-AC-004
+  name: Unprotected upgradeTo
+  description: Proxy upgrade without authorization
+  severity: CRITICAL
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: function\s+upgradeTo\b
+    confidence: 0.95
+  fix: Add onlyOwner/UPGRADER_ROLE to upgradeTo
+  tags:
+  - access-control
+  - proxy
+  - upgrade
+- id: GHOST-EVM-AC-005
+  name: Unprotected Mint
+  description: mint() without supply cap or role
+  severity: CRITICAL
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: function\s+mint\b(?!.*onlyOwner|.*onlyMinter|.*MINTER)
+    confidence: 0.9
+  fix: Add MINTER_ROLE to mint()
+  tags:
+  - access-control
+  - mint
+  - inflation
+- id: GHOST-EVM-AC-006
+  name: Missing onlyOwner on Critical Fn
+  description: Critical function without access control
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: function\s+(pause|unpause|setFee|setOwner|drain)\b(?!.*only)
+    confidence: 0.88
+  fix: Add onlyOwner/role modifier
+  tags:
+  - access-control
+  - missing-modifier
+- id: GHOST-EVM-AC-007
+  name: Open Emergency Withdraw
+  description: emergencyWithdraw without timelock
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: function\s+emergencyWithdraw\b
+    confidence: 0.88
+  fix: Add timelock or multi-sig
+  tags:
+  - access-control
+  - emergency
+- id: GHOST-EVM-AC-008
+  name: Owner to Zero Address
+  description: Owner can be set to address(0)
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: owner\s*=\s*\w+(?!.*address\(0\))
+    confidence: 0.85
+  fix: Validate != address(0) when setting owner
+  tags:
+  - access-control
+  - zero-address
+- id: GHOST-EVM-AC-009
+  name: Missing Whitelist Check
+  description: Participation without whitelist
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: function\s+(buy|invest|participate)\b(?!.*whitelist|.*allowed)
+    confidence: 0.78
+  fix: Add whitelist validation
+  tags:
+  - access-control
+  - whitelist
+- id: GHOST-EVM-AC-010
+  name: Role Grant Without Validation
+  description: grantRole to unvalidated address
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: grantRole\s*\(.*,\s*\w+\s*\)(?!.*address\(0\))
+    confidence: 0.82
+  fix: Validate address before granting role
+  tags:
+  - access-control
+  - rbac
+- id: GHOST-EVM-AC-011
+  name: Missing Multisig for Treasury
+  description: Treasury operation with single-sig
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: function\s+withdraw.*treasury
+    confidence: 0.8
+  fix: Use multi-sig for treasury operations
+  tags:
+  - access-control
+  - multisig
+  - treasury
+- id: GHOST-EVM-AC-012
+  name: setConfig Without Protection
+  description: Configuration setter without guard
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: function\s+set(?:Fee|Rate|Limit|Config)\b(?!.*only)
+    confidence: 0.8
+  fix: Protect configuration setters
+  tags:
+  - access-control
+  - config
+- id: GHOST-EVM-AC-013
+  name: Missing Pause in Transfer
+  description: whenNotPaused missing from transfer
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: function\s+transfer\b(?!.*whenNotPaused)
+    confidence: 0.75
+  fix: Add whenNotPaused to transfers
+  tags:
+  - access-control
+  - pause
+- id: GHOST-EVM-AC-014
+  name: Missing Timelock on Param Change
+  description: Protocol param change without timelock
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: function\s+set(?:Treasury|Protocol)\b(?!.*timelock)
+    confidence: 0.75
+  fix: Use TimelockController
+  tags:
+  - access-control
+  - timelock
+  - governance
+- id: GHOST-EVM-AC-015
+  name: Direct Ether Withdrawal
+  description: External payable without access check
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: function\s+\w+\s*\(\s*\)\s*(?:public|external)\s+payable(?!.*require|.*only)
+    confidence: 0.88
+  fix: Add access control to payable functions
+  tags:
+  - access-control
+  - ether

@@ -1,0 +1,270 @@
+- id: GHOST-INK-001
+  name: Missing Constructor Access Control
+  description: Constructor without caller check
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: '#\[ink\(constructor\)\](?!.*caller|.*owner)'
+    confidence: 0.88
+  fix: Verify caller in constructor
+  tags:
+  - ink
+  - access-control
+  - constructor
+- id: GHOST-INK-002
+  name: Unchecked Arithmetic
+  description: Arithmetic without overflow protection
+  severity: HIGH
+  cwe: CWE-190
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: self\.\w+\s*\+=\s*\w+(?!.*checked_add)
+    confidence: 0.88
+  fix: Use checked_add/checked_sub
+  tags:
+  - ink
+  - arithmetic
+  - overflow
+- id: GHOST-INK-003
+  name: Missing Caller Validation
+  description: Message without caller check
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: '#\[ink\(message\)\](?!.*self\.env\(\)\.caller|.*owner)'
+    confidence: 0.87
+  fix: Validate caller in sensitive messages
+  tags:
+  - ink
+  - caller
+  - access-control
+- id: GHOST-INK-004
+  name: Unsafe unwrap in Contract
+  description: unwrap() may panic contract
+  severity: HIGH
+  cwe: CWE-703
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: \.unwrap\(\)
+    confidence: 0.88
+  fix: Use ? or explicit match
+  tags:
+  - ink
+  - unwrap
+  - panic
+- id: GHOST-INK-005
+  name: Anyone Can Terminate
+  description: terminate_contract without owner check
+  severity: CRITICAL
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: self\.env\(\)\.terminate_contract\((?!.*caller.*==.*owner|.*assert)
+    confidence: 0.95
+  fix: Add owner check before termination
+  tags:
+  - ink
+  - terminate
+  - access-control
+- id: GHOST-INK-006
+  name: Cross-Contract Without Error
+  description: Cross-contract call ignores error
+  severity: HIGH
+  cwe: CWE-703
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: \.call\(\)(?!.*\?|.*handle_error)
+    confidence: 0.85
+  fix: Handle errors from cross-contract calls
+  tags:
+  - ink
+  - cross-contract
+  - error
+- id: GHOST-INK-007
+  name: Transfer Before State Update
+  description: Transfer before state change
+  severity: HIGH
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: transfer\s*\((?!.*self\.\w+\s*=)
+    confidence: 0.88
+  fix: Update state before transfer()
+  tags:
+  - ink
+  - reentrancy
+  - transfer
+- id: GHOST-INK-008
+  name: Balance Underflow
+  description: Balance subtraction may underflow
+  severity: HIGH
+  cwe: CWE-191
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: balance\s*-=\s*\w+(?!.*checked_sub|.*>=)
+    confidence: 0.88
+  fix: Use checked_sub for balance ops
+  tags:
+  - ink
+  - underflow
+  - balance
+- id: GHOST-INK-009
+  name: Payable Without Validation
+  description: Payable message ignores amount
+  severity: MEDIUM
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: '#\[ink\(message,\s*payable\)\](?!.*transferred_value)'
+    confidence: 0.82
+  fix: Check transferred_value in payable messages
+  tags:
+  - ink
+  - payable
+  - validation
+- id: GHOST-INK-010
+  name: Block Timestamp Randomness
+  description: timestamp used for randomness
+  severity: HIGH
+  cwe: CWE-338
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: self\.env\(\)\.block_timestamp\(\).*random|random.*block_timestamp
+    confidence: 0.88
+  fix: Use off-chain randomness
+  tags:
+  - ink
+  - randomness
+  - timestamp
+- id: GHOST-INK-011
+  name: Missing Event Emission
+  description: No event for state change
+  severity: LOW
+  cwe: CWE-778
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: self\.\w+\s*=\s*\w+;(?!.*emit_event|.*Self::env)
+    confidence: 0.75
+  fix: Emit events for state changes
+  tags:
+  - ink
+  - event
+  - transparency
+- id: GHOST-INK-012
+  name: Delegate Without Auth
+  description: delegate call without authorization
+  severity: CRITICAL
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: \.delegate\((?!.*authorized|.*owner)
+    confidence: 0.9
+  fix: Add authorization before delegate calls
+  tags:
+  - ink
+  - delegate
+  - access-control
+- id: GHOST-INK-013
+  name: Storage Key Collision
+  description: Manual storage key may collide
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: StorageKey::Manual
+    confidence: 0.82
+  fix: Use unique storage key seeds
+  tags:
+  - ink
+  - storage-collision
+  - key
+- id: GHOST-INK-014
+  name: Missing Re-entrancy Guard
+  description: Contract lacks reentrancy protection
+  severity: HIGH
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: '#\[ink::contract\](?!.*nonreentrant|.*reentrancy_guard)'
+    confidence: 0.85
+  fix: Add reentrancy guard
+  tags:
+  - ink
+  - reentrancy
+  - guard
+- id: GHOST-INK-015
+  name: Hash Collision Risk
+  description: Mapping key collision possible
+  severity: MEDIUM
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: Mapping::new\(\)
+    confidence: 0.78
+  fix: Use unique key types to prevent collisions
+  tags:
+  - ink
+  - mapping
+  - collision

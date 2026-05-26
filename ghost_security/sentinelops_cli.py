@@ -411,8 +411,8 @@ def cmd_fix(args) -> int:
 
 
 def cmd_status(args) -> int:
-    """ghost status"""
-    print(BOLD("  Ghost Security Platform — Component Status\n"))
+    """sentinelops status"""
+    print(BOLD("  SentinelOps — Multi-Chain Web3 + AppSec Platform Status\n"))
 
     # LLM providers
     try:
@@ -468,9 +468,27 @@ def cmd_status(args) -> int:
     print(f"    SBOM       : SPDX 2.3 · CycloneDX 1.4")
     print(f"    Compliance : PCI-DSS 4.0 · SOC2 · HIPAA · NIST 800-53 · ISO27001 · ASVS")
     print(f"    Infra      : Kubernetes(18)")
-    print(f"    Blockchain : TON(87+) · EVM/Solidity(16) · Solana(11) · CosmWasm(8) · Polkadot/ink!(7) · Move(8)")
+    print(f"    Blockchain : TON(87+) · EVM(16) · Solana(11) · CosmWasm(8) · Polkadot/ink!(7) · Move(8)")
+    print(f"    Web3 rules : EVM({len(list((Path(__file__).parent/'rules'/'evm').rglob('*.yaml')))} files) · "
+          f"Solana · Cosmos · Polkadot · Move · TON-advanced")
+    print(f"    Advanced   : AST engine · OpenAPI (OWASP API Top 10) · Semgrep · LLM deep analysis")
     print(f"  {BOLD('Suppression:')} .ghostignore (YAML · expiry dates · file patterns)")
     print(f"  {BOLD('Auto-fix:')}   Dep bumps (PyPI/npm/Go/Rust) · Code patches · GitHub PR")
+
+    # Cloud
+    try:
+        from cloud.tenant.tenant_manager import TenantManager
+        tenants = TenantManager().list_tenants()
+        print(f"\n  {BOLD('Cloud:')} multi-tenant  ({len(tenants)} tenant(s) registered)")
+    except Exception:
+        print(f"\n  {BOLD('Cloud:')} {DIM('standalone mode (no tenants)')}")
+
+    # Telemetry
+    otel_ep = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "")
+    prom_port = os.getenv("PROMETHEUS_PORT", "")
+    print(f"  {BOLD('Telemetry:')} "
+          f"OTLP={'enabled → ' + otel_ep if otel_ep else DIM('disabled')}  "
+          f"Prometheus={'port ' + prom_port if prom_port else DIM('disabled')}")
 
     # API server
     import urllib.request
@@ -2108,8 +2126,479 @@ def cmd_web3(args) -> int:
     return 1 if crits > 0 and not getattr(args, "no_fail", False) else 0
 
 
+def cmd_ast(args) -> int:
+    """sentinelops ast <path> [--output json|table] [--save FILE]
+
+    AST-based deep static analysis for Python source files.
+    Detects: SQL injection via string concatenation, eval/exec misuse,
+    hardcoded credentials, unsafe pickle, subprocess injection,
+    SSRF patterns, insecure deserialization, and taint-flow issues.
+    """
+    path = str(Path(getattr(args, "path", ".")).resolve())
+    if not Path(path).exists():
+        print(RED(f"❌  Path not found: {path}")); return 1
+
+    print(BLUE(f"🌳  AST deep analysis: {path}"))
+    t0 = time.time()
+
+    from scanners.ast_scanner.ast_analyzer import ASTScanner
+    p = Path(path)
+    scanner = ASTScanner()
+    if p.is_file():
+        findings = scanner.scan_file(str(p))
+        print(DIM(f"   File: {p.name}\n"))
+    else:
+        result = scanner.scan_directory(str(p))
+        findings = result.get("findings", [])
+        print(DIM(f"   Files: {result.get('files_scanned', 0)}  "
+                  f"Rules: {result.get('rules_applied', 0)}\n"))
+
+    # Normalise ASTFinding dataclasses to dicts
+    out = []
+    for f in findings:
+        out.append(f.to_dict() if hasattr(f, "to_dict") else (f if isinstance(f, dict) else vars(f)))
+    findings = out
+
+    order = ["INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
+    min_sev = getattr(args, "min_severity", "MEDIUM")
+    min_idx = order.index(min_sev) if min_sev in order else 2
+    findings = [f for f in findings if order.index(f.get("severity", "MEDIUM")) >= min_idx]
+
+    duration = time.time() - t0
+    if getattr(args, "output", "table") == "json":
+        print(json.dumps(findings, indent=2))
+    else:
+        _print_findings(findings, max_show=50)
+        _print_summary({"total_findings": len(findings), "findings": findings}, duration)
+
+    if getattr(args, "save", None):
+        Path(args.save).write_text(json.dumps(findings, indent=2))
+        print(GREEN(f"💾  Saved to {args.save}"))
+
+    crits = sum(1 for f in findings if f.get("severity") == "CRITICAL")
+    return 1 if crits and not getattr(args, "no_fail", False) else 0
+
+
+def cmd_openapi(args) -> int:
+    """sentinelops openapi <spec> [--output json|table] [--save FILE]
+
+    OWASP API Security Top 10 2023 scan for OpenAPI 3.x / Swagger 2.x specs.
+    Detects: BOLA, broken auth, excessive data exposure, missing rate limits,
+    BFLA, HTTP-only endpoints, weak authentication schemes, admin path exposure,
+    and sensitive field leaks.
+    Accepts: file path (.json/.yaml/.yml) or URL.
+    """
+    spec = getattr(args, "spec", "openapi.yaml")
+    print(BLUE(f"🔷  OpenAPI security scan: {spec}"))
+    t0 = time.time()
+
+    # If a directory is given, find all spec files
+    p = Path(spec)
+    if p.is_dir():
+        from scanners.openapi_scanner import OpenAPIScanner
+        scanner = OpenAPIScanner()
+        findings = []
+        spec_files = list(p.rglob("openapi*.json")) + list(p.rglob("openapi*.yaml")) + \
+                     list(p.rglob("swagger*.json")) + list(p.rglob("swagger*.yaml")) + \
+                     list(p.rglob("api*.yaml")) + list(p.rglob("api*.json"))
+        spec_files = list(dict.fromkeys(spec_files))[:50]
+        for sf in spec_files:
+            result = scanner.scan_file(str(sf))
+            findings.extend(result)
+        print(DIM(f"   Spec files: {len(spec_files)}\n"))
+    else:
+        from scanners.openapi_scanner import OpenAPIScanner
+        scanner = OpenAPIScanner()
+        if p.is_file():
+            findings = scanner.scan_file(str(p))
+        else:
+            result = scanner.scan(spec)
+            findings = result.get("findings", [])
+
+    order = ["INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
+    min_sev = getattr(args, "min_severity", "LOW")
+    min_idx = order.index(min_sev) if min_sev in order else 1
+    findings = [f for f in findings if order.index(f.get("severity", "MEDIUM")) >= min_idx]
+
+    duration = time.time() - t0
+    if getattr(args, "output", "table") == "json":
+        print(json.dumps(findings, indent=2))
+    else:
+        _print_findings(findings, max_show=50)
+        _print_summary({"total_findings": len(findings), "findings": findings}, duration)
+
+    if getattr(args, "save", None):
+        Path(args.save).write_text(json.dumps(findings, indent=2))
+        print(GREEN(f"💾  Saved to {args.save}"))
+
+    crits = sum(1 for f in findings if f.get("severity") == "CRITICAL")
+    return 1 if crits and not getattr(args, "no_fail", False) else 0
+
+
+def cmd_semgrep(args) -> int:
+    """sentinelops semgrep <path> [--rules RULESET] [--output json|table] [--save FILE]
+
+    Run Semgrep with Ghost Security's curated rule packs.
+    Falls back gracefully to pattern-based scanning when semgrep is not installed.
+    Rulesets: auto | p/python | p/javascript | p/java | p/go | p/owasp-top-ten
+    """
+    path = str(Path(getattr(args, "path", ".")).resolve())
+    if not Path(path).exists():
+        print(RED(f"❌  Path not found: {path}")); return 1
+
+    ruleset = getattr(args, "rules", "auto")
+    print(BLUE(f"🔬  Semgrep scan: {path}  [rules: {ruleset}]"))
+    t0 = time.time()
+
+    from scanners.semgrep_integration import SemgrepScanner
+    scanner = SemgrepScanner()
+    result = scanner.scan_directory(path, ruleset=ruleset,
+                                    timeout=getattr(args, "timeout", 120))
+    findings = result.get("findings", [])
+    print(DIM(f"   Engine: {result.get('engine', 'semgrep')}  "
+              f"Files: {result.get('files_scanned', 0)}  "
+              f"Rules: {result.get('rules_loaded', 0)}\n"))
+
+    order = ["INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL"]
+    min_sev = getattr(args, "min_severity", "MEDIUM")
+    min_idx = order.index(min_sev) if min_sev in order else 2
+    findings = [f for f in findings if order.index(f.get("severity", "MEDIUM")) >= min_idx]
+
+    duration = time.time() - t0
+    if getattr(args, "output", "table") == "json":
+        print(json.dumps(findings, indent=2))
+    else:
+        _print_findings(findings, max_show=50)
+        _print_summary({"total_findings": len(findings), "findings": findings}, duration)
+
+    if getattr(args, "save", None):
+        Path(args.save).write_text(json.dumps(findings, indent=2))
+        print(GREEN(f"💾  Saved to {args.save}"))
+
+    crits = sum(1 for f in findings if f.get("severity") == "CRITICAL")
+    return 1 if crits and not getattr(args, "no_fail", False) else 0
+
+
+def cmd_llm_scan(args) -> int:
+    """sentinelops llm-scan <findings.json> [--min-severity HIGH] [--max N] [--save FILE]
+
+    Enrich existing static findings with LLM-powered deep analysis:
+      · Confidence score & reason
+      · CVSS 3.1 vector + score
+      · Realistic exploit scenario
+      · Deeper technical explanation
+      · Concrete code fix snippet
+      · False positive risk rating
+
+    Requires OPENAI_API_KEY or a running Ollama instance.
+    Processes HIGH/CRITICAL findings by default (use --min-severity MEDIUM for more).
+    """
+    findings_path = getattr(args, "findings", "findings.json")
+    if not Path(findings_path).exists():
+        print(RED(f"❌  File not found: {findings_path}")); return 1
+
+    raw = json.loads(Path(findings_path).read_text())
+    findings = raw if isinstance(raw, list) else raw.get("findings", [])
+    min_sev = getattr(args, "min_severity", "HIGH")
+    max_n   = getattr(args, "max_findings", 20)
+
+    print(BLUE(f"🤖  LLM deep analysis: {len(findings)} findings  "
+               f"(min: {min_sev}, max: {max_n})"))
+    t0 = time.time()
+
+    from scanners.llm_analyzer import LLMAnalyzer
+    analyzer = LLMAnalyzer(min_severity=min_sev, max_findings=max_n)
+    enriched = analyzer.enrich_findings(findings)
+    duration = time.time() - t0
+
+    enriched_count = sum(1 for f in enriched if f.get("llm_analysis"))
+    print(DIM(f"   Enriched: {enriched_count}/{len(findings)}  ({duration:.1f}s)\n"))
+
+    out_fmt = getattr(args, "output", "table")
+    if out_fmt == "json":
+        print(json.dumps(enriched, indent=2))
+    else:
+        for f in enriched[:30]:
+            sev    = f.get("severity", "MEDIUM")
+            color  = _SEV_COLOR.get(sev, lambda x: x)
+            icon   = _SEV_ICON.get(sev, "●")
+            msg    = (f.get("message") or f.get("description") or "")[:55]
+            llm    = f.get("llm_analysis", {})
+            conf   = f"conf:{llm.get('confidence', '?')}%" if llm else ""
+            cvss   = f"CVSS:{llm.get('cvss_score', '')}" if llm else ""
+            fp_r   = f"FP:{llm.get('false_positive_risk', '')}" if llm else DIM("(no LLM)")
+            print(f"  {color(icon+' '+sev.ljust(8))}  {BOLD(msg)}")
+            if llm:
+                print(f"    {DIM(conf)}  {DIM(cvss)}  {DIM(fp_r)}")
+                expl = llm.get("exploit_scenario", "")
+                if expl and expl != "N/A":
+                    print(f"    {DIM(expl[:100])}")
+            print()
+
+    out_path = getattr(args, "save", None) or findings_path.replace(".json", "_llm.json")
+    Path(out_path).write_text(json.dumps(enriched, indent=2))
+    print(GREEN(f"💾  Saved to {out_path}"))
+    return 0
+
+
+def cmd_cloud(args) -> int:
+    """sentinelops cloud <subcommand> [options]
+
+    Multi-tenant cloud management: tenants, API keys, usage/billing.
+
+    Subcommands:
+      tenants list                          # list all tenants
+      tenants create --name ACME --plan pro # create a new tenant
+      tenants quota --org ORG_ID            # check scan quota
+      keys create --org ORG_ID --name CI    # create API key
+      keys list --org ORG_ID               # list API keys
+      keys revoke --key-id KEY_ID --org ORG_ID
+      usage --org ORG_ID                   # show monthly usage report
+    """
+    sub = getattr(args, "cloud_sub", "")
+    action = getattr(args, "cloud_action", "")
+
+    if sub == "tenants":
+        from cloud.tenant.tenant_manager import TenantManager
+        mgr = TenantManager()
+        if action == "list":
+            tenants = mgr.list_tenants()
+            if not tenants:
+                print(DIM("  No tenants found"))
+                return 0
+            print(BOLD(f"  Tenants ({len(tenants)})"))
+            print(DIM(f"  {'ORG ID':<36}  {'NAME':<24}  {'PLAN':<10}  CREATED"))
+            for t in tenants:
+                print(f"  {t.get('org_id','')[:36]:<36}  "
+                      f"{t.get('name','')[:24]:<24}  "
+                      f"{t.get('plan',''):<10}  "
+                      f"{str(t.get('created_at',''))[:10]}")
+            return 0
+        if action == "create":
+            name = getattr(args, "name", "") or getattr(args, "org_name", "")
+            plan = getattr(args, "plan", "free")
+            if not name:
+                print(RED("❌  --name required")); return 1
+            t = mgr.create_tenant(name, plan=plan)
+            print(GREEN(f"✅  Tenant created"))
+            print(f"   Org ID : {t['org_id']}")
+            print(f"   Name   : {t['name']}")
+            print(f"   Plan   : {t['plan']}")
+            return 0
+        if action == "quota":
+            org_id = getattr(args, "org", None)
+            if not org_id:
+                print(RED("❌  --org required")); return 1
+            t = mgr.get_tenant(org_id)
+            if not t:
+                print(RED(f"❌  Tenant not found: {org_id}")); return 1
+            print(BLUE(f"  Quota — {t['name']} ({t['plan']})"))
+            ok = mgr.check_quota(org_id, "scans_per_month")
+            color = GREEN if ok else RED
+            print(f"  Scans this month: {color('within quota' if ok else 'EXCEEDED')}")
+            usage = mgr.get_usage(org_id)
+            print(f"  Scans:   {usage.get('scans', 0)}")
+            return 0
+
+    elif sub == "keys":
+        from cloud.auth.api_key_manager import APIKeyManager
+        mgr = APIKeyManager()
+        if action == "create":
+            org_id = getattr(args, "org", None)
+            name   = getattr(args, "name", "default")
+            scopes = getattr(args, "scopes", ["scan", "read"])
+            if not org_id:
+                print(RED("❌  --org required")); return 1
+            result = mgr.create_key(org_id, name, scopes)
+            print(GREEN(f"✅  API key created"))
+            print(f"   Key ID : {result['key_id']}")
+            print(f"   Key    : {BOLD(result['key'])}")
+            print(RED("   ⚠️   Save this key — it will not be shown again!"))
+            return 0
+        if action == "list":
+            org_id = getattr(args, "org", None)
+            if not org_id:
+                print(RED("❌  --org required")); return 1
+            keys = mgr.list_keys(org_id)
+            if not keys:
+                print(DIM("  No API keys for this org"))
+                return 0
+            print(BOLD(f"  API Keys ({len(keys)})"))
+            for k in keys:
+                status = GREEN("active") if not k.get("revoked") else RED("revoked")
+                print(f"  {k['key_id'][:12]}  {k.get('name',''):<16}  {status}  "
+                      f"created: {str(k.get('created_at',''))[:10]}")
+            return 0
+        if action == "revoke":
+            key_id = getattr(args, "key_id", None)
+            org_id = getattr(args, "org", None)
+            if not key_id or not org_id:
+                print(RED("❌  --key-id and --org required")); return 1
+            ok = mgr.revoke_key(key_id, org_id)
+            print(GREEN(f"✅  Key {key_id} revoked") if ok else RED(f"❌  Key not found"))
+            return 0 if ok else 1
+
+    elif sub == "usage":
+        org_id = getattr(args, "org", None)
+        if not org_id:
+            print(RED("❌  --org required")); return 1
+        from cloud.billing.usage_tracker import UsageTracker
+        tracker = UsageTracker()
+        report = tracker.get_usage_report(org_id)
+        print(BLUE(f"📊  Usage Report — org: {org_id}"))
+        monthly = report.get("monthly", [])
+        if monthly:
+            for m in monthly[-6:]:
+                print(f"   {m.get('month','?'):>7}  scans: {m.get('scans',0):>6}  "
+                      f"api_calls: {m.get('api_calls',0):>8}")
+        else:
+            print(DIM("   No usage data yet"))
+        return 0
+
+    # Default: show cloud platform overview
+    print(BOLD("\n  SentinelOps Cloud — Multi-Tenant Platform\n"))
+    print(DIM("  Subcommands:"))
+    print(DIM("    sentinelops cloud tenants list"))
+    print(DIM("    sentinelops cloud tenants create --name ACME --plan pro"))
+    print(DIM("    sentinelops cloud tenants quota --org ORG_ID"))
+    print(DIM("    sentinelops cloud keys create --org ORG_ID --name CI"))
+    print(DIM("    sentinelops cloud keys list --org ORG_ID"))
+    print(DIM("    sentinelops cloud keys revoke --key-id ID --org ORG_ID"))
+    print(DIM("    sentinelops cloud usage --org ORG_ID"))
+    try:
+        from cloud.tenant.tenant_manager import TenantManager
+        tenants = TenantManager().list_tenants()
+        print(f"\n  Active tenants: {GREEN(str(len(tenants)))}")
+    except Exception:
+        pass
+    return 0
+
+
+def cmd_supervisor(args) -> int:
+    """sentinelops supervisor [--status] [--tasks] [--list-tasks]
+
+    Runtime supervisor status — view active async tasks, worker pool state,
+    circuit breaker health, and retry policy statistics.
+    """
+    print(BOLD("  SentinelOps Runtime Supervisor\n"))
+
+    # Circuit breakers
+    try:
+        from runtime.circuit_breaker import CircuitBreakerRegistry
+        reg = CircuitBreakerRegistry.global_instance()
+        breakers = reg.list_all() if hasattr(reg, "list_all") else {}
+        if breakers:
+            print(BOLD("  Circuit Breakers:"))
+            for name, cb in (breakers.items() if isinstance(breakers, dict) else []):
+                state = cb.get_state()
+                st = getattr(state, "state", state) if state else "?"
+                color = GREEN if str(st) == "closed" else (RED if str(st) == "open" else YELLOW)
+                print(f"    {name:<20}  {color(str(st))}")
+        else:
+            print(DIM("  No circuit breakers registered"))
+    except Exception as e:
+        print(DIM(f"  Circuit breakers: {e}"))
+
+    # Worker pool
+    try:
+        from runtime.worker_pool import WorkerPool
+        print(f"\n  {BOLD('Worker Pool:')} {DIM('(use programmatic API)')}")
+    except Exception:
+        pass
+
+    # Task store
+    try:
+        from core.runtime.task_persistence import TaskStore
+        store = TaskStore()
+        stats = store.stats()
+        print(f"\n  {BOLD('Task Store:')}")
+        for k, v in stats.items():
+            print(f"    {k:<18} {v}")
+    except Exception as e:
+        print(DIM(f"  Task store: {e}"))
+
+    # Graceful shutdown state
+    try:
+        from runtime.graceful_shutdown import GracefulShutdown
+        gs = GracefulShutdown.instance() if hasattr(GracefulShutdown, "instance") else None
+        if gs:
+            shutting = gs.is_shutting_down
+            print(f"\n  {BOLD('Graceful Shutdown:')} {'🛑 shutting down' if shutting else GREEN('idle')}")
+    except Exception:
+        pass
+
+    print()
+    return 0
+
+
+def cmd_telemetry(args) -> int:
+    """sentinelops telemetry [--metrics] [--traces] [--export FILE]
+
+    OpenTelemetry observability status — show Prometheus metrics, OTLP trace
+    endpoint configuration, and export current metrics snapshot.
+    """
+    print(BOLD("  SentinelOps Telemetry & Observability\n"))
+
+    action = getattr(args, "action", "status")
+
+    if action == "metrics":
+        try:
+            from telemetry.prometheus_metrics import PrometheusMetrics
+            pm = PrometheusMetrics()
+            rendered = pm.render()
+            print(rendered[:4000])
+            if getattr(args, "export_path", None):
+                Path(args.export_path).write_text(rendered)
+                print(GREEN(f"💾  Metrics exported: {args.export_path}"))
+        except Exception as e:
+            print(RED(f"❌  {e}"))
+        return 0
+
+    if action == "traces":
+        try:
+            from telemetry.otel_setup import setup_tracing, get_tracer
+            print(BLUE("  OpenTelemetry Trace Configuration"))
+            otlp = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "(not set)")
+            svc  = os.getenv("OTEL_SERVICE_NAME", "sentinelops")
+            print(f"   OTLP endpoint   : {otlp}")
+            print(f"   Service name    : {svc}")
+            print(f"   SDK             : opentelemetry-sdk")
+        except Exception as e:
+            print(DIM(f"  OTEL: {e}"))
+        return 0
+
+    # Default: full telemetry status
+    try:
+        from telemetry.prometheus_metrics import PrometheusMetrics
+        pm = PrometheusMetrics()
+        print(f"  {BOLD('Prometheus metrics:')} {GREEN('enabled')}")
+        print(DIM("   Run: sentinelops telemetry metrics  to view current snapshot"))
+    except Exception as e:
+        print(f"  {BOLD('Prometheus metrics:')} {RED(str(e))}")
+
+    try:
+        from telemetry.otel_setup import setup_tracing
+        otlp = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "")
+        if otlp:
+            print(f"  {BOLD('OTLP traces:')}      {GREEN('enabled')}  → {otlp}")
+        else:
+            print(f"  {BOLD('OTLP traces:')}      {DIM('disabled (set OTEL_EXPORTER_OTLP_ENDPOINT)')}")
+    except Exception:
+        pass
+
+    try:
+        from telemetry.trace_context import TraceContext
+        print(f"  {BOLD('Trace context:')}    {GREEN('available')}")
+    except Exception:
+        pass
+
+    print(DIM("\n  Subcommands: metrics | traces"))
+    print()
+    return 0
+
+
 def cmd_ci(args) -> int:
-    """ghost ci [--type github|gitlab|pre-commit] [--path .] [--min-severity MEDIUM]
+    """sentinelops ci [--type github|gitlab|pre-commit] [--path .] [--min-severity MEDIUM]
 
     Generate CI/CD integration files for Ghost Security scanning.
     Default: generates .github/workflows/ghost-security.yml
@@ -2188,6 +2677,21 @@ def main():
   sentinelops move ./sources/             # Move language security scan (8 rules)
   sentinelops web3 ./                     # All Web3 chains in one pass
   sentinelops web3 ./ --report            # Multi-chain + Immunefi-style report
+
+  # ── Advanced Analysis ──────────────────────────────────────────────────────
+  sentinelops ast ./src/                  # AST deep analysis (taint, eval, SQL inject)
+  sentinelops openapi ./api.yaml          # OWASP API Top 10 scan for OpenAPI/Swagger
+  sentinelops semgrep . --rules auto      # Semgrep-powered scan with Ghost rule packs
+  sentinelops llm-scan findings.json     # LLM enrichment: CVSS, exploit scenario, fix
+
+  # ── Enterprise / Cloud ─────────────────────────────────────────────────────
+  sentinelops cloud tenants list          # list cloud tenants
+  sentinelops cloud tenants create --name ACME --plan pro
+  sentinelops cloud keys create --org ORG_ID --name CI
+  sentinelops cloud usage --org ORG_ID    # monthly usage/billing report
+  sentinelops supervisor                  # runtime supervisor + circuit breakers
+  sentinelops telemetry metrics           # Prometheus metrics snapshot
+  sentinelops telemetry traces            # OpenTelemetry trace config
 
   # ── Analysis & Tuning ──────────────────────────────────────────────────────
   sentinelops scan . --tune               # scan + apply rule_tuning.yaml overrides
@@ -2553,6 +3057,77 @@ def main():
                         help="Generate Immunefi-style report after scan")
     p_web3.add_argument("--report-dir", default="./sentinelops_reports/web3")
 
+    # ── AST deep analysis ─────────────────────────────────────────────────────
+    p_ast = sub.add_parser("ast", help="AST-based deep analysis (SQL injection, eval, taint flow, ...)")
+    p_ast.add_argument("path", nargs="?", default=".")
+    p_ast.add_argument("--output", "-o", choices=["table", "json"], default="table")
+    p_ast.add_argument("--min-severity", default="MEDIUM",
+                       choices=["INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL"])
+    p_ast.add_argument("--save", metavar="FILE")
+    p_ast.add_argument("--no-fail", action="store_true")
+
+    # ── OpenAPI security scan ─────────────────────────────────────────────────
+    p_oapi = sub.add_parser("openapi", help="OWASP API Security Top 10 scan for OpenAPI/Swagger specs")
+    p_oapi.add_argument("spec", nargs="?", default=".",
+                        help="OpenAPI spec file, URL, or directory to search")
+    p_oapi.add_argument("--output", "-o", choices=["table", "json"], default="table")
+    p_oapi.add_argument("--min-severity", default="LOW",
+                        choices=["INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL"])
+    p_oapi.add_argument("--save", metavar="FILE")
+    p_oapi.add_argument("--no-fail", action="store_true")
+
+    # ── Semgrep integration ───────────────────────────────────────────────────
+    p_sem = sub.add_parser("semgrep", help="Semgrep-powered scan with Ghost Security rule packs")
+    p_sem.add_argument("path", nargs="?", default=".")
+    p_sem.add_argument("--rules", default="auto",
+                       help="Semgrep ruleset (default: auto)")
+    p_sem.add_argument("--output", "-o", choices=["table", "json"], default="table")
+    p_sem.add_argument("--min-severity", default="MEDIUM",
+                       choices=["INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL"])
+    p_sem.add_argument("--timeout", type=int, default=120, help="Timeout in seconds")
+    p_sem.add_argument("--save", metavar="FILE")
+    p_sem.add_argument("--no-fail", action="store_true")
+
+    # ── LLM deep analysis ─────────────────────────────────────────────────────
+    p_llm = sub.add_parser("llm-scan",
+                            help="LLM-powered enrichment: CVSS, exploit scenario, code fix")
+    p_llm.add_argument("findings", nargs="?", default="findings.json")
+    p_llm.add_argument("--min-severity", default="HIGH",
+                       choices=["INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL"])
+    p_llm.add_argument("--max-findings", type=int, default=20, dest="max_findings")
+    p_llm.add_argument("--output", "-o", choices=["table", "json"], default="table")
+    p_llm.add_argument("--save", metavar="FILE")
+
+    # ── Cloud management ──────────────────────────────────────────────────────
+    p_cloud = sub.add_parser("cloud", help="Multi-tenant cloud management (tenants, keys, usage)")
+    p_cloud.add_argument("cloud_sub", nargs="?", default="",
+                         choices=["tenants", "keys", "usage", ""],
+                         help="Subcommand: tenants | keys | usage")
+    p_cloud.add_argument("cloud_action", nargs="?", default="",
+                         help="Action: list | create | quota | revoke")
+    p_cloud.add_argument("--name", metavar="NAME", help="Tenant/key name")
+    p_cloud.add_argument("--plan", default="free",
+                         choices=["free", "starter", "pro", "enterprise"])
+    p_cloud.add_argument("--org", metavar="ORG_ID", help="Organisation ID")
+    p_cloud.add_argument("--key-id", dest="key_id", metavar="KEY_ID")
+    p_cloud.add_argument("--scopes", nargs="*", default=["scan", "read"])
+
+    # ── Runtime supervisor ────────────────────────────────────────────────────
+    p_sup = sub.add_parser("supervisor",
+                            help="Runtime supervisor status (circuit breakers, tasks, workers)")
+    p_sup.add_argument("action", nargs="?", default="status",
+                       choices=["status", "tasks"],
+                       help="Action: status | tasks (default: status)")
+
+    # ── Telemetry / observability ─────────────────────────────────────────────
+    p_tel = sub.add_parser("telemetry",
+                            help="OpenTelemetry + Prometheus observability status")
+    p_tel.add_argument("action", nargs="?", default="status",
+                       choices=["status", "metrics", "traces"],
+                       help="Action: status | metrics | traces (default: status)")
+    p_tel.add_argument("--export", dest="export_path", metavar="FILE",
+                       help="Export metrics to file")
+
     # ── Parse (must be AFTER all sub.add_parser calls) ────────────────────────
     args = parser.parse_args()
     if not args.command:
@@ -2603,6 +3178,14 @@ def main():
         "polkadot":     cmd_polkadot,
         "move":         cmd_move,
         "web3":         cmd_web3,
+        # v13 new capabilities
+        "ast":          cmd_ast,
+        "openapi":      cmd_openapi,
+        "semgrep":      cmd_semgrep,
+        "llm-scan":     cmd_llm_scan,
+        "cloud":        cmd_cloud,
+        "supervisor":   cmd_supervisor,
+        "telemetry":    cmd_telemetry,
     }
     handler = dispatch.get(args.command)
     if handler:

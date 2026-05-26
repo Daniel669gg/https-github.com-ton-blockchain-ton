@@ -1,0 +1,173 @@
+- id: GHOST-EVM-ORA-001
+  name: Stale Chainlink Price
+  description: No staleness check on Chainlink feed
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: latestRoundData\(\)(?!.*updatedAt)
+    confidence: 0.9
+  fix: Check updatedAt against staleness window
+  tags:
+  - oracle
+  - chainlink
+  - stale
+- id: GHOST-EVM-ORA-002
+  name: Block-based Randomness
+  description: blockhash used for randomness
+  severity: HIGH
+  cwe: CWE-338
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: blockhash\s*\(|block\.difficulty
+    confidence: 0.95
+  fix: Use Chainlink VRF
+  tags:
+  - oracle
+  - randomness
+- id: GHOST-EVM-ORA-003
+  name: Spot Price Manipulation
+  description: AMM spot price without TWAP
+  severity: CRITICAL
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: getAmountsOut\(|getReserves\(
+    confidence: 0.92
+  fix: Use TWAP over at least 30 minutes
+  tags:
+  - oracle
+  - amm
+  - manipulation
+- id: GHOST-EVM-ORA-004
+  name: Zero Price Not Checked
+  description: Oracle can return zero
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: latestAnswer\(\)(?!.*>.*0)
+    confidence: 0.88
+  fix: Require price > 0
+  tags:
+  - oracle
+  - zero-price
+- id: GHOST-EVM-ORA-005
+  name: Single Oracle Source
+  description: Only one price source
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: IChainlinkFeed\s+\w+\b
+    confidence: 0.85
+  fix: Use multiple oracle sources
+  tags:
+  - oracle
+  - single-source
+- id: GHOST-EVM-ORA-006
+  name: TWAP Window Too Short
+  description: TWAP under minimum safe window
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: consult\s*\(\s*\w+\s*,\s*[1-9]\d{0,2}\s*\)
+    confidence: 0.85
+  fix: Use TWAP window >= 1800 seconds
+  tags:
+  - oracle
+  - twap
+- id: GHOST-EVM-ORA-007
+  name: Round Not Complete
+  description: Chainlink round not validated
+  severity: MEDIUM
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: latestRoundData\(\)(?!.*answeredInRound)
+    confidence: 0.82
+  fix: Check answeredInRound == roundId
+  tags:
+  - oracle
+  - chainlink
+  - round
+- id: GHOST-EVM-ORA-008
+  name: Timestamp-based Price
+  description: Price based on block.timestamp
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: block\.timestamp.*price|price.*block\.timestamp
+    confidence: 0.88
+  fix: Use TWAP not timestamp
+  tags:
+  - oracle
+  - timestamp
+- id: GHOST-EVM-ORA-009
+  name: Missing Oracle Circuit Breaker
+  description: No price bounds sanity check
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: price\s*=\s*\w+\.latestAnswer\(\)(?!.*require)
+    confidence: 0.85
+  fix: Add min/max price bounds
+  tags:
+  - oracle
+  - circuit-breaker
+- id: GHOST-EVM-ORA-010
+  name: Oracle Price Precision Loss
+  description: Price scaling loses precision
+  severity: MEDIUM
+  cwe: CWE-682
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: price\s*/\s*1e\d+
+    confidence: 0.78
+  fix: Scale prices carefully
+  tags:
+  - oracle
+  - precision

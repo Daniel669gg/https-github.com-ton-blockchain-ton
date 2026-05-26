@@ -1,0 +1,171 @@
+- id: GHOST-EVM-PROX-001
+  name: Storage Collision
+  description: Proxy storage layout conflict
+  severity: CRITICAL
+  cwe: CWE-668
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: \.delegatecall\(
+    confidence: 0.92
+  fix: Use EIP-1967 storage slots
+  tags:
+  - proxy
+  - storage-collision
+- id: GHOST-EVM-PROX-002
+  name: Missing Initializer Modifier
+  description: Initializer callable multiple times
+  severity: CRITICAL
+  cwe: CWE-665
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: function\s+initialize\b(?!.*initializer\b)
+    confidence: 0.95
+  fix: Use OpenZeppelin initializer modifier
+  tags:
+  - proxy
+  - initializer
+- id: GHOST-EVM-PROX-003
+  name: UUPS Missing Authorization
+  description: _authorizeUpgrade not protected
+  severity: CRITICAL
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: _authorizeUpgrade\b(?!.*onlyOwner)
+    confidence: 0.95
+  fix: Add onlyOwner to _authorizeUpgrade
+  tags:
+  - proxy
+  - uups
+- id: GHOST-EVM-PROX-004
+  name: delegatecall to User Input
+  description: delegatecall target from user
+  severity: CRITICAL
+  cwe: CWE-829
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: \.delegatecall\(\s*(?:msg\.data|abi\.encode)
+    confidence: 0.95
+  fix: Never delegatecall to user-supplied addresses
+  tags:
+  - proxy
+  - delegatecall
+  - arbitrary-code
+- id: GHOST-EVM-PROX-005
+  name: Selfdestruct in Implementation
+  description: Implementation contract selfdestruct
+  severity: CRITICAL
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: selfdestruct\(
+    confidence: 0.95
+  fix: Implementations must never selfdestruct
+  tags:
+  - proxy
+  - selfdestruct
+- id: GHOST-EVM-PROX-006
+  name: Constructor in Upgradeable
+  description: State-setting constructor in upgradeable
+  severity: HIGH
+  cwe: CWE-665
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: constructor\s*\([^)]*\)\s*\{
+    confidence: 0.9
+  fix: Use initializer pattern instead
+  tags:
+  - proxy
+  - constructor
+- id: GHOST-EVM-PROX-007
+  name: Immutable in Proxy Implementation
+  description: Immutable in upgradeable contract
+  severity: MEDIUM
+  cwe: CWE-665
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: immutable\s+\w+
+    confidence: 0.8
+  fix: Avoid immutables in upgradeable implementations
+  tags:
+  - proxy
+  - immutable
+- id: GHOST-EVM-PROX-008
+  name: Logic Contract Accepts ETH
+  description: Logic contract has receive() payable
+  severity: MEDIUM
+  cwe: CWE-668
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: receive\(\)\s*external\s*payable
+    confidence: 0.8
+  fix: Only proxy should receive ETH
+  tags:
+  - proxy
+  - ether
+- id: GHOST-EVM-PROX-009
+  name: Beacon Unprotected Upgrade
+  description: BeaconProxy upgrade without auth
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: UpgradeableBeacon\b(?!.*onlyOwner)
+    confidence: 0.88
+  fix: Protect beacon upgrades
+  tags:
+  - proxy
+  - beacon
+- id: GHOST-EVM-PROX-010
+  name: Missing Gap Variable
+  description: Missing storage gap in upgradeable base
+  severity: MEDIUM
+  cwe: CWE-668
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: contract\s+\w+Base\b(?!.*__gap)
+    confidence: 0.82
+  fix: Add uint256[50] private __gap to base contracts
+  tags:
+  - proxy
+  - storage-gap

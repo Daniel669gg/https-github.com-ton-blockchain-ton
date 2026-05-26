@@ -1,0 +1,139 @@
+- id: GHOST-EVM-ERC-001
+  name: ERC20 Approve Race Condition
+  description: approve() without decreaseAllowance
+  severity: HIGH
+  cwe: CWE-362
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: function\s+approve\b(?!.*increaseAllowance|.*decreaseAllowance)
+    confidence: 0.88
+  fix: Use increaseAllowance/decreaseAllowance
+  tags:
+  - erc20
+  - race-condition
+  - approve
+- id: GHOST-EVM-ERC-002
+  name: Missing Return Value on Transfer
+  description: ERC20 transfer return value ignored
+  severity: HIGH
+  cwe: CWE-252
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: \.transfer\s*\([^)]*\)(?!\s*;.*require|.*SafeERC20)
+    confidence: 0.9
+  fix: Use SafeERC20 library
+  tags:
+  - erc20
+  - return-value
+- id: GHOST-EVM-ERC-003
+  name: ERC4626 Inflation Attack
+  description: Vault shares manipulable with first deposit
+  severity: CRITICAL
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: ERC4626|deposit.*shares(?!.*_decimalsOffset|.*virtual)
+    confidence: 0.88
+  fix: Add virtual shares to prevent inflation attack
+  tags:
+  - erc4626
+  - inflation
+  - vault
+- id: GHOST-EVM-ERC-004
+  name: Missing ERC721 Receiver Check
+  description: Tokens may be locked if sent to non-receiver
+  severity: MEDIUM
+  cwe: CWE-703
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: transferFrom\b(?!.*safeTransferFrom|.*IERC721Receiver)
+    confidence: 0.8
+  fix: Use safeTransferFrom for ERC721
+  tags:
+  - erc721
+  - locked-tokens
+- id: GHOST-EVM-ERC-005
+  name: Fee-on-Transfer Token Not Handled
+  description: Token with transfer fee causes accounting error
+  severity: HIGH
+  cwe: CWE-682
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: balanceOf.*before|amount.*transferFrom(?!.*actual.*received)
+    confidence: 0.85
+  fix: Check actual received amount for FoT tokens
+  tags:
+  - erc20
+  - fee-on-transfer
+- id: GHOST-EVM-ERC-006
+  name: Rebasing Token Issue
+  description: Rebasing token balance changes break accounting
+  severity: HIGH
+  cwe: CWE-682
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: AAVE\w*|stETH|rebase
+    confidence: 0.82
+  fix: Use share-based accounting for rebasing tokens
+  tags:
+  - erc20
+  - rebase
+- id: GHOST-EVM-ERC-007
+  name: ERC777 Hook Exploit
+  description: ERC777 hook enables unexpected behavior
+  severity: HIGH
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: IERC777Sender|IERC777Recipient
+    confidence: 0.88
+  fix: Treat ERC777 like ERC20 with reentrancy guard
+  tags:
+  - erc777
+  - hook
+- id: GHOST-EVM-ERC-008
+  name: Permit Signature Replay
+  description: ERC2612 permit without nonce check
+  severity: HIGH
+  cwe: CWE-294
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: permit\b.*deadline(?!.*nonces)
+    confidence: 0.88
+  fix: Verify nonce in permit function
+  tags:
+  - erc20
+  - permit
+  - replay

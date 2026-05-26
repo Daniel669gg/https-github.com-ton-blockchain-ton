@@ -1,0 +1,108 @@
+- id: GHOST-SOL-PDA-001
+  name: Missing Canonical Bump
+  description: PDA without stored canonical bump
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: create_program_address\b(?!.*bump)
+    confidence: 0.88
+  fix: Store canonical bump via find_program_address
+  tags:
+  - solana
+  - pda
+  - bump
+- id: GHOST-SOL-PDA-002
+  name: PDA Seed from User Input
+  description: PDA seeds include unvalidated user data
+  severity: CRITICAL
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: seeds\s*=\s*\[\s*\w+\b(?!.*assert|.*require)
+    confidence: 0.9
+  fix: Validate user-supplied PDA seeds
+  tags:
+  - solana
+  - pda
+  - seed-injection
+- id: GHOST-SOL-PDA-003
+  name: PDA Not Re-derived
+  description: PDA address not re-derived for validation
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: Pubkey::create_program_address\b(?!.*==)
+    confidence: 0.88
+  fix: Re-derive PDA and compare
+  tags:
+  - solana
+  - pda
+  - validation
+- id: GHOST-SOL-PDA-004
+  name: PDA Reuse Across Programs
+  description: Same seeds used across multiple programs
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: find_program_address\(\s*&\[(?!.*program_id)
+    confidence: 0.82
+  fix: Include program_id in seeds
+  tags:
+  - solana
+  - pda
+  - reuse
+- id: GHOST-SOL-PDA-005
+  name: Signer Seed Collision
+  description: PDA seeds match external signing key
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: invoke_signed.*seeds
+    confidence: 0.85
+  fix: Verify PDA seeds can't be replicated
+  tags:
+  - solana
+  - pda
+  - signer-seeds
+- id: GHOST-SOL-PDA-006
+  name: Non-canonical Bump Accepted
+  description: Any bump accepted, not just canonical
+  severity: MEDIUM
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: create_program_address\(.*bump
+    confidence: 0.8
+  fix: Use find_program_address for canonical bump
+  tags:
+  - solana
+  - pda
+  - canonical

@@ -1,47 +1,66 @@
 # Ghost Security Platform — Production Dockerfile
-# Multi-stage build: deps → app → runtime
-# ─────────────────────────────────────────
+# Multi-stage build: builder → runtime
+# ──────────────────────────────────────
 
-FROM python:3.11-slim AS base
+# ── Stage 1: builder ──────────────────────────────────────────────────────────
+FROM python:3.11-slim AS builder
 
-LABEL org.opencontainers.image.title="Ghost Security Platform"
-LABEL org.opencontainers.image.version="2.2"
-LABEL org.opencontainers.image.description="AI-native AppSec platform — defensive security only"
+LABEL stage="builder"
 
-# ── System dependencies ────────────────────────────────────────────────────────
+# System build deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    git curl ca-certificates \
+    git curl ca-certificates build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# ── Non-root user ──────────────────────────────────────────────────────────────
-RUN useradd -m -u 1001 ghost && mkdir -p /app /app/data /app/ghost_reports /app/memory
+WORKDIR /build
+
+# Install Python dependencies into a prefix we can copy wholesale
+COPY requirements.txt .
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir --prefix=/install -r requirements.txt && \
+    pip install --no-cache-dir --prefix=/install semgrep bandit || true
+
+# ── Stage 2: runtime ──────────────────────────────────────────────────────────
+FROM python:3.11-slim AS runtime
+
+LABEL org.opencontainers.image.title="Ghost Security Platform"
+LABEL org.opencontainers.image.version="13.0"
+LABEL org.opencontainers.image.description="AI-native AppSec platform — defensive security only"
+LABEL org.opencontainers.image.source="https://github.com/ton-blockchain/ton"
+
+# Minimal runtime system packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Non-root user
+RUN useradd -m -u 1001 -s /bin/bash ghostuser && \
+    mkdir -p /app/data /app/ghost_reports /app/memory /app/.ghost
+
 WORKDIR /app
 
-# ── Python deps (cached layer) ────────────────────────────────────────────────
-FROM base AS deps
-COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir semgrep bandit || true
+# Copy installed Python packages from builder
+COPY --from=builder /install /usr/local
 
-# ── Application source ────────────────────────────────────────────────────────
-FROM deps AS runtime
-COPY --chown=ghost:ghost . .
+# Copy application source (owned by ghostuser)
+COPY --chown=ghostuser:ghostuser . .
 
-# Ensure writable dirs
-RUN chown -R ghost:ghost /app/data /app/ghost_reports /app/memory
+# Ensure writable runtime directories
+RUN chown -R ghostuser:ghostuser /app/data /app/ghost_reports /app/memory /app/.ghost
 
-USER ghost
+# Drop to non-root
+USER ghostuser
 
 EXPOSE 8000
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
-  CMD curl -f http://localhost:8000/health || exit 1
+# Lightweight health check via the CLI status command
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
+  CMD python ghost_cli_main.py status || exit 1
 
-# Graceful startup with 2 workers; tune with WORKERS env var
-CMD ["sh", "-c", "python3 -m uvicorn api.server:app \
-     --host 0.0.0.0 \
-     --port 8000 \
-     --workers ${WORKERS:-2} \
-     --log-level ${LOG_LEVEL:-info} \
-     --timeout-keep-alive 30"]
+# Default: run the API server via uvicorn
+CMD ["sh", "-c", \
+     "python ghost_cli_main.py serve \
+      --host 0.0.0.0 \
+      --port 8000 \
+      --workers ${WORKERS:-2} \
+      --log-level ${LOG_LEVEL:-info}"]

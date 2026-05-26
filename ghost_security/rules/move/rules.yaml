@@ -1,0 +1,275 @@
+- id: GHOST-MOVE-001
+  name: Missing Capability Check
+  description: Entry fun callable without capability
+  severity: CRITICAL
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - move
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: public\s+entry\s+fun\b(?!.*_cap\b|.*cap:)
+    confidence: 0.92
+  fix: Require capability object in signature
+  tags:
+  - move
+  - capability
+  - access-control
+- id: GHOST-MOVE-002
+  name: Unchecked Addition
+  description: Integer addition without overflow check
+  severity: HIGH
+  cwe: CWE-190
+  owasp: A01:2021
+  languages:
+  - move
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: \w+\s*\+\s*\w+(?!.*checked|.*abort)
+    confidence: 0.88
+  fix: Use math::add or add overflow check
+  tags:
+  - move
+  - arithmetic
+  - overflow
+- id: GHOST-MOVE-003
+  name: Unchecked Multiplication
+  description: Integer multiplication without check
+  severity: HIGH
+  cwe: CWE-190
+  owasp: A01:2021
+  languages:
+  - move
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: \w+\s*\*\s*\w+(?!.*checked|.*abort)
+    confidence: 0.88
+  fix: Use math::mul or check for overflow
+  tags:
+  - move
+  - arithmetic
+  - overflow
+- id: GHOST-MOVE-004
+  name: Shared Object Race Condition
+  description: Shared object without versioning
+  severity: HIGH
+  cwe: CWE-362
+  owasp: A01:2021
+  languages:
+  - move
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: transfer::share_object\b
+    confidence: 0.85
+  fix: Use object versioning for shared objects
+  tags:
+  - move
+  - sui
+  - shared-object
+  - race
+- id: GHOST-MOVE-005
+  name: Missing abort Condition
+  description: Function proceeds without input validation
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - move
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: public\s+(?:entry\s+)?fun\b(?!.*assert!|.*abort)
+    confidence: 0.85
+  fix: Add assert! for input validation
+  tags:
+  - move
+  - abort
+  - validation
+- id: GHOST-MOVE-006
+  name: Coin Value Not Checked
+  description: Coin value not validated after split/merge
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - move
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: coin::split\b|coin::merge\b(?!.*value\(\))
+    confidence: 0.88
+  fix: Validate coin values
+  tags:
+  - move
+  - coin
+  - balance
+- id: GHOST-MOVE-007
+  name: Object ID Forgery
+  description: Object ID from untrusted input
+  severity: CRITICAL
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - move
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: object::id_from_bytes\b(?!.*validate)
+    confidence: 0.9
+  fix: Validate object IDs from user input
+  tags:
+  - move
+  - object-id
+  - forgery
+- id: GHOST-MOVE-008
+  name: Missing TxContext in Entry Fun
+  description: Entry fun missing TxContext
+  severity: MEDIUM
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - move
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: public\s+entry\s+fun\b(?!.*ctx:.*TxContext)
+    confidence: 0.82
+  fix: Include TxContext in entry functions
+  tags:
+  - move
+  - sui
+  - tx-context
+- id: GHOST-MOVE-009
+  name: Dynamic Field Type Confusion
+  description: Dynamic field accessed with wrong type
+  severity: HIGH
+  cwe: CWE-843
+  owasp: A01:2021
+  languages:
+  - move
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: dynamic_field::borrow\b(?!.*<\s*\w+\s*,)
+    confidence: 0.85
+  fix: Use fully typed dynamic field access
+  tags:
+  - move
+  - dynamic-field
+  - type-confusion
+- id: GHOST-MOVE-010
+  name: Clock for Randomness
+  description: Using clock timestamp for randomness
+  severity: HIGH
+  cwe: CWE-338
+  owasp: A01:2021
+  languages:
+  - move
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: clock::timestamp_ms\b.*random|random.*clock::timestamp_ms
+    confidence: 0.88
+  fix: Use Sui randomness module
+  tags:
+  - move
+  - sui
+  - randomness
+  - clock
+- id: GHOST-MOVE-011
+  name: Unchecked borrow_global
+  description: Resource borrowed without existence check
+  severity: HIGH
+  cwe: CWE-476
+  owasp: A01:2021
+  languages:
+  - move
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: borrow_global\b(?!.*exists<)
+    confidence: 0.88
+  fix: Use exists<T>(addr) before borrow_global
+  tags:
+  - move
+  - aptos
+  - resource
+  - borrow
+- id: GHOST-MOVE-012
+  name: Missing signer Verification
+  description: Function accepts &signer without validation
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - move
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: fun\s+\w+\s*\(&signer(?!.*assert_eq|.*require)
+    confidence: 0.88
+  fix: Validate signer address
+  tags:
+  - move
+  - aptos
+  - signer
+  - validation
+- id: GHOST-MOVE-013
+  name: Transfer to Arbitrary Address
+  description: Object transferred without validation
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - move
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: transfer::transfer\(\w+,\s*\w+\)
+    confidence: 0.85
+  fix: Validate recipient before transfer
+  tags:
+  - move
+  - sui
+  - transfer
+  - arbitrary
+- id: GHOST-MOVE-014
+  name: Freeze Without Purpose
+  description: Object frozen unnecessarily
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - move
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: transfer::freeze_object\b
+    confidence: 0.75
+  fix: Verify freeze is intentional and documented
+  tags:
+  - move
+  - sui
+  - freeze
+- id: GHOST-MOVE-015
+  name: Resource Not Destroyed
+  description: Resource acquired but never released
+  severity: HIGH
+  cwe: CWE-772
+  owasp: A01:2021
+  languages:
+  - move
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: move_from\b(?!.*destroy|.*drop)
+    confidence: 0.85
+  fix: Ensure all acquired resources are released
+  tags:
+  - move
+  - resource
+  - lifecycle

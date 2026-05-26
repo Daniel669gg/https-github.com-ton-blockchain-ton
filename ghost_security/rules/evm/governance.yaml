@@ -1,0 +1,90 @@
+- id: GHOST-EVM-GOV-001
+  name: Flash Loan Governance Attack
+  description: Governance vote manipulable via flash loan
+  severity: CRITICAL
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: propose\(|castVote\(
+    confidence: 0.92
+  fix: Use snapshot-based voting with time delay
+  tags:
+  - governance
+  - flash-loan
+  - dao
+- id: GHOST-EVM-GOV-002
+  name: Short Voting Period
+  description: Governance vote period too short for community reaction
+  severity: HIGH
+  cwe: CWE-362
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: votingPeriod\(\)(?!.*>.*\d{5})
+    confidence: 0.85
+  fix: Set voting period >= 2 days (172800 seconds)
+  tags:
+  - governance
+  - voting-period
+  - dao
+- id: GHOST-EVM-GOV-003
+  name: Missing Timelock on Execution
+  description: Proposal executed without timelock delay
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: execute\([^)]*\)(?!.*TimelockController|.*delay)
+    confidence: 0.88
+  fix: Add TimelockController before execution
+  tags:
+  - governance
+  - timelock
+  - dao
+- id: GHOST-EVM-GOV-004
+  name: Quorum Too Low
+  description: Governance quorum too low for security
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: quorum\(\)(?!.*4e18|.*10e18)
+    confidence: 0.8
+  fix: Set quorum to at least 4% of supply
+  tags:
+  - governance
+  - quorum
+  - dao
+- id: GHOST-EVM-GOV-005
+  name: Cancellation Without Check
+  description: Anyone can cancel proposals
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: function\s+cancel\b(?!.*onlyProposer|.*require.*proposer)
+    confidence: 0.82
+  fix: Restrict proposal cancellation to proposer or guardian
+  tags:
+  - governance
+  - cancel
+  - dao

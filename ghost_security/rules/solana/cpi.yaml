@@ -1,0 +1,90 @@
+- id: GHOST-SOL-CPI-001
+  name: Unchecked CPI Return
+  description: CPI result not propagated
+  severity: HIGH
+  cwe: CWE-703
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: invoke\s*\((?!.*\?)
+    confidence: 0.88
+  fix: Use ? operator to propagate CPI errors
+  tags:
+  - solana
+  - cpi
+  - error
+- id: GHOST-SOL-CPI-002
+  name: Arbitrary CPI Target
+  description: CPI to program from account without validation
+  severity: CRITICAL
+  cwe: CWE-829
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: invoke\s*\(\s*&\w+
+    confidence: 0.92
+  fix: Validate target program ID before CPI
+  tags:
+  - solana
+  - cpi
+  - arbitrary
+- id: GHOST-SOL-CPI-003
+  name: CPI Reentrancy
+  description: CPI call before state update
+  severity: HIGH
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: invoke\s*\(.*\n.*\w+\s*=
+    confidence: 0.85
+  fix: Update state before CPI calls
+  tags:
+  - solana
+  - cpi
+  - reentrancy
+- id: GHOST-SOL-CPI-004
+  name: Token Transfer Without Authority
+  description: SPL token CPI missing authority
+  severity: CRITICAL
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: token::transfer\b(?!.*authority)
+    confidence: 0.92
+  fix: Include authority in token CPI context
+  tags:
+  - solana
+  - spl-token
+  - authority
+- id: GHOST-SOL-CPI-005
+  name: Lamport Transfer Manual
+  description: Manual lamport move vs system transfer
+  severity: HIGH
+  cwe: CWE-362
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: \*\*\w+\.lamports\.borrow_mut\(\)\s*-=
+    confidence: 0.85
+  fix: Use system_program::transfer instead
+  tags:
+  - solana
+  - lamports
+  - race

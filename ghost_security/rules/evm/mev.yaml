@@ -1,0 +1,90 @@
+- id: GHOST-EVM-MEV-001
+  name: Missing Slippage Protection
+  description: No slippage check in swap
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: swap\w*\([^)]*\)(?!.*amountOutMin|.*minAmount)
+    confidence: 0.88
+  fix: Add amountOutMin slippage parameter
+  tags:
+  - mev
+  - slippage
+  - dex
+- id: GHOST-EVM-MEV-002
+  name: Missing Deadline on Swap
+  description: Swap without deadline enables sandwich
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: swap\w*\([^)]*\)(?!.*deadline)
+    confidence: 0.88
+  fix: Add deadline parameter to swaps
+  tags:
+  - mev
+  - deadline
+  - sandwich
+- id: GHOST-EVM-MEV-003
+  name: Unprotected Dutch Auction
+  description: Dutch auction price manipulable
+  severity: HIGH
+  cwe: CWE-362
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: dutchAuction|Dutch.*price
+    confidence: 0.85
+  fix: Protect against front-running in auctions
+  tags:
+  - mev
+  - auction
+  - front-running
+- id: GHOST-EVM-MEV-004
+  name: Sandwich-able Liquidity Add
+  description: addLiquidity without min amounts
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: addLiquidity\b(?!.*amountAMin|.*amountBMin)
+    confidence: 0.85
+  fix: Set minimum amounts in addLiquidity
+  tags:
+  - mev
+  - liquidity
+  - sandwich
+- id: GHOST-EVM-MEV-005
+  name: Block Stuffing Risk
+  description: Contract vulnerable to block stuffing DoS
+  severity: MEDIUM
+  cwe: CWE-400
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: for\s*\(.*length.*\)
+    confidence: 0.75
+  fix: Avoid unbounded loops in time-sensitive functions
+  tags:
+  - mev
+  - dos
+  - block-stuffing
