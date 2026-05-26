@@ -1,6 +1,18 @@
 apiVersion: v2
 name: ghost-security
-description: AI-native AppSec Platform
+description: Ghost Security Platform v13 - Multi-chain Web3 Security Scanner
 type: application
-version: 3.0.0
-appVersion: "3.0"
+version: 13.0.0
+appVersion: "13.0.0"
+maintainers:
+  - name: Ghost Security Team
+keywords:
+  - security
+  - web3
+  - blockchain
+  - solidity
+  - defi
+  - smart-contracts
+home: https://github.com/ton-blockchain/ghost_security
+sources:
+  - https://github.com/ton-blockchain/ghost_security

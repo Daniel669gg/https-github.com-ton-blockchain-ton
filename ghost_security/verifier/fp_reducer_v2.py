@@ -21,9 +21,9 @@ _SUPPRESSED_DIRS = re.compile(
     re.IGNORECASE,
 )
 
-# Test-file path patterns
+# Test-file path patterns — matches test_foo.py, foo_test.py, foo.spec.js, spec_foo.py
 _TEST_PATH_RE = re.compile(
-    r"([\\/]|^)(test_|_test\.|\.spec\.|spec_)",
+    r"([\\/]|^)(test_|_test\.|\.spec\.|spec_)|\w_test\.",
     re.IGNORECASE,
 )
 

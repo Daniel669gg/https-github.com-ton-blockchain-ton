@@ -1,0 +1,253 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.4",
+  "serialNumber": "urn:uuid:a7f3e2d1-4b8c-4f9a-b2e5-8d6c1a3f9e47",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-05-26T00:00:00Z",
+    "tools": [
+      {
+        "vendor": "Ghost Security Team",
+        "name": "Ghost Security SBOM Generator",
+        "version": "13.0.0"
+      }
+    ],
+    "component": {
+      "type": "application",
+      "bom-ref": "ghost-security-platform@13.0.0",
+      "name": "Ghost Security Platform",
+      "version": "13.0.0",
+      "description": "Multi-chain Web3 Security Scanner with AI-powered analysis",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:github/ton-blockchain/ghost_security@13.0.0"
+    },
+    "authors": [
+      {
+        "name": "Ghost Security Team"
+      }
+    ]
+  },
+  "components": [
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/fastapi@0.110.0",
+      "name": "fastapi",
+      "version": "0.110.0",
+      "description": "FastAPI framework, high performance, easy to learn, fast to code, ready for production",
+      "purl": "pkg:pypi/fastapi@0.110.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/uvicorn@0.27.0",
+      "name": "uvicorn",
+      "version": "0.27.0",
+      "description": "The lightning-fast ASGI server",
+      "purl": "pkg:pypi/uvicorn@0.27.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pydantic@2.0.0",
+      "name": "pydantic",
+      "version": "2.0.0",
+      "description": "Data validation using Python type hints",
+      "purl": "pkg:pypi/pydantic@2.0.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/python-multipart@0.0.9",
+      "name": "python-multipart",
+      "version": "0.0.9",
+      "description": "A streaming multipart parser for Python",
+      "purl": "pkg:pypi/python-multipart@0.0.9",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/openai@1.30.0",
+      "name": "openai",
+      "version": "1.30.0",
+      "description": "The official Python library for the OpenAI API",
+      "purl": "pkg:pypi/openai@1.30.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/chromadb@0.4.24",
+      "name": "chromadb",
+      "version": "0.4.24",
+      "description": "the AI-native open-source embedding database",
+      "purl": "pkg:pypi/chromadb@0.4.24",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/bandit@1.7.7",
+      "name": "bandit",
+      "version": "1.7.7",
+      "description": "Security oriented static analyser for python code",
+      "purl": "pkg:pypi/bandit@1.7.7",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/PyYAML@6.0.1",
+      "name": "PyYAML",
+      "version": "6.0.1",
+      "description": "YAML parser and emitter for Python",
+      "purl": "pkg:pypi/PyYAML@6.0.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/requests@2.31.0",
+      "name": "requests",
+      "version": "2.31.0",
+      "description": "Python HTTP for Humans",
+      "purl": "pkg:pypi/requests@2.31.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/httpx@0.27.0",
+      "name": "httpx",
+      "version": "0.27.0",
+      "description": "The next generation HTTP client",
+      "purl": "pkg:pypi/httpx@0.27.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/python-dotenv@1.0.0",
+      "name": "python-dotenv",
+      "version": "1.0.0",
+      "description": "Read key-value pairs from a .env file and set them as environment variables",
+      "purl": "pkg:pypi/python-dotenv@1.0.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pytest@8.0.0",
+      "name": "pytest",
+      "version": "8.0.0",
+      "description": "pytest: simple powerful testing with Python",
+      "purl": "pkg:pypi/pytest@8.0.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:pypi/pytest-asyncio@0.23.0",
+      "name": "pytest-asyncio",
+      "version": "0.23.0",
+      "description": "Pytest support for asyncio",
+      "purl": "pkg:pypi/pytest-asyncio@0.23.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "ghost-security-platform@13.0.0",
+      "dependsOn": [
+        "pkg:pypi/fastapi@0.110.0",
+        "pkg:pypi/uvicorn@0.27.0",
+        "pkg:pypi/pydantic@2.0.0",
+        "pkg:pypi/python-multipart@0.0.9",
+        "pkg:pypi/openai@1.30.0",
+        "pkg:pypi/chromadb@0.4.24",
+        "pkg:pypi/bandit@1.7.7",
+        "pkg:pypi/PyYAML@6.0.1",
+        "pkg:pypi/requests@2.31.0",
+        "pkg:pypi/httpx@0.27.0",
+        "pkg:pypi/python-dotenv@1.0.0",
+        "pkg:pypi/pytest@8.0.0",
+        "pkg:pypi/pytest-asyncio@0.23.0"
+      ]
+    }
+  ]
+}

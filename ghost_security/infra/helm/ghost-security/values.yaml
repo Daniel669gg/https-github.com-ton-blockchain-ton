@@ -1,29 +1,113 @@
 replicaCount: 2
+
 image:
-  repository: ghost-security/platform
-  tag: "3.0"
+  repository: ghost-security
+  tag: "13.0.0"
   pullPolicy: IfNotPresent
+
 service:
   type: ClusterIP
-  port: 8000
+  port: 8080
+
 ingress:
   enabled: false
+  className: nginx
+  annotations: {}
+  hosts:
+    - host: ghost-security.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
 resources:
-  limits:
-    cpu: "1"
-    memory: 1Gi
   requests:
-    cpu: "200m"
-    memory: 256Mi
-env:
-  OPENAI_API_KEY: ""
-  ANTHROPIC_API_KEY: ""
-  GEMINI_API_KEY: ""
-  OLLAMA_BASE_URL: "http://ollama:11434"
-  QDRANT_URL: "http://qdrant:6333"
+    cpu: "250m"
+    memory: "512Mi"
+  limits:
+    cpu: "1000m"
+    memory: "2Gi"
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+postgresql:
+  enabled: true
+  auth:
+    database: ghost_security
+    username: ghost
+    existingSecret: ghost-db-secret
+  primary:
+    persistence:
+      enabled: true
+      size: 20Gi
+
 redis:
   enabled: true
-qdrant:
-  enabled: false
+  auth:
+    enabled: true
+    existingSecret: ghost-redis-secret
+  master:
+    persistence:
+      enabled: true
+      size: 5Gi
+
 ollama:
   enabled: false
+  model: "qwen2.5-coder:7b"
+  host: "http://ollama:11434"
+
+env:
+  GHOST_LOG_LEVEL: "INFO"
+  GHOST_WORKERS: "4"
+  GHOST_SCAN_TIMEOUT: "300"
+  GHOST_MAX_FILE_SIZE: "10485760"
+  OLLAMA_BASE_URL: "http://ollama:11434"
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8080"
+  prometheus.io/path: "/metrics"
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  fsGroup: 1001
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 8080
+  initialDelaySeconds: 20
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: 8080
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

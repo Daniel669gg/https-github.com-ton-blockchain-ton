@@ -250,6 +250,7 @@ nav{flex:1;padding:.5rem 0;overflow-y:auto}
 .fade-in{animation:fadeIn .25s ease}
 @keyframes countUp{from{opacity:0}to{opacity:1}}
 </style>
+<link rel="stylesheet" href="/static/dashboard.css">
 </head>
 <body>
 
@@ -279,6 +280,12 @@ nav{flex:1;padding:.5rem 0;overflow-y:auto}
     </div>
     <div class="nav-item" onclick="showPage('history',this)" data-page="history">
       <span class="nav-icon">📈</span><span class="nav-label">History</span>
+    </div>
+    <div class="nav-item" onclick="showPage('graph',this)" data-page="graph">
+      <span class="nav-icon">🕸</span><span class="nav-label">Contract Graph</span>
+    </div>
+    <div class="nav-item" onclick="showPage('livefeed',this)" data-page="livefeed">
+      <span class="nav-icon">📡</span><span class="nav-label">Live Feed</span>
     </div>
     <div class="nav-section">Smart Contracts</div>
     <div class="nav-item" onclick="showPage('ton',this)" data-page="ton">
@@ -626,6 +633,85 @@ nav{flex:1;padding:.5rem 0;overflow-y:auto}
       </div>
     </div>
 
+    <!-- CONTRACT GRAPH PAGE -->
+    <div id="page-graph" class="page">
+      <div class="card" style="padding:0;overflow:hidden">
+        <div class="card-header" style="padding:.75rem 1rem;border-bottom:1px solid var(--card-border)">
+          <div class="card-title" style="margin:0">TON Contract Interaction Graph</div>
+          <div style="display:flex;gap:.5rem">
+            <button class="btn btn-sm" onclick="refreshContractGraph()">🔄 Refresh</button>
+            <button class="btn btn-sm" onclick="resetGraphView()">⊙ Reset View</button>
+          </div>
+        </div>
+        <div class="graph-panel" style="height:480px">
+          <canvas id="graph-canvas" style="width:100%;height:100%"></canvas>
+        </div>
+        <div class="graph-legend" id="graph-legend">
+          <div class="graph-legend-item"><div class="graph-legend-dot" style="background:#58a6ff"></div>Wallet</div>
+          <div class="graph-legend-item"><div class="graph-legend-dot" style="background:#a371f7"></div>Contract</div>
+          <div class="graph-legend-item"><div class="graph-legend-dot" style="background:#3fb950"></div>Token</div>
+          <div class="graph-legend-item"><div class="graph-legend-dot" style="background:#ffa657"></div>Jetton</div>
+          <div class="graph-legend-item"><div class="graph-legend-dot" style="background:#e3b341"></div>NFT</div>
+          <div class="graph-legend-item" style="margin-left:1rem"><div class="graph-legend-dot" style="background:#ff7b72;border-radius:2px;width:22px;height:4px;border:none"></div>Critical risk</div>
+          <div class="graph-legend-item"><span style="font-size:.71rem;color:var(--muted)">Drag nodes · Scroll to zoom · Pan to navigate</span></div>
+        </div>
+      </div>
+      <div class="two-col" style="margin-top:.75rem">
+        <div class="card">
+          <div class="card-title">Severity Distribution</div>
+          <div class="chart-canvas-wrap" style="height:180px">
+            <canvas id="sev-chart-canvas" style="width:100%;height:180px"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Graph Stats</div>
+          <div id="graph-stats" style="font-size:.83rem;display:flex;flex-direction:column;gap:.5rem">
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Nodes</span><strong id="gstat-nodes">0</strong></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Edges</span><strong id="gstat-edges">0</strong></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">High-risk nodes</span><strong id="gstat-highrisk" style="color:var(--high)">0</strong></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Critical nodes</span><strong id="gstat-critical" style="color:var(--crit,#ff7b72)">0</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIVE FEED PAGE -->
+    <div id="page-livefeed" class="page">
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="padding:.75rem 1rem;border-bottom:1px solid var(--card-border);display:flex;align-items:center;gap:.6rem;background:var(--bg,#0d1117)">
+          <span style="font-size:.83rem;font-weight:600;flex:1">📡 Live Scan Feed</span>
+          <div class="live-status" id="live-status-bar">
+            <div class="live-status-dot" id="live-dot"></div>
+            <span class="live-status-label" id="live-status-label">Idle</span>
+          </div>
+        </div>
+        <div class="live-feed-body" id="live-feed-body" style="max-height:440px;overflow-y:auto;font-family:monospace;font-size:.75rem"></div>
+        <div class="live-feed-controls">
+          <button class="btn btn-sm btn-accent" id="live-connect-btn" onclick="toggleLiveConnect()">Connect</button>
+          <button class="btn btn-sm" onclick="toggleLivePause()" id="live-pause-btn">⏸ Pause</button>
+          <button class="btn btn-sm" onclick="clearLiveFeed()">🗑 Clear</button>
+          <span class="live-count" id="live-count">0 events</span>
+        </div>
+      </div>
+      <div class="card" style="margin-top:.75rem">
+        <div class="card-title">Connection Info</div>
+        <div style="font-size:.82rem;display:flex;flex-direction:column;gap:.4rem">
+          <div style="display:flex;gap:.5rem;align-items:center">
+            <span style="color:var(--muted)">WebSocket endpoint:</span>
+            <code style="background:var(--bg);padding:.1rem .4rem;border-radius:3px;font-size:.76rem" id="ws-url-display"></code>
+          </div>
+          <div style="display:flex;gap:.5rem;align-items:center">
+            <span style="color:var(--muted)">SSE fallback:</span>
+            <code style="background:var(--bg);padding:.1rem .4rem;border-radius:3px;font-size:.76rem" id="sse-url-display"></code>
+          </div>
+          <div style="margin-top:.5rem;color:var(--muted);font-size:.78rem">
+            The live feed connects automatically when a scan starts. Findings stream in real-time as they are discovered.
+            If WebSocket is unavailable, Server-Sent Events (SSE) are used as fallback.
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /content -->
 </div><!-- /main -->
 
@@ -703,12 +789,15 @@ function showPage(id, el) {
     if(navEl) navEl.classList.add('active');
   }
   const labels = {dashboard:'Dashboard',scan:'New Scan',findings:'Findings',heatmap:'Risk Heatmap',
-    history:'Scan History',ton:'TON Audit',copilot:'Security Copilot',health:'Health',reports:'Reports',settings:'Settings'};
+    history:'Scan History',graph:'Contract Graph',livefeed:'Live Feed',
+    ton:'TON Audit',copilot:'Security Copilot',health:'Health',reports:'Reports',settings:'Settings'};
   document.getElementById('page-title').textContent = labels[id]||id;
   if(id==='health') loadHealth();
   if(id==='reports') loadReports();
   if(id==='heatmap') renderHeatmap();
   if(id==='history') loadHistory();
+  if(id==='graph') initContractGraph();
+  if(id==='livefeed') initLiveFeed();
 }
 
 // ── Demo data ─────────────────────────────────────────────────────────────────
@@ -1572,9 +1661,166 @@ window.addEventListener('load', () => {
   loadHealth();
   // Auto-load demo data for instant visual richness
   loadDemoData();
+  // Initialise the FindingsTable class wrapper around the existing table
+  const tbl = document.getElementById('findings-table');
+  const tbd = document.getElementById('findings-tbody');
+  if(tbl && tbd && window.FindingsTable) {
+    window.dashFindingsTable = new FindingsTable(tbl, tbd, {
+      onRowClick: (f, idx) => openDetail(STATE.findings.indexOf(f) >= 0 ? STATE.findings.indexOf(f) : idx),
+    });
+  }
+  // Show URL info for live feed
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const wsUrl = proto + '//' + location.host + '/ws/scan';
+  const sseUrl = location.origin + '/api/dashboard/live';
+  const wsd = document.getElementById('ws-url-display');
+  const ssed = document.getElementById('sse-url-display');
+  if(wsd) wsd.textContent = wsUrl;
+  if(ssed) ssed.textContent = sseUrl;
 });
 // Close detail panel on Escape
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeDetail(); });
+
+// ── Contract Graph ────────────────────────────────────────────────────────────
+let _contractGraph = null;
+let _sevChart = null;
+
+async function initContractGraph() {
+  const canvas = document.getElementById('graph-canvas');
+  if(!canvas || !window.ContractGraph) return;
+  try {
+    let nodes = [], edges = [];
+    try {
+      const data = await fetch(API+'/api/dashboard/graph').then(r=>r.ok?r.json():null);
+      if(data && data.nodes && data.nodes.length) {
+        nodes = data.nodes; edges = data.edges || [];
+      }
+    } catch(_) {}
+
+    // Fall back to findings-derived data
+    if(!nodes.length && STATE.findings.length) {
+      const fileMap = {};
+      STATE.findings.forEach(f => {
+        const p = f.file || 'unknown';
+        if(!fileMap[p]) fileMap[p] = {count:0, risk:'NONE', sev:'INFO'};
+        fileMap[p].count++;
+        const SEV_O = {CRITICAL:0,HIGH:1,MEDIUM:2,LOW:3,INFO:4};
+        if((SEV_O[f.severity]||9) < (SEV_O[fileMap[p].sev]||9)) {
+          fileMap[p].sev = f.severity;
+          fileMap[p].risk = f.severity;
+        }
+      });
+      nodes = Object.entries(fileMap).map(([path, d]) => ({
+        id: 'n_'+path.replace(/[^a-z0-9]/gi,'_').slice(0,20),
+        type: path.endsWith('.fc')||path.endsWith('.tact') ? 'contract'
+              : path.endsWith('.py') ? 'script'
+              : path.endsWith('.yaml')||path.endsWith('.yml') ? 'config' : 'file',
+        label: path.split('/').slice(-1)[0],
+        risk: d.risk,
+        count: d.count,
+      }));
+      // Connect nodes in same directory
+      const seen = new Set();
+      Object.entries(fileMap).forEach(([pa]) => {
+        const da = pa.split('/').slice(0,-1).join('/');
+        Object.entries(fileMap).forEach(([pb]) => {
+          if(pa === pb) return;
+          const db = pb.split('/').slice(0,-1).join('/');
+          const key = [pa,pb].sort().join('|');
+          if(da && da===db && !seen.has(key)) {
+            seen.add(key);
+            edges.push({
+              source:'n_'+pa.replace(/[^a-z0-9]/gi,'_').slice(0,20),
+              target:'n_'+pb.replace(/[^a-z0-9]/gi,'_').slice(0,20),
+              label:'same-dir'
+            });
+          }
+        });
+      });
+    }
+
+    if(_contractGraph) _contractGraph.destroy();
+    _contractGraph = new ContractGraph(canvas, nodes, edges);
+    _contractGraph.render();
+
+    // Update stats
+    document.getElementById('gstat-nodes').textContent = nodes.length;
+    document.getElementById('gstat-edges').textContent = edges.length;
+    document.getElementById('gstat-highrisk').textContent = nodes.filter(n=>n.risk==='HIGH').length;
+    document.getElementById('gstat-critical').textContent = nodes.filter(n=>n.risk==='CRITICAL').length;
+  } catch(e) { console.error('Graph init error', e); }
+
+  // Also render severity chart
+  const sevCanvas = document.getElementById('sev-chart-canvas');
+  if(sevCanvas && window.SeverityChart) {
+    const counts = {};
+    STATE.findings.forEach(f => { counts[f.severity] = (counts[f.severity]||0)+1; });
+    if(_sevChart) _sevChart.destroy();
+    _sevChart = new SeverityChart(sevCanvas, counts, { animate: true, animMs: 700 });
+    _sevChart.render();
+  }
+}
+
+async function refreshContractGraph() {
+  if(_contractGraph) { _contractGraph.destroy(); _contractGraph = null; }
+  await initContractGraph();
+  toast('Graph refreshed','ok');
+}
+
+function resetGraphView() {
+  if(_contractGraph) {
+    _contractGraph._pan = {x:0,y:0};
+    _contractGraph._scale = 1;
+    _contractGraph._positions = {};
+    _contractGraph._initLayout();
+    _contractGraph._simTick = 0;
+  }
+}
+
+// ── Live Feed ─────────────────────────────────────────────────────────────────
+let _liveFeedView = null;
+let _liveConnected = false;
+
+function initLiveFeed() {
+  if(_liveFeedView) return; // already initialised
+  const body   = document.getElementById('live-feed-body');
+  const status = document.getElementById('live-status-bar');
+  const count  = document.getElementById('live-count');
+  if(!body || !window.LiveFeedView) return;
+  _liveFeedView = new LiveFeedView(body, status, count, { maxRows: 300, autoScroll: true });
+  // Don't auto-connect — user must click Connect
+}
+
+function toggleLiveConnect() {
+  if(!_liveFeedView) initLiveFeed();
+  if(!_liveFeedView) return;
+  if(_liveConnected) {
+    _liveFeedView.disconnect();
+    _liveConnected = false;
+    document.getElementById('live-connect-btn').textContent = 'Connect';
+    toast('Live feed disconnected','ok');
+  } else {
+    const proto  = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl  = proto + '//' + location.host + '/ws/scan';
+    const sseUrl = location.origin + '/api/dashboard/live';
+    _liveFeedView.connect(wsUrl, sseUrl);
+    _liveConnected = true;
+    document.getElementById('live-connect-btn').textContent = 'Disconnect';
+    toast('Live feed connecting…','ok');
+  }
+}
+
+function toggleLivePause() {
+  if(!_liveFeedView) return;
+  _liveFeedView.togglePause();
+  const btn = document.getElementById('live-pause-btn');
+  if(btn) btn.textContent = btn.textContent.includes('Resume') ? '⏸ Pause' : '▶ Resume';
+}
+
+function clearLiveFeed() {
+  if(_liveFeedView) _liveFeedView.clear();
+}
 </script>
+<script src="/static/dashboard.js"></script>
 </body>
 </html>
