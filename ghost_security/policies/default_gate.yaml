@@ -1,0 +1,75 @@
+# SentinelOps Policy-as-Code — Default Production Gate
+# Format version: 1.0
+#
+# enforcement: block  → the whole gate fails if any 'block' rule is violated
+# enforcement: warn   → violations are reported but do not fail the gate
+#
+# Condition operators:
+#   max   → finding count must be <= threshold  (use count: 0 for "none allowed")
+#   min   → finding count must be >= threshold
+#   exact → finding count must equal threshold
+
+name: "Production Security Gate"
+version: "1.0"
+enforcement: block
+
+rules:
+  # ── Blocking rules ───────────────────────────────────────────────────────────
+
+  - id: "P001"
+    description: "No CRITICAL severity findings allowed in production"
+    condition:
+      severity: CRITICAL
+      count: 0
+      operator: max
+    action: block
+
+  - id: "P002"
+    description: "No hardcoded secrets or credentials"
+    condition:
+      rule_id_prefix: "SECRET"
+      count: 0
+      operator: max
+    action: block
+
+  - id: "P003"
+    description: "No SQL injection vulnerabilities (CWE-89)"
+    condition:
+      cwe_prefix: "CWE-89"
+      count: 0
+      operator: max
+    action: block
+
+  - id: "P004"
+    description: "No command injection vulnerabilities (CWE-78)"
+    condition:
+      cwe_prefix: "CWE-78"
+      count: 0
+      operator: max
+    action: block
+
+  # ── Warning rules (reported but do not fail the gate) ────────────────────────
+
+  - id: "P005"
+    description: "Maximum 5 HIGH severity findings"
+    condition:
+      severity: HIGH
+      count: 5
+      operator: max
+    action: warn
+
+  - id: "P006"
+    description: "Maximum 20 MEDIUM severity findings"
+    condition:
+      severity: MEDIUM
+      count: 20
+      operator: max
+    action: warn
+
+  - id: "P007"
+    description: "No unresolved authentication issues (CWE-287)"
+    condition:
+      cwe_prefix: "CWE-287"
+      count: 0
+      operator: max
+    action: warn

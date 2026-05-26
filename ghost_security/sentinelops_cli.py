@@ -2638,6 +2638,360 @@ def cmd_ci(args) -> int:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# ENTERPRISE MODULE COMMANDS  (Phase 14 additions)
+# ══════════════════════════════════════════════════════════════════════════════
+
+def cmd_mitre(args) -> int:
+    """sentinelops mitre <findings.json> [--format json|text]
+    Map findings to MITRE ATT&CK techniques and tactics.
+    """
+    from core.mitre.mitre_mapper import MITREMapper
+
+    findings_file = getattr(args, "findings", "findings.json")
+    fmt           = getattr(args, "format", "text")
+
+    try:
+        with open(findings_file) as fh:
+            findings = json.load(fh)
+        if isinstance(findings, dict):
+            findings = findings.get("findings", [])
+    except FileNotFoundError:
+        print(RED(f"✗  File not found: {findings_file}"))
+        return 1
+    except json.JSONDecodeError as exc:
+        print(RED(f"✗  Invalid JSON: {exc}"))
+        return 1
+
+    mapper  = MITREMapper()
+    results = mapper.enrich(findings)
+
+    if fmt == "json":
+        print(json.dumps(results, indent=2))
+    else:
+        report = mapper.report(findings)
+        print(report)
+
+    return 0
+
+
+def cmd_stride(args) -> int:
+    """sentinelops stride <findings.json> [--format json|text]
+    Classify findings according to the STRIDE threat model.
+    """
+    from core.threat_model.stride_analyzer import STRIDEAnalyzer
+
+    findings_file = getattr(args, "findings", "findings.json")
+    fmt           = getattr(args, "format", "text")
+
+    try:
+        with open(findings_file) as fh:
+            findings = json.load(fh)
+        if isinstance(findings, dict):
+            findings = findings.get("findings", [])
+    except FileNotFoundError:
+        print(RED(f"✗  File not found: {findings_file}"))
+        return 1
+    except json.JSONDecodeError as exc:
+        print(RED(f"✗  Invalid JSON: {exc}"))
+        return 1
+
+    analyzer = STRIDEAnalyzer()
+    print(analyzer.generate_report(findings, fmt=fmt))
+    return 0
+
+
+def cmd_fuzz(args) -> int:
+    """sentinelops fuzz <path> [--format json|text]
+    Smart contract fuzzer — boundary-value and reentrancy path analysis.
+    Supports TON FunC/Tact, EVM Solidity/Vyper, Move, Solana.
+    """
+    from scanners.fuzzer.contract_fuzzer import ContractFuzzer
+
+    path = str(Path(getattr(args, "path", ".")).resolve())
+    fmt  = getattr(args, "format", "text")
+
+    fuzzer = ContractFuzzer()
+
+    if os.path.isfile(path):
+        raw = fuzzer.fuzz_file(path)
+    else:
+        raw = []
+        for root, dirs, files in os.walk(path):
+            dirs[:] = [d for d in dirs if not d.startswith(".")]
+            for fname in files:
+                if any(fname.endswith(ext) for ext in (".sol", ".vy", ".fc", ".tact", ".move", ".rs")):
+                    raw.extend(fuzzer.fuzz_file(os.path.join(root, fname)))
+
+    findings = [f.to_dict() if hasattr(f, "to_dict") else f for f in raw]
+
+    if fmt == "json":
+        print(json.dumps(findings, indent=2))
+        return 0
+
+    if not findings:
+        print(GREEN("✅  No fuzzing vulnerabilities detected."))
+        return 0
+
+    crits = sum(1 for f in findings if f.get("severity", "").lower() == "critical")
+    highs = sum(1 for f in findings if f.get("severity", "").lower() == "high")
+    print(BOLD(f"\n🔬  Contract Fuzzer — {len(findings)} issue(s) found  "
+               f"({crits} critical, {highs} high)\n"))
+    for f in findings:
+        sev  = f.get("severity", "medium").upper()
+        col  = _SEV_COLOR.get(sev, lambda t: t)
+        fid  = f.get("rule_id", "FUZZ")
+        loc  = f"{f.get('file','')}"
+        if f.get("line"):
+            loc += f":{f['line']}"
+        print(f"  {col(f'[{sev}]')}  {BOLD(fid)}  {loc}")
+        print(f"    {f.get('title', f.get('message', ''))}")
+        if f.get("attack_vector"):
+            print(DIM(f"    Vector: {f['attack_vector']}"))
+        if f.get("input_values"):
+            print(DIM(f"    Boundary inputs: {f['input_values'][:3]}"))
+    return 1 if crits or highs else 0
+
+
+def cmd_entropy_scan(args) -> int:
+    """sentinelops entropy-scan <path> [--format json|text] [--threshold FLOAT]
+    Shannon entropy secret scanner — detects high-entropy strings (potential secrets)
+    that evade regex-only detectors.
+    """
+    from scanners.secret_scanner.entropy_analyzer import EntropyAnalyzer
+
+    path      = str(Path(getattr(args, "path", ".")).resolve())
+    fmt       = getattr(args, "format", "text")
+    threshold = float(getattr(args, "threshold", 0.0) or 0.0)
+
+    kwargs = {}
+    if threshold:
+        kwargs["base64_threshold"] = threshold
+        kwargs["hex_threshold"]    = threshold
+        kwargs["general_threshold"]= threshold
+
+    analyzer = EntropyAnalyzer(**kwargs)
+
+    if os.path.isfile(path):
+        findings = analyzer.scan_file(path)
+    else:
+        findings = analyzer.scan_directory(path)
+
+    if fmt == "json":
+        print(json.dumps([f.to_dict() if hasattr(f, "to_dict") else f for f in findings], indent=2))
+        return 0
+
+    print(analyzer.generate_report(findings))
+    return 1 if any(
+        (f.severity if isinstance(f, object) and hasattr(f, "severity") else f.get("severity","")) in ("high","critical")
+        for f in findings
+    ) else 0
+
+
+def cmd_attack_chain(args) -> int:
+    """sentinelops attack-chain <findings.json> [--format mermaid|dot|json|text]
+    Build and visualize multi-step attack chains from findings.
+    """
+    from core.attack_graph.attack_chain import AttackChainBuilder
+
+    findings_file = getattr(args, "findings", "findings.json")
+    fmt           = getattr(args, "format", "text")
+    save          = getattr(args, "save", None)
+
+    try:
+        with open(findings_file) as fh:
+            findings = json.load(fh)
+        if isinstance(findings, dict):
+            findings = findings.get("findings", [])
+    except FileNotFoundError:
+        print(RED(f"✗  File not found: {findings_file}"))
+        return 1
+
+    builder = AttackChainBuilder()
+    graph   = builder.build(findings)
+
+    if fmt == "mermaid":
+        output = builder.to_mermaid(graph)
+    elif fmt == "dot":
+        output = builder.to_dot(graph)
+    elif fmt == "json":
+        output = builder.generate_report(findings, fmt="json")
+    else:
+        output = builder.generate_report(findings, fmt="text")
+
+    if save:
+        with open(save, "w") as fh:
+            fh.write(output)
+        print(GREEN(f"✅  Attack chain saved: {save}"))
+    else:
+        print(output)
+
+    return 0
+
+
+def cmd_dep_confusion(args) -> int:
+    """sentinelops dep-confusion <path> [--format json|text]
+    Dependency confusion & namespace squatting detector.
+    Checks package.json, requirements.txt, go.mod, Cargo.toml, pom.xml.
+    """
+    from scanners.dependency_confusion import DependencyConfusionScanner
+
+    path = str(Path(getattr(args, "path", ".")).resolve())
+    fmt  = getattr(args, "format", "text")
+
+    scanner  = DependencyConfusionScanner()
+    findings = scanner.scan_directory(path)
+
+    if fmt == "json":
+        out = [f.to_dict() if hasattr(f, "to_dict") else f for f in findings]
+        print(json.dumps(out, indent=2))
+        return 0
+
+    if not findings:
+        print(GREEN("✅  No dependency confusion risks detected."))
+        return 0
+
+    crits = sum(1 for f in findings if (f.severity if hasattr(f, "severity") else f.get("severity","")).lower() in ("critical","high"))
+    print(BOLD(f"\n📦  Dependency Confusion Scan — {len(findings)} risk(s)  ({crits} critical/high)\n"))
+    for f in findings:
+        d = f.to_dict() if hasattr(f, "to_dict") else f
+        sev = d.get("severity","medium").upper()
+        col = _SEV_COLOR.get(sev, lambda t: t)
+        print(f"  {col(f'[{sev}]')}  {BOLD(d.get('package','?'))}  →  {d.get('file','')}")
+        print(f"    {d.get('title', d.get('message',''))}")
+    return 1 if crits else 0
+
+
+def cmd_priority(args) -> int:
+    """sentinelops priority <findings.json> [--format json|text] [--capacity DAYS]
+    Risk-adjusted remediation prioritizer + sprint planner.
+    """
+    from core.priority.remediation_ranker import RemediationRanker
+
+    findings_file = getattr(args, "findings", "findings.json")
+    fmt           = getattr(args, "format", "text")
+    capacity      = float(getattr(args, "capacity", 5) or 5)
+
+    try:
+        with open(findings_file) as fh:
+            findings = json.load(fh)
+        if isinstance(findings, dict):
+            findings = findings.get("findings", [])
+    except FileNotFoundError:
+        print(RED(f"✗  File not found: {findings_file}"))
+        return 1
+
+    ranker = RemediationRanker(sprint_capacity_days=capacity)
+    print(ranker.generate_report(findings, fmt=fmt))
+    return 0
+
+
+def cmd_policy(args) -> int:
+    """sentinelops policy <findings.json> [--gate FILE] [--format json|text]
+    Evaluate findings against Policy-as-Code security gate.
+    Exits 1 if gate fails (for CI/CD integration).
+    """
+    from core.policy.policy_engine import PolicyEngine
+
+    findings_file = getattr(args, "findings", "findings.json")
+    gate_file     = getattr(args, "gate", None)
+    fmt           = getattr(args, "format", "text")
+    create_eg     = getattr(args, "create_example", False)
+
+    if create_eg:
+        engine  = PolicyEngine()
+        example = engine.create_example_policy()
+        dest    = "example_gate.yaml"
+        import yaml as _yaml
+        with open(dest, "w") as fh:
+            _yaml.dump(example, fh, default_flow_style=False)
+        print(GREEN(f"✅  Example policy gate written: {dest}"))
+        return 0
+
+    try:
+        with open(findings_file) as fh:
+            findings = json.load(fh)
+        if isinstance(findings, dict):
+            findings = findings.get("findings", [])
+    except FileNotFoundError:
+        print(RED(f"✗  File not found: {findings_file}"))
+        return 1
+
+    engine = PolicyEngine()
+
+    if gate_file:
+        engine.load_policies(gate_file)
+    else:
+        default = Path(__file__).parent / "policies" / "default_gate.yaml"
+        if default.exists():
+            engine.load_policies(str(default))
+
+    result = engine.evaluate(findings)
+    report = engine.generate_gate_report(result, fmt=fmt)
+
+    if fmt == "json":
+        print(report)
+    else:
+        status_col = GREEN if result.gate_status == "PASS" else (
+            YELLOW if result.gate_status == "WARN" else RED
+        )
+        print(report)
+        print(status_col(f"\n  Gate status: {result.gate_status}"))
+
+    return 0 if result.gate_status in ("PASS", "WARN") else 1
+
+
+def cmd_pr_comment(args) -> int:
+    """sentinelops pr-comment <findings.json> --platform github|gitlab
+                              --token TOKEN --owner ORG --repo REPO --pr NUMBER
+    Post inline security findings as PR review comments (GitHub / GitLab).
+    """
+    from integrations.pr_commenter import PRCommenter
+
+    findings_file = getattr(args, "findings", "findings.json")
+    platform      = getattr(args, "platform", "github")
+    token         = getattr(args, "token", "") or os.getenv("GITHUB_TOKEN", "") or os.getenv("GITLAB_TOKEN", "")
+    owner         = getattr(args, "owner", "")
+    repo          = getattr(args, "repo", "")
+    pr_number     = int(getattr(args, "pr", 0) or 0)
+    dry_run       = getattr(args, "dry_run", False)
+
+    if not token:
+        print(RED("✗  No token provided. Set GITHUB_TOKEN / GITLAB_TOKEN or use --token."))
+        return 1
+
+    try:
+        with open(findings_file) as fh:
+            findings = json.load(fh)
+        if isinstance(findings, dict):
+            findings = findings.get("findings", [])
+    except FileNotFoundError:
+        print(RED(f"✗  File not found: {findings_file}"))
+        return 1
+
+    commenter = PRCommenter(
+        platform=platform,
+        token=token,
+        owner=owner,
+        repo=repo,
+        project_id=f"{owner}/{repo}",
+    )
+
+    if dry_run:
+        print(DIM("Dry-run mode — showing what would be posted:\n"))
+        for f in findings[:5]:
+            print(commenter.format_comment(f))
+        return 0
+
+    stats = commenter.post_findings(pr_number, findings)
+    print(GREEN(f"✅  Posted {stats.get('posted', 0)} inline comments"))
+    if stats.get("skipped_off_diff"):
+        print(DIM(f"   Skipped {stats['skipped_off_diff']} findings not in diff"))
+    if stats.get("errors"):
+        print(YELLOW(f"   {stats['errors']} error(s) — check token/permissions"))
+    return 0 if not stats.get("errors") else 1
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # MAIN
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -2704,6 +3058,18 @@ def main():
   sentinelops serve --port 8000          # start API server + WebSocket live feed
   sentinelops status                     # component health check
   sentinelops report findings.json       # generate Immunefi report
+
+  # ── Phase 14: Enterprise Intelligence ─────────────────────────────────────
+  sentinelops mitre findings.json        # map findings to MITRE ATT&CK techniques
+  sentinelops stride findings.json       # STRIDE threat model classification
+  sentinelops fuzz ./contracts/          # smart contract boundary-value fuzzer
+  sentinelops entropy-scan ./src/        # Shannon entropy secret scanner
+  sentinelops attack-chain findings.json --format mermaid  # Mermaid attack chain diagram
+  sentinelops dep-confusion .            # dependency confusion / namespace squatting
+  sentinelops priority findings.json --capacity 5  # sprint-ready remediation plan
+  sentinelops policy findings.json       # Policy-as-Code CI/CD security gate
+  sentinelops policy findings.json --create-example  # scaffold example gate YAML
+  sentinelops pr-comment findings.json --platform github --owner ORG --repo REPO --pr 42
 """,
     )
     sub = parser.add_subparsers(dest="command")
@@ -3128,6 +3494,65 @@ def main():
     p_tel.add_argument("--export", dest="export_path", metavar="FILE",
                        help="Export metrics to file")
 
+    # ── MITRE ATT&CK mapper ───────────────────────────────────────────────────
+    p_mitre = sub.add_parser("mitre", help="Map findings to MITRE ATT&CK techniques")
+    p_mitre.add_argument("findings", nargs="?", default="findings.json")
+    p_mitre.add_argument("--format", choices=["text", "json"], default="text")
+
+    # ── STRIDE threat model ───────────────────────────────────────────────────
+    p_stride = sub.add_parser("stride", help="Classify findings by STRIDE threat category")
+    p_stride.add_argument("findings", nargs="?", default="findings.json")
+    p_stride.add_argument("--format", choices=["text", "json"], default="text")
+
+    # ── Smart contract fuzzer ─────────────────────────────────────────────────
+    p_fuzz = sub.add_parser("fuzz", help="Boundary-value + reentrancy fuzzer for smart contracts")
+    p_fuzz.add_argument("path", nargs="?", default=".")
+    p_fuzz.add_argument("--format", choices=["text", "json"], default="text")
+
+    # ── Shannon entropy secret scanner ───────────────────────────────────────
+    p_entropy = sub.add_parser("entropy-scan", help="High-entropy string / secret detector")
+    p_entropy.add_argument("path", nargs="?", default=".")
+    p_entropy.add_argument("--format", choices=["text", "json"], default="text")
+    p_entropy.add_argument("--threshold", type=float, default=0.0,
+                           help="Custom entropy threshold (default: charset-specific)")
+
+    # ── Attack chain visualizer ───────────────────────────────────────────────
+    p_chain = sub.add_parser("attack-chain", help="Build multi-step attack chain graph from findings")
+    p_chain.add_argument("findings", nargs="?", default="findings.json")
+    p_chain.add_argument("--format", choices=["text", "json", "mermaid", "dot"], default="text")
+    p_chain.add_argument("--save", metavar="FILE", help="Save output to file")
+
+    # ── Dependency confusion detector ─────────────────────────────────────────
+    p_depconf = sub.add_parser("dep-confusion", help="Dependency confusion / namespace squatting detector")
+    p_depconf.add_argument("path", nargs="?", default=".")
+    p_depconf.add_argument("--format", choices=["text", "json"], default="text")
+
+    # ── Remediation priority ranker ───────────────────────────────────────────
+    p_prio = sub.add_parser("priority", help="Risk-adjusted remediation priority + sprint planner")
+    p_prio.add_argument("findings", nargs="?", default="findings.json")
+    p_prio.add_argument("--format", choices=["text", "json"], default="text")
+    p_prio.add_argument("--capacity", type=float, default=5.0,
+                        help="Sprint capacity in person-days (default: 5.0)")
+
+    # ── Policy-as-Code gate ───────────────────────────────────────────────────
+    p_pol = sub.add_parser("policy", help="Evaluate findings against Policy-as-Code security gate")
+    p_pol.add_argument("findings", nargs="?", default="findings.json")
+    p_pol.add_argument("--gate", metavar="FILE", help="Custom policy gate YAML (default: policies/default_gate.yaml)")
+    p_pol.add_argument("--format", choices=["text", "json"], default="text")
+    p_pol.add_argument("--create-example", dest="create_example", action="store_true",
+                       help="Write example_gate.yaml and exit")
+
+    # ── PR inline comment poster ──────────────────────────────────────────────
+    p_prc = sub.add_parser("pr-comment", help="Post findings as inline PR review comments (GitHub/GitLab)")
+    p_prc.add_argument("findings", nargs="?", default="findings.json")
+    p_prc.add_argument("--platform", choices=["github", "gitlab"], default="github")
+    p_prc.add_argument("--token", metavar="TOKEN", default="", help="API token (or GITHUB_TOKEN / GITLAB_TOKEN env var)")
+    p_prc.add_argument("--owner", metavar="OWNER", default="", help="GitHub org/user or GitLab namespace")
+    p_prc.add_argument("--repo",  metavar="REPO",  default="", help="Repository name")
+    p_prc.add_argument("--pr",    metavar="NUMBER", type=int, default=0, help="PR / MR number")
+    p_prc.add_argument("--dry-run", dest="dry_run", action="store_true",
+                       help="Print what would be posted without making API calls")
+
     # ── Parse (must be AFTER all sub.add_parser calls) ────────────────────────
     args = parser.parse_args()
     if not args.command:
@@ -3186,6 +3611,16 @@ def main():
         "cloud":        cmd_cloud,
         "supervisor":   cmd_supervisor,
         "telemetry":    cmd_telemetry,
+        # Phase 14 — enterprise intelligence modules
+        "mitre":        cmd_mitre,
+        "stride":       cmd_stride,
+        "fuzz":         cmd_fuzz,
+        "entropy-scan": cmd_entropy_scan,
+        "attack-chain": cmd_attack_chain,
+        "dep-confusion":cmd_dep_confusion,
+        "priority":     cmd_priority,
+        "policy":       cmd_policy,
+        "pr-comment":   cmd_pr_comment,
     }
     handler = dispatch.get(args.command)
     if handler:
