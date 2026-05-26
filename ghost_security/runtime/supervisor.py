@@ -281,3 +281,28 @@ class RuntimeSupervisor:
 
 # Module-level singleton — import and use directly
 SUPERVISOR = RuntimeSupervisor()
+
+
+class TaskSupervisor:
+    """Simplified facade over RuntimeSupervisor for v13 compatibility."""
+
+    def __init__(self) -> None:
+        self._tasks: list = []
+        self._results: dict = {}
+
+    def add_task(self, coro: "Coroutine", name: str, timeout: float = 300) -> None:
+        self._tasks.append((name, coro, timeout))
+
+    async def run_all(self) -> None:
+        for name, coro, timeout in self._tasks:
+            try:
+                await asyncio.wait_for(coro, timeout=timeout)
+                self._results[name] = "succeeded"
+            except asyncio.TimeoutError:
+                self._results[name] = "timeout"
+            except Exception as exc:
+                self._results[name] = f"failed: {exc}"
+        self._tasks.clear()
+
+    def get_status(self) -> dict:
+        return dict(self._results)

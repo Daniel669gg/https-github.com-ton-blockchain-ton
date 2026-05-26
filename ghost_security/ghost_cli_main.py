@@ -1042,6 +1042,124 @@ def cmd_go(args) -> int:
     return _lang_scan_cmd(args, GoScanner, "Go SAST", "go")
 
 
+def cmd_evm(args) -> int:
+    """ghost evm <path> — EVM/Solidity security scan (reentrancy, access control, flash loans, MEV, ...)."""
+    from scanners.evm_scanner import EVMScanner
+    return _lang_scan_cmd(args, EVMScanner, "EVM/Solidity", "evm")
+
+
+def cmd_solana(args) -> int:
+    """ghost solana <path> — Solana/Anchor security scan (signer, PDA, CPI, arithmetic, ...)."""
+    from scanners.solana_scanner import SolanaScanner
+    return _lang_scan_cmd(args, SolanaScanner, "Solana/Anchor", "solana")
+
+
+def cmd_cosmos(args) -> int:
+    """ghost cosmos <path> — CosmWasm security scan (execute auth, IBC, reentrancy, ...)."""
+    from scanners.cosmos_scanner import CosmosScanner
+    return _lang_scan_cmd(args, CosmosScanner, "CosmWasm", "cosmos")
+
+
+def cmd_polkadot(args) -> int:
+    """ghost polkadot <path> — ink! (Polkadot) security scan (access control, arithmetic, ...)."""
+    from scanners.polkadot_scanner import PolkadotScanner
+    return _lang_scan_cmd(args, PolkadotScanner, "ink!/Polkadot", "polkadot")
+
+
+def cmd_move(args) -> int:
+    """ghost move <path> — Move language (Sui/Aptos) security scan (capabilities, resources, ...)."""
+    from scanners.move_scanner import MoveScanner
+    return _lang_scan_cmd(args, MoveScanner, "Move (Sui/Aptos)", "move")
+
+
+def cmd_web3(args) -> int:
+    """ghost web3 <path> — Auto-detect blockchain and scan (EVM/Solana/Cosmos/Polkadot/Move/TON)."""
+    path = str(Path(getattr(args, "path", ".")).resolve())
+    if not Path(path).exists():
+        print(RED(f"❌  Path not found: {path}")); return 1
+
+    p = Path(path)
+    t0 = time.time()
+
+    # Auto-detect chain by file extensions and config files
+    sol_files  = list(p.rglob("*.sol")) + list(p.rglob("*.vy"))
+    rs_files   = list(p.rglob("*.rs"))
+    move_files = list(p.rglob("*.move"))
+    fc_files   = list(p.rglob("*.fc")) + list(p.rglob("*.func")) + list(p.rglob("*.tact"))
+
+    has_anchor  = any(p.rglob("Anchor.toml"))
+    has_cosm    = any("cosmwasm" in f.read_text(errors="ignore")
+                      for f in list(p.rglob("Cargo.toml"))[:3])
+    has_ink     = any("#[ink::contract]" in f.read_text(errors="ignore")
+                      for f in rs_files[:10])
+    has_sui     = any(f.name == "Move.toml" for f in p.rglob("Move.toml"))
+
+    all_findings: list = []
+    chains_detected: list = []
+
+    if sol_files:
+        chains_detected.append("EVM/Solidity")
+        from scanners.evm_scanner import EVMScanner
+        sc = EVMScanner()
+        for f in sol_files[:100]:
+            all_findings += sc.scan_file(str(f))
+
+    if fc_files:
+        chains_detected.append("TON/FunC")
+        try:
+            from scanners.ton_scanner.ton_analyzer import TonAnalyzer
+            ta = TonAnalyzer()
+            for f in fc_files[:50]:
+                all_findings += ta.scan_file(str(f))
+        except Exception:
+            pass
+
+    if rs_files:
+        if has_anchor:
+            chains_detected.append("Solana/Anchor")
+            from scanners.solana_scanner import SolanaScanner
+            sc = SolanaScanner()
+            for f in rs_files[:100]:
+                all_findings += sc.scan_file(str(f))
+        elif has_cosm:
+            chains_detected.append("CosmWasm")
+            from scanners.cosmos_scanner import CosmosScanner
+            sc = CosmosScanner()
+            for f in rs_files[:100]:
+                all_findings += sc.scan_file(str(f))
+        elif has_ink:
+            chains_detected.append("Polkadot/ink!")
+            from scanners.polkadot_scanner import PolkadotScanner
+            sc = PolkadotScanner()
+            for f in rs_files[:100]:
+                all_findings += sc.scan_file(str(f))
+
+    if move_files:
+        chains_detected.append("Move (Sui/Aptos)")
+        from scanners.move_scanner import MoveScanner
+        sc = MoveScanner()
+        for f in move_files[:100]:
+            all_findings += sc.scan_file(str(f))
+
+    if not chains_detected:
+        print(YELLOW("⚠️   No blockchain source files detected. Supported: .sol, .vy, .fc, .rs (Anchor/CosmWasm/ink!), .move"))
+        return 0
+
+    duration = time.time() - t0
+    print(BLUE(f"🌐  Web3 scan: {path}"))
+    print(DIM(f"   Chains detected: {', '.join(chains_detected)}"))
+    if getattr(args, "output", "table") == "json":
+        print(json.dumps(all_findings, indent=2))
+    else:
+        _print_findings(all_findings, max_show=50)
+        _print_summary({"total_findings": len(all_findings), "findings": all_findings}, duration)
+    if getattr(args, "save", None):
+        Path(args.save).write_text(json.dumps(all_findings, indent=2))
+        print(GREEN(f"💾  Saved to {args.save}"))
+    crits = sum(1 for f in all_findings if f.get("severity") == "CRITICAL")
+    return 1 if crits > 0 and not getattr(args, "no_fail", False) else 0
+
+
 def cmd_reachability(args) -> int:
     """ghost reachability <findings.json> [--root .] — Is vulnerable code actually called?"""
     src = getattr(args, "findings", "findings.json")
@@ -2066,6 +2184,43 @@ def main():
                        choices=["install", "status", "rules"],
                        help="Action: install | status | rules (default: status)")
 
+    # ── Multi-chain Web3 scanners ──────────────────────────────────────────────
+    p_evm = sub.add_parser("evm", help="EVM/Solidity scan (reentrancy, access control, flash loans, MEV, ...)")
+    p_evm.add_argument("path", nargs="?", default=".")
+    p_evm.add_argument("--output", "-o", choices=["table", "json"], default="table")
+    p_evm.add_argument("--save", metavar="FILE")
+    p_evm.add_argument("--no-fail", action="store_true")
+
+    p_sol = sub.add_parser("solana", help="Solana/Anchor scan (signer checks, PDA, CPI, arithmetic, ...)")
+    p_sol.add_argument("path", nargs="?", default=".")
+    p_sol.add_argument("--output", "-o", choices=["table", "json"], default="table")
+    p_sol.add_argument("--save", metavar="FILE")
+    p_sol.add_argument("--no-fail", action="store_true")
+
+    p_cos = sub.add_parser("cosmos", help="CosmWasm scan (execute auth, IBC, reentrancy, ...)")
+    p_cos.add_argument("path", nargs="?", default=".")
+    p_cos.add_argument("--output", "-o", choices=["table", "json"], default="table")
+    p_cos.add_argument("--save", metavar="FILE")
+    p_cos.add_argument("--no-fail", action="store_true")
+
+    p_dot = sub.add_parser("polkadot", help="ink!/Polkadot scan (access control, arithmetic, storage, ...)")
+    p_dot.add_argument("path", nargs="?", default=".")
+    p_dot.add_argument("--output", "-o", choices=["table", "json"], default="table")
+    p_dot.add_argument("--save", metavar="FILE")
+    p_dot.add_argument("--no-fail", action="store_true")
+
+    p_mv = sub.add_parser("move", help="Move (Sui/Aptos) scan (capabilities, resources, access control, ...)")
+    p_mv.add_argument("path", nargs="?", default=".")
+    p_mv.add_argument("--output", "-o", choices=["table", "json"], default="table")
+    p_mv.add_argument("--save", metavar="FILE")
+    p_mv.add_argument("--no-fail", action="store_true")
+
+    p_w3 = sub.add_parser("web3", help="Auto-detect blockchain and scan (EVM/Solana/Cosmos/Polkadot/Move/TON)")
+    p_w3.add_argument("path", nargs="?", default=".")
+    p_w3.add_argument("--output", "-o", choices=["table", "json"], default="table")
+    p_w3.add_argument("--save", metavar="FILE")
+    p_w3.add_argument("--no-fail", action="store_true")
+
     # ── Parse (must be AFTER all sub.add_parser calls) ────────────────────────
     args = parser.parse_args()
     if not args.command:
@@ -2109,6 +2264,12 @@ def main():
         "sla":          cmd_sla,
         "audit-log":    cmd_audit_log,
         "ide":          cmd_ide,
+        "evm":          cmd_evm,
+        "solana":       cmd_solana,
+        "cosmos":       cmd_cosmos,
+        "polkadot":     cmd_polkadot,
+        "move":         cmd_move,
+        "web3":         cmd_web3,
     }
     handler = dispatch.get(args.command)
     if handler:

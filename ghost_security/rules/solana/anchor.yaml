@@ -1,0 +1,90 @@
+- id: GHOST-SOL-ANC-001
+  name: Missing Account Constraint
+  description: Anchor account without constraint
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: '#\[account\(mut\)\](?!.*has_one|.*constraint|.*seeds)'
+    confidence: 0.88
+  fix: Add constraint to all Anchor accounts
+  tags:
+  - solana
+  - anchor
+  - constraint
+- id: GHOST-SOL-ANC-002
+  name: Missing seeds Constraint
+  description: PDA without seeds in Anchor
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: '#\[account\((?!.*seeds).*\)\]'
+    confidence: 0.85
+  fix: Add seeds and bump to PDA accounts
+  tags:
+  - solana
+  - anchor
+  - seeds
+- id: GHOST-SOL-ANC-003
+  name: Missing init_if_needed Guard
+  description: init_if_needed without reinitialization check
+  severity: HIGH
+  cwe: CWE-665
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: init_if_needed
+    confidence: 0.88
+  fix: Verify account state before init_if_needed
+  tags:
+  - solana
+  - anchor
+  - reinitialization
+- id: GHOST-SOL-ANC-004
+  name: Zero-Copy Without Validation
+  description: zero_copy account without validation
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: '#\[account\(zero_copy\)\]'
+    confidence: 0.85
+  fix: Validate zero_copy accounts carefully
+  tags:
+  - solana
+  - anchor
+  - zero-copy
+- id: GHOST-SOL-ANC-005
+  name: Missing close Constraint Recipient
+  description: Close without lamport recipient
+  severity: MEDIUM
+  cwe: CWE-703
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: close\s*=\s*\w+(?!.*has_one)
+    confidence: 0.82
+  fix: Verify close recipient is validated
+  tags:
+  - solana
+  - anchor
+  - close

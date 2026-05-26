@@ -1,0 +1,142 @@
+- id: GHOST-SOL-ARITH-001
+  name: Missing checked_add
+  description: Unchecked addition
+  severity: HIGH
+  cwe: CWE-190
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: (?<!checked_)(?<!\.)(?:balance|amount|total)\s*\+=
+    confidence: 0.9
+  fix: Use checked_add() for u64 arithmetic
+  tags:
+  - solana
+  - overflow
+  - addition
+- id: GHOST-SOL-ARITH-002
+  name: Missing checked_mul
+  description: Unchecked multiplication
+  severity: HIGH
+  cwe: CWE-190
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: amount\s*\*\s*\w+(?!\.checked_mul)
+    confidence: 0.88
+  fix: Use checked_mul()
+  tags:
+  - solana
+  - overflow
+  - multiplication
+- id: GHOST-SOL-ARITH-003
+  name: Integer Truncation with as
+  description: Casting larger int to smaller with as
+  severity: HIGH
+  cwe: CWE-197
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: as\s+u(?:8|16|32)\b
+    confidence: 0.85
+  fix: Use try_from() instead of as
+  tags:
+  - solana
+  - truncation
+  - cast
+- id: GHOST-SOL-ARITH-004
+  name: Division By Zero
+  description: Dividing by user value without check
+  severity: HIGH
+  cwe: CWE-369
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: /\s*\w+(?!.*!=.*0|.*>.*0)
+    confidence: 0.88
+  fix: Check denominator != 0
+  tags:
+  - solana
+  - division
+  - zero
+- id: GHOST-SOL-ARITH-005
+  name: Signed Arithmetic for Amounts
+  description: i64 used for token amounts
+  severity: MEDIUM
+  cwe: CWE-190
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: as\s+i64\b.*amount|amount.*as\s+i64
+    confidence: 0.82
+  fix: Use u64 for token amounts
+  tags:
+  - solana
+  - signed
+- id: GHOST-SOL-ARITH-006
+  name: Wrapping Arithmetic Undocumented
+  description: wrapping_add without justification
+  severity: MEDIUM
+  cwe: CWE-190
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: wrapping_add|wrapping_mul
+    confidence: 0.8
+  fix: Document use of wrapping arithmetic
+  tags:
+  - solana
+  - wrapping
+- id: GHOST-SOL-ARITH-007
+  name: Balance Underflow
+  description: Balance subtraction may underflow
+  severity: HIGH
+  cwe: CWE-191
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: balance\s*-=\s*\w+(?!.*checked_sub|.*>=)
+    confidence: 0.88
+  fix: Use checked_sub or verify balance >= amount
+  tags:
+  - solana
+  - underflow
+  - balance
+- id: GHOST-SOL-ARITH-008
+  name: Fee Precision Loss
+  description: Fee calc loses precision
+  severity: MEDIUM
+  cwe: CWE-682
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: fee\s*=.*\s*/\s*\d+
+    confidence: 0.8
+  fix: Use basis points for fee calc
+  tags:
+  - solana
+  - fee
+  - precision

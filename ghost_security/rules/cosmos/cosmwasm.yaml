@@ -1,0 +1,267 @@
+- id: GHOST-COSM-001
+  name: Unauthorized Execute
+  description: execute() without admin check
+  severity: CRITICAL
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: fn\s+execute\b(?!.*is_admin|.*authorize)
+    confidence: 0.9
+  fix: Add admin check in execute handlers
+  tags:
+  - cosmwasm
+  - access-control
+- id: GHOST-COSM-002
+  name: Missing Admin in Migrate
+  description: migrate() without admin check
+  severity: CRITICAL
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: fn\s+migrate\b(?!.*ADMIN|.*is_admin)
+    confidence: 0.92
+  fix: Check contract admin in migrate
+  tags:
+  - cosmwasm
+  - migration
+  - admin
+- id: GHOST-COSM-003
+  name: Reentrancy via SubMsg
+  description: State modified after SubMsg
+  severity: HIGH
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: SubMsg::new\((?!.*ReplyOn::Error)
+    confidence: 0.88
+  fix: Update state before SubMsg
+  tags:
+  - cosmwasm
+  - reentrancy
+  - submsg
+- id: GHOST-COSM-004
+  name: Unbounded Range Query
+  description: Iterating all map entries
+  severity: HIGH
+  cwe: CWE-400
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: \.range\s*\((?!.*limit\()
+    confidence: 0.85
+  fix: Add .limit() to all range queries
+  tags:
+  - cosmwasm
+  - dos
+  - unbounded
+- id: GHOST-COSM-005
+  name: Missing Funds Validation
+  description: info.funds not validated
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: info\.funds\b(?!.*must_pay|.*assert_sent)
+    confidence: 0.88
+  fix: Validate info.funds with must_pay()
+  tags:
+  - cosmwasm
+  - funds
+  - validation
+- id: GHOST-COSM-006
+  name: Unsafe Math in Rewards
+  description: Reward calc without overflow check
+  severity: HIGH
+  cwe: CWE-190
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: reward\s*\*\s*\w+(?!\.checked_mul)
+    confidence: 0.85
+  fix: Use checked_mul for rewards
+  tags:
+  - cosmwasm
+  - arithmetic
+  - overflow
+- id: GHOST-COSM-007
+  name: Missing Reply Handler
+  description: SubMsg without reply handler
+  severity: MEDIUM
+  cwe: CWE-703
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: SubMsg::reply_on\b(?!.*reply_id)
+    confidence: 0.82
+  fix: Implement reply for all SubMsg IDs
+  tags:
+  - cosmwasm
+  - reply
+  - error
+- id: GHOST-COSM-008
+  name: Unvalidated IBCMsg
+  description: IBC without channel validation
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: IbcMsg::SendPacket\b
+    confidence: 0.85
+  fix: Validate IBC channel before sending
+  tags:
+  - cosmwasm
+  - ibc
+  - validation
+- id: GHOST-COSM-009
+  name: Oracle Single Source
+  description: Single oracle source for price
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: query_price\b(?!.*twap|.*aggregat)
+    confidence: 0.85
+  fix: Use TWAP or multiple sources
+  tags:
+  - cosmwasm
+  - oracle
+- id: GHOST-COSM-010
+  name: State Read Between Checks
+  description: TOCTOU via repeated loads
+  severity: HIGH
+  cwe: CWE-362
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: \.load\(.*\).*\n.*\.load\(
+    confidence: 0.85
+  fix: Load state once and reuse
+  tags:
+  - cosmwasm
+  - toctou
+- id: GHOST-COSM-011
+  name: Missing Pause Mechanism
+  description: No pause capability
+  severity: MEDIUM
+  cwe: CWE-703
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: pub fn execute\b(?!.*paused|.*PAUSED)
+    confidence: 0.78
+  fix: Add pause mechanism
+  tags:
+  - cosmwasm
+  - pause
+  - emergency
+- id: GHOST-COSM-012
+  name: Anyone Can Instantiate
+  description: No deployer check in instantiate
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: fn\s+instantiate\b(?!.*info\.sender)
+    confidence: 0.8
+  fix: Check info.sender in instantiate
+  tags:
+  - cosmwasm
+  - instantiate
+  - access-control
+- id: GHOST-COSM-013
+  name: CW20 Not Validated
+  description: CW20 token address not checked
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: cw20::Cw20ExecuteMsg\b(?!.*validate)
+    confidence: 0.85
+  fix: Validate CW20 address
+  tags:
+  - cosmwasm
+  - cw20
+  - validation
+- id: GHOST-COSM-014
+  name: Instantiate2 Salt Collision
+  description: Predictable salt in instantiate2
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: instantiate2_address\b
+    confidence: 0.82
+  fix: Use unique salt with block height/time
+  tags:
+  - cosmwasm
+  - instantiate2
+  - collision
+- id: GHOST-COSM-015
+  name: Missing Signature Nonce
+  description: Signed payload without nonce
+  severity: HIGH
+  cwe: CWE-294
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: Signature::verify\b(?!.*nonce)
+    confidence: 0.88
+  fix: Add nonce to signed payloads
+  tags:
+  - cosmwasm
+  - signature
+  - replay
