@@ -1,0 +1,180 @@
+- id: GHOST-K8S-ADV-001
+  name: Privileged Container
+  description: Container runs as privileged
+  severity: CRITICAL
+  cwe: CWE-250
+  owasp: A01:2021
+  languages:
+  - yaml
+  confidence: 0.98
+  patterns:
+  - type: regex
+    pattern: privileged:\s*true
+    confidence: 0.98
+  fix: Remove privileged flag
+  tags:
+  - kubernetes
+  - privileged
+  - container-security
+- id: GHOST-K8S-ADV-002
+  name: Root Container
+  description: Container runs as root user
+  severity: HIGH
+  cwe: CWE-250
+  owasp: A01:2021
+  languages:
+  - yaml
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: runAsUser:\s*0
+    confidence: 0.92
+  fix: 'Set runAsNonRoot: true'
+  tags:
+  - kubernetes
+  - root
+  - container-security
+- id: GHOST-K8S-ADV-003
+  name: Host PID Namespace
+  description: Container shares host PID namespace
+  severity: HIGH
+  cwe: CWE-250
+  owasp: A01:2021
+  languages:
+  - yaml
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: hostPID:\s*true
+    confidence: 0.95
+  fix: Remove hostPID or restrict to trusted workloads
+  tags:
+  - kubernetes
+  - host-pid
+  - isolation
+- id: GHOST-K8S-ADV-004
+  name: Host Network
+  description: Container shares host network
+  severity: HIGH
+  cwe: CWE-250
+  owasp: A01:2021
+  languages:
+  - yaml
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: hostNetwork:\s*true
+    confidence: 0.95
+  fix: Remove hostNetwork
+  tags:
+  - kubernetes
+  - host-network
+  - isolation
+- id: GHOST-K8S-ADV-005
+  name: No ReadOnly Root Filesystem
+  description: Container has writable root filesystem
+  severity: MEDIUM
+  cwe: CWE-250
+  owasp: A01:2021
+  languages:
+  - yaml
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: readOnlyRootFilesystem:\s*false|(?<!readOnlyRootFilesystem)securityContext
+    confidence: 0.85
+  fix: 'Set readOnlyRootFilesystem: true'
+  tags:
+  - kubernetes
+  - filesystem
+  - container-security
+- id: GHOST-K8S-ADV-006
+  name: No Resource Limits
+  description: Container without CPU/memory limits
+  severity: HIGH
+  cwe: CWE-400
+  owasp: A01:2021
+  languages:
+  - yaml
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: containers:(?!.*resources.limits)
+    confidence: 0.88
+  fix: Add CPU and memory limits
+  tags:
+  - kubernetes
+  - resource-limits
+  - dos
+- id: GHOST-K8S-ADV-007
+  name: Default Service Account
+  description: Pod uses default service account
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - yaml
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: serviceAccountName:\s*default
+    confidence: 0.8
+  fix: Use dedicated service account with minimal permissions
+  tags:
+  - kubernetes
+  - service-account
+  - rbac
+- id: GHOST-K8S-ADV-008
+  name: Secret in Env Var
+  description: Secret stored as plain env variable
+  severity: HIGH
+  cwe: CWE-312
+  owasp: A01:2021
+  languages:
+  - yaml
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: env:.*value:.*(?:SECRET|PASSWORD|TOKEN|KEY)
+    confidence: 0.88
+  fix: Use secretKeyRef instead of plain values
+  tags:
+  - kubernetes
+  - secret
+  - env-var
+- id: GHOST-K8S-ADV-009
+  name: No Network Policy
+  description: Namespace without NetworkPolicy
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - yaml
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: kind:\s*Namespace(?!.*NetworkPolicy)
+    confidence: 0.82
+  fix: Add NetworkPolicy for namespace isolation
+  tags:
+  - kubernetes
+  - network-policy
+  - isolation
+- id: GHOST-K8S-ADV-010
+  name: Writable Host Mount
+  description: HostPath volume mounted writable
+  severity: CRITICAL
+  cwe: CWE-250
+  owasp: A01:2021
+  languages:
+  - yaml
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: hostPath:.*readOnly:\s*false|hostPath:(?!.*readOnly)
+    confidence: 0.95
+  fix: Mount hostPath volumes read-only
+  tags:
+  - kubernetes
+  - host-path
+  - volume

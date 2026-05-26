@@ -1,0 +1,177 @@
+- id: GHOST-RUBY-001
+  name: SQL Injection in ActiveRecord
+  description: String interpolation in where()
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A01:2021
+  languages:
+  - ruby
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: where\s*\(\s*".*#\{|where\s*\(\s*".*\+\s*
+    confidence: 0.95
+  fix: 'Use parameterized queries: where(name: name)'
+  tags:
+  - ruby
+  - rails
+  - sql-injection
+- id: GHOST-RUBY-002
+  name: Command Injection
+  description: System call with user input
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A01:2021
+  languages:
+  - ruby
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: system\s*\(.*params|exec\s*\(.*params|`.*#\{.*params
+    confidence: 0.92
+  fix: Use array form of system() with explicit args
+  tags:
+  - ruby
+  - command-injection
+- id: GHOST-RUBY-003
+  name: Mass Assignment
+  description: permit! or no permit in strong params
+  severity: HIGH
+  cwe: CWE-915
+  owasp: A01:2021
+  languages:
+  - ruby
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: params\.permit!\(\)|params\.require.*\.permit\s*\(\s*\)
+    confidence: 0.88
+  fix: Explicitly list permitted params
+  tags:
+  - ruby
+  - rails
+  - mass-assignment
+- id: GHOST-RUBY-004
+  name: CSRF Skip
+  description: skip_before_action :verify_authenticity_token
+  severity: HIGH
+  cwe: CWE-352
+  owasp: A01:2021
+  languages:
+  - ruby
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: skip_before_action\s+:verify_authenticity_token
+    confidence: 0.92
+  fix: Remove CSRF token skip or use null_session
+  tags:
+  - ruby
+  - rails
+  - csrf
+- id: GHOST-RUBY-005
+  name: Open Redirect
+  description: redirect_to with params URL
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A01:2021
+  languages:
+  - ruby
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: redirect_to\s+params\[
+    confidence: 0.88
+  fix: Validate redirect URL with URI parse
+  tags:
+  - ruby
+  - rails
+  - open-redirect
+- id: GHOST-RUBY-006
+  name: Hardcoded Secret
+  description: Secret key hardcoded in Ruby
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A01:2021
+  languages:
+  - ruby
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: (?:secret_key|api_key)\s*=\s*['\"][a-zA-Z0-9]{8,}
+    confidence: 0.88
+  fix: Use Rails credentials or ENV
+  tags:
+  - ruby
+  - hardcoded-secret
+- id: GHOST-RUBY-007
+  name: Insecure eval
+  description: eval with user input
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A01:2021
+  languages:
+  - ruby
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: eval\s*\(.*params|instance_eval\s*\(.*params
+    confidence: 0.95
+  fix: Never eval user input
+  tags:
+  - ruby
+  - code-injection
+  - eval
+- id: GHOST-RUBY-008
+  name: Path Traversal
+  description: File read with params
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A01:2021
+  languages:
+  - ruby
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: File\.read\s*\(.*params|File\.open\s*\(.*params
+    confidence: 0.88
+  fix: Sanitize file paths against base directory
+  tags:
+  - ruby
+  - path-traversal
+- id: GHOST-RUBY-009
+  name: Weak Cipher
+  description: DES or RC4 used in Ruby
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A01:2021
+  languages:
+  - ruby
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: OpenSSL::Cipher.*DES|OpenSSL::Cipher.*RC4
+    confidence: 0.9
+  fix: Use AES-256-GCM
+  tags:
+  - ruby
+  - cryptography
+  - weak-cipher
+- id: GHOST-RUBY-010
+  name: Missing Authorization Check
+  description: No before_action for auth
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - ruby
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: class\s+\w+Controller\b(?!.*before_action.*:authenticate|.*before_action.*:authorize)
+    confidence: 0.82
+  fix: Add authentication before_action
+  tags:
+  - ruby
+  - rails
+  - authorization

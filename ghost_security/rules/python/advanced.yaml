@@ -1,0 +1,270 @@
+- id: GHOST-PY-ADV-001
+  name: Server-Side Template Injection
+  description: Template rendered with user input
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A01:2021
+  languages:
+  - python
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: render_template_string\s*\(.*request\.|Markup\s*\(.*request\.
+    confidence: 0.92
+  fix: Use render_template() with separate templates
+  tags:
+  - python
+  - ssti
+  - injection
+- id: GHOST-PY-ADV-002
+  name: XML External Entity
+  description: XML parsed without defusing
+  severity: HIGH
+  cwe: CWE-611
+  owasp: A01:2021
+  languages:
+  - python
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: etree\.parse\(|minidom\.parse\(|xml\.dom
+    confidence: 0.9
+  fix: Use defusedxml library for XML parsing
+  tags:
+  - python
+  - xxe
+  - xml
+- id: GHOST-PY-ADV-003
+  name: Insecure Deserialization
+  description: pickle/marshal deserialization of untrusted data
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A01:2021
+  languages:
+  - python
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: pickle\.loads?\(.*request\.|marshal\.loads?\(
+    confidence: 0.95
+  fix: Never deserialize untrusted data with pickle
+  tags:
+  - python
+  - deserialization
+  - pickle
+- id: GHOST-PY-ADV-004
+  name: Hardcoded JWT Secret
+  description: JWT secret key hardcoded
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A01:2021
+  languages:
+  - python
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: jwt\.encode\(.*,\s*['\"](?!settings\.|os\.environ|config\.)
+    confidence: 0.92
+  fix: Use environment variable for JWT secret
+  tags:
+  - python
+  - jwt
+  - hardcoded-secret
+- id: GHOST-PY-ADV-005
+  name: Open Redirect
+  description: Redirect to user-controlled URL
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A01:2021
+  languages:
+  - python
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: redirect\s*\(\s*request\.\w+\.get\b
+    confidence: 0.88
+  fix: Validate redirect URL against whitelist
+  tags:
+  - python
+  - redirect
+  - open-redirect
+- id: GHOST-PY-ADV-006
+  name: Path Traversal
+  description: File path from user input without sanitization
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A01:2021
+  languages:
+  - python
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: open\s*\(\s*.*request\.\w+
+    confidence: 0.9
+  fix: Use pathlib.Path and resolve() with basedir check
+  tags:
+  - python
+  - path-traversal
+  - file
+- id: GHOST-PY-ADV-007
+  name: Weak Cryptography MD5
+  description: MD5 used for security-sensitive hashing
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A01:2021
+  languages:
+  - python
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: hashlib\.md5\(|MD5\.new\(
+    confidence: 0.92
+  fix: Use SHA-256 or stronger for security hashing
+  tags:
+  - python
+  - cryptography
+  - md5
+- id: GHOST-PY-ADV-008
+  name: Weak Cryptography SHA1
+  description: SHA-1 used for security-sensitive hashing
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A01:2021
+  languages:
+  - python
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: hashlib\.sha1\(
+    confidence: 0.9
+  fix: Use SHA-256 or stronger
+  tags:
+  - python
+  - cryptography
+  - sha1
+- id: GHOST-PY-ADV-009
+  name: Insecure Random
+  description: random module used for security tokens
+  severity: HIGH
+  cwe: CWE-338
+  owasp: A01:2021
+  languages:
+  - python
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: random\.random\(\)|random\.randint\(
+    confidence: 0.88
+  fix: Use secrets module for cryptographic randomness
+  tags:
+  - python
+  - randomness
+  - token
+- id: GHOST-PY-ADV-010
+  name: SSRF via requests
+  description: Requests to user-controlled URL
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A01:2021
+  languages:
+  - python
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: requests\.get\s*\(\s*.*request\.\w+|requests\.post\s*\(\s*.*request\.
+    confidence: 0.88
+  fix: Validate and whitelist request targets
+  tags:
+  - python
+  - ssrf
+  - requests
+- id: GHOST-PY-ADV-011
+  name: Code Injection via exec
+  description: exec() with user input
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A01:2021
+  languages:
+  - python
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: exec\s*\(\s*.*request\.|exec\s*\(\s*.*input\(
+    confidence: 0.95
+  fix: Never exec user-controlled strings
+  tags:
+  - python
+  - code-injection
+  - exec
+- id: GHOST-PY-ADV-012
+  name: Mass Assignment
+  description: Model created directly from request dict
+  severity: HIGH
+  cwe: CWE-915
+  owasp: A01:2021
+  languages:
+  - python
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: Model\.\w+\.create\s*\(\s*\*\*request\.|update\s*\(\s*\*\*request\.
+    confidence: 0.85
+  fix: Whitelist allowed fields explicitly
+  tags:
+  - python
+  - mass-assignment
+  - django
+- id: GHOST-PY-ADV-013
+  name: Timing Attack in Comparison
+  description: String comparison vulnerable to timing attack
+  severity: HIGH
+  cwe: CWE-208
+  owasp: A01:2021
+  languages:
+  - python
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: if\s+\w+\s*==\s*\w+.*token|if\s+\w+\s*==\s*\w+.*secret
+    confidence: 0.85
+  fix: Use hmac.compare_digest() for secure comparison
+  tags:
+  - python
+  - timing-attack
+  - comparison
+- id: GHOST-PY-ADV-014
+  name: Flask Debug Mode
+  description: Flask running in debug mode in production
+  severity: HIGH
+  cwe: CWE-94
+  owasp: A01:2021
+  languages:
+  - python
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: app\.run\s*\(.*debug\s*=\s*True
+    confidence: 0.92
+  fix: Never use debug=True in production
+  tags:
+  - python
+  - flask
+  - debug-mode
+- id: GHOST-PY-ADV-015
+  name: Django SECRET_KEY Exposed
+  description: Django secret key hardcoded
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A01:2021
+  languages:
+  - python
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: SECRET_KEY\s*=\s*['\"](?!os\.environ|env\()
+    confidence: 0.92
+  fix: Use environment variable for SECRET_KEY
+  tags:
+  - python
+  - django
+  - secret-key
