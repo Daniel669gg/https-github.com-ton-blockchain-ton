@@ -298,10 +298,10 @@ class TaintEngine:
         if not src_hits or not snk_hits:
             return flows
 
-        # For each (source, sink) pair where source appears before sink
+        # For each (source, sink) pair where source appears at or before sink
         for src_line, src_items in src_hits.items():
             for snk_line, snk_items in snk_hits.items():
-                if snk_line <= src_line:
+                if snk_line < src_line:
                     continue
                 # Extract variable names from source line to check propagation
                 src_text = lines[src_line - 1] if src_line <= len(lines) else ""
@@ -309,6 +309,20 @@ class TaintEngine:
 
                 for src_item in src_items:
                     for snk_item in snk_items:
+                        # Same-line: source and sink match on the same expression
+                        if snk_line == src_line:
+                            flows.append(TaintFlow(
+                                source=src_item,
+                                sink=snk_item,
+                                filepath=filepath,
+                                source_line=src_line,
+                                sink_line=snk_line,
+                                path=[],
+                                sanitized=False,
+                                confidence=0.85,
+                            ))
+                            continue
+
                         # Check if tainted variable appears in sink
                         tainted_vars = self._extract_lhs_vars(src_text)
                         propagated = any(v and v in snk_text for v in tainted_vars)
