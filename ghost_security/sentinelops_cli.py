@@ -3553,10 +3553,268 @@ def main():
     p_prc.add_argument("--dry-run", dest="dry_run", action="store_true",
                        help="Print what would be posted without making API calls")
 
+    # ── Phase 15: Symbolic execution ─────────────────────────────────────────
+    p_sym = sub.add_parser("symbolic", help="Symbolic execution engine for EVM/Solidity contracts")
+    p_sym.add_argument("path", nargs="?", default=".",
+                       help="Solidity file / directory or hex bytecode file")
+    p_sym.add_argument("--format", choices=["text", "json"], default="text")
+    p_sym.add_argument("--depth", type=int, default=50, metavar="N",
+                       help="Max path exploration depth (default: 50)")
+    p_sym.add_argument("--tool", choices=["slither", "mythril", "native", "auto"], default="auto",
+                       help="Preferred external tool (auto = use best available)")
+
+    # ── Phase 15: Taint analysis ──────────────────────────────────────────────
+    p_taint = sub.add_parser("taint", help="Taint analysis — track attacker-controlled data to dangerous sinks")
+    p_taint.add_argument("path", nargs="?", default=".",
+                         help="File or directory to analyze")
+    p_taint.add_argument("--lang", choices=["auto", "cpp", "rust", "go", "solidity", "python"],
+                          default="auto", help="Source language (default: auto-detect)")
+    p_taint.add_argument("--format", choices=["text", "json"], default="text")
+    p_taint.add_argument("--min-confidence", type=float, default=0.3, dest="min_confidence",
+                          metavar="FLOAT", help="Minimum confidence threshold 0.0–1.0 (default: 0.3)")
+
+    # ── Phase 15: Language-specific analyzers ─────────────────────────────────
+    p_lang = sub.add_parser("lang-scan", help="Language-specific security scan (Solidity/Rust/Go/C++)")
+    p_lang.add_argument("path", nargs="?", default=".",
+                        help="File or directory to analyze")
+    p_lang.add_argument("--lang", choices=["auto", "solidity", "rust", "go", "cpp"],
+                         default="auto", help="Force language (default: auto-detect from extension)")
+    p_lang.add_argument("--format", choices=["text", "json", "sarif"], default="text")
+    p_lang.add_argument("--severity", choices=["CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO"],
+                         default="LOW", metavar="LEVEL",
+                         help="Minimum severity to report (default: LOW)")
+
+    # ── Phase 15: Formal verification ────────────────────────────────────────
+    p_formal = sub.add_parser("formal", help="Formal property verification — invariants, safety, liveness")
+    p_formal.add_argument("path", nargs="?", default=".",
+                          help="Solidity file or directory")
+    p_formal.add_argument("--invariants", metavar="FILE",
+                           help="YAML file with custom invariants to verify")
+    p_formal.add_argument("--depth", type=int, default=10, metavar="N",
+                           help="Bounded model checking depth (default: 10)")
+    p_formal.add_argument("--tool", choices=["halmos", "native", "auto"], default="auto")
+    p_formal.add_argument("--format", choices=["text", "json"], default="text")
+
+    # ── Phase 15: Cryptographic analysis ─────────────────────────────────────
+    p_crypto = sub.add_parser("crypto-audit", help="Cryptographic vulnerability audit (RNG, timing, algorithms, keys)")
+    p_crypto.add_argument("path", nargs="?", default=".",
+                          help="File or directory to audit")
+    p_crypto.add_argument("--format", choices=["text", "json"], default="text")
+    p_crypto.add_argument("--lang", choices=["auto", "python", "go", "cpp", "rust", "solidity"],
+                           default="auto", help="Source language (default: auto)")
+
+    # ── Phase 15: P2P / Consensus simulator ──────────────────────────────────
+    p_p2p = sub.add_parser("p2p-sim", help="P2P network & consensus attack simulator (eclipse, sybil, selfish mining)")
+    p_p2p.add_argument("attack", nargs="?", default="all",
+                       choices=["all", "eclipse", "sybil", "selfish-mining", "nothing-at-stake",
+                                "routing", "consensus"],
+                       help="Attack type to simulate (default: all)")
+    p_p2p.add_argument("--network-size", type=int, default=100, dest="network_size",
+                        metavar="N", help="Total network node count (default: 100)")
+    p_p2p.add_argument("--attacker-fraction", type=float, default=0.3, dest="attacker_fraction",
+                        metavar="F", help="Attacker resource fraction 0.0–1.0 (default: 0.30)")
+    p_p2p.add_argument("--consensus", choices=["pbft", "tendermint", "ton_bft", "avalanche",
+                                                "nakamoto", "casper_ffg", "hotstuff"],
+                        default="ton_bft", help="Consensus protocol (default: ton_bft)")
+    p_p2p.add_argument("--routing", choices=["kademlia", "gossip", "structured_overlay"],
+                        default="kademlia", help="Routing protocol (default: kademlia)")
+    p_p2p.add_argument("--format", choices=["text", "json"], default="text")
+
     # ── Parse (must be AFTER all sub.add_parser calls) ────────────────────────
     args = parser.parse_args()
     if not args.command:
         parser.print_help()
+        return 0
+
+    # ── Phase 15 command handlers ─────────────────────────────────────────────
+
+    def cmd_symbolic(args) -> int:
+        """Symbolic execution engine."""
+        from core.symbolic.symbolic_executor import SymbolicExecutor
+        path = getattr(args, "path", ".")
+        fmt  = getattr(args, "format", "text")
+        depth = getattr(args, "depth", 50)
+        print(f"[symbolic] Analyzing {path} (depth={depth}) …")
+        executor = SymbolicExecutor()
+        result = executor.analyze_file(path) if path.endswith((".sol", ".vy", ".hex")) \
+                 else executor.analyze_solidity(path)
+        if fmt == "json":
+            import json
+            print(json.dumps({
+                "paths_explored": result.paths_explored,
+                "tool_used": result.tool_used,
+                "execution_time": round(result.execution_time, 3),
+                "vulnerabilities": [
+                    {"type": v.vuln_type, "severity": v.severity,
+                     "description": v.description, "path": v.path}
+                    for v in result.vulnerabilities
+                ],
+            }, indent=2))
+        else:
+            print(executor.generate_report(result))
+        return 0
+
+    def cmd_taint(args) -> int:
+        """Taint analysis."""
+        from core.taint.taint_engine import TaintEngine
+        path   = getattr(args, "path", ".")
+        lang   = getattr(args, "lang", "auto")
+        fmt    = getattr(args, "format", "text")
+        min_c  = getattr(args, "min_confidence", 0.3)
+        print(f"[taint] Tracing data flows in {path} (lang={lang}) …")
+        engine = TaintEngine(language=lang)
+        report = engine.analyze(path)
+        # Filter by min confidence
+        report.flows = [f for f in report.flows if f.confidence >= min_c]
+        if fmt == "json":
+            import json
+            print(json.dumps(report.to_dict(), indent=2))
+        else:
+            print(engine.generate_report(report))
+        return 1 if any(f.sink.severity in ("CRITICAL", "HIGH") for f in report.flows) else 0
+
+    def cmd_lang_scan(args) -> int:
+        """Language-specific security scan."""
+        import json as _json
+        path     = getattr(args, "path", ".")
+        lang     = getattr(args, "lang", "auto")
+        fmt      = getattr(args, "format", "text")
+        min_sev  = getattr(args, "severity", "LOW")
+        sev_rank = {"CRITICAL": 4, "HIGH": 3, "MEDIUM": 2, "LOW": 1, "INFO": 0}
+        min_rank = sev_rank.get(min_sev, 0)
+
+        # Auto-detect language from path extension
+        if lang == "auto":
+            from pathlib import Path as _Path
+            ext = _Path(path).suffix.lower()
+            lang_map = {".sol": "solidity", ".vy": "solidity", ".rs": "rust",
+                        ".go": "go", ".cpp": "cpp", ".cc": "cpp", ".c": "cpp", ".h": "cpp"}
+            lang = lang_map.get(ext, "cpp")  # default to cpp for dirs
+            print(f"[lang-scan] Detected language: {lang}")
+
+        from scanners.lang_analyzers import (
+            SolidityAnalyzer, RustAnalyzer, GoAnalyzer, CppAnalyzer
+        )
+        analyzer_map = {
+            "solidity": SolidityAnalyzer,
+            "rust":     RustAnalyzer,
+            "go":       GoAnalyzer,
+            "cpp":      CppAnalyzer,
+        }
+        Analyzer = analyzer_map.get(lang, CppAnalyzer)
+        print(f"[lang-scan] Scanning {path} with {Analyzer.__name__} …")
+        result = Analyzer().analyze(path)
+        findings = [f for f in result.findings if sev_rank.get(f.severity, 0) >= min_rank]
+
+        if fmt == "json":
+            print(_json.dumps({"language": result.language,
+                               "files": result.files_analyzed,
+                               "findings": [vars(f) for f in findings]}, indent=2))
+        elif fmt == "sarif":
+            sarif = result.to_sarif()
+            print(_json.dumps(sarif, indent=2))
+        else:
+            print(f"\n{'='*65}")
+            print(f"  LANG-SCAN — {result.language.upper()} — {result.files_analyzed} file(s)")
+            print(f"{'='*65}")
+            for sev in ("CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO"):
+                cnt = result.summary.get(sev, 0)
+                if cnt:
+                    print(f"  {sev:<12} {cnt}")
+            print()
+            for f in findings:
+                print(f"  [{f.severity}] {f.rule_id}: {f.title}")
+                print(f"    {f.filepath}:{f.line}")
+                print(f"    {f.code_snippet[:80]}")
+                print(f"    Fix: {f.recommendation[:100]}")
+                print()
+        return 1 if any(f.severity in ("CRITICAL", "HIGH") for f in findings) else 0
+
+    def cmd_formal(args) -> int:
+        """Formal property verification."""
+        import json as _json
+        from core.formal.formal_verifier import FormalVerifier
+        path  = getattr(args, "path", ".")
+        depth = getattr(args, "depth", 10)
+        fmt   = getattr(args, "format", "text")
+        print(f"[formal] Verifying invariants in {path} (BMC depth={depth}) …")
+        verifier = FormalVerifier()
+        result = verifier.verify_invariants(path, [])
+        if fmt == "json":
+            print(_json.dumps({
+                "verified": result.verified_properties,
+                "violated": result.violated_properties,
+                "tool_used": result.tool_used,
+                "proof_depth": result.proof_depth,
+                "findings": [
+                    {"property": f.property_violated, "severity": f.severity,
+                     "description": f.description,
+                     "counterexample": f.counterexample}
+                    for f in result.findings
+                ],
+            }, indent=2))
+        else:
+            print(verifier.generate_report(result))
+        return 1 if result.violated_properties > 0 else 0
+
+    def cmd_crypto_audit(args) -> int:
+        """Cryptographic vulnerability audit."""
+        import json as _json
+        from core.crypto_analysis.crypto_analyzer import CryptoAnalyzer
+        path = getattr(args, "path", ".")
+        fmt  = getattr(args, "format", "text")
+        print(f"[crypto-audit] Scanning {path} for cryptographic vulnerabilities …")
+        analyzer = CryptoAnalyzer()
+        report = analyzer.analyze(path)
+        if fmt == "json":
+            print(_json.dumps(report.to_dict(), indent=2))
+        else:
+            print(analyzer.generate_report(report))
+        return 1 if report.risk_score >= 5.0 else 0
+
+    def cmd_p2p_sim(args) -> int:
+        """P2P / Consensus attack simulator."""
+        import json as _json
+        from core.consensus_sim.p2p_simulator import P2PSimulator
+        attack   = getattr(args, "attack", "all")
+        net_size = getattr(args, "network_size", 100)
+        frac     = getattr(args, "attacker_fraction", 0.3)
+        consensus = getattr(args, "consensus", "ton_bft")
+        routing  = getattr(args, "routing", "kademlia")
+        fmt      = getattr(args, "format", "text")
+
+        sim = P2PSimulator(network_size=net_size)
+        results = []
+
+        if attack in ("all", "eclipse"):
+            results.append(sim.simulate_eclipse_attack(
+                attacker_nodes=int(frac * net_size),
+                routing_table_size=8,
+            ))
+        if attack in ("all", "sybil"):
+            results.append(sim.simulate_sybil_attack(sybil_fraction=frac))
+        if attack in ("all", "selfish-mining"):
+            results.append(sim.simulate_selfish_mining(attacker_hash_fraction=frac))
+        if attack in ("all", "nothing-at-stake"):
+            results.append(sim.simulate_nothing_at_stake())
+        if attack in ("all", "routing"):
+            ra = sim.analyze_routing_security(protocol=routing)
+            print(f"\n[routing] Protocol: {ra.protocol}")
+            for finding in ra.findings:
+                print(f"  • {finding}")
+        if attack in ("all", "consensus"):
+            ca = sim.check_consensus_liveness(
+                byzantine_fraction=frac, consensus_type=consensus
+            )
+            print(f"\n[consensus] {ca.consensus_type.upper()} analysis:")
+            for finding in ca.findings:
+                print(f"  • {finding}")
+
+        if fmt == "json":
+            print(_json.dumps([vars(r) for r in results], indent=2, default=str))
+        else:
+            if results:
+                print(sim.generate_report(results))
         return 0
 
     dispatch = {
@@ -3621,6 +3879,13 @@ def main():
         "priority":     cmd_priority,
         "policy":       cmd_policy,
         "pr-comment":   cmd_pr_comment,
+        # Phase 15 — advanced analysis (symbolic, taint, lang-scan, formal, crypto, p2p)
+        "symbolic":     cmd_symbolic,
+        "taint":        cmd_taint,
+        "lang-scan":    cmd_lang_scan,
+        "formal":       cmd_formal,
+        "crypto-audit": cmd_crypto_audit,
+        "p2p-sim":      cmd_p2p_sim,
     }
     handler = dispatch.get(args.command)
     if handler:
