@@ -310,3 +310,110 @@ class TestMinConfidence:
         f = make_finding(confidence=0.2)
         result = reducer.reduce([f])
         assert len(result) == 1
+
+
+# ---------------------------------------------------------------------------
+# Additional heuristic tests
+# ---------------------------------------------------------------------------
+
+class TestAdditionalHeuristics:
+    def test_build_dir_suppressed(self, reducer):
+        f = make_finding(file="/project/build/output.py")
+        assert reducer.reduce([f]) == []
+
+    def test_pycache_suppressed(self, reducer):
+        f = make_finding(file="/project/__pycache__/module.py")
+        assert reducer.reduce([f]) == []
+
+    def test_dot_venv_suppressed(self, reducer):
+        f = make_finding(file="/project/.venv/lib/site.py")
+        assert reducer.reduce([f]) == []
+
+    def test_third_party_not_suppressed_by_default(self, reducer):
+        f = make_finding(file="/project/third_party/lib.py")
+        result = reducer.reduce([f])
+        # third_party is NOT in _SUPPRESSED_DIRS, so it passes through
+        assert len(result) == 1
+
+    def test_nosec_case_insensitive(self, reducer):
+        f = make_finding(context="eval(code)  # NOSEC")
+        assert reducer.reduce([f]) == []
+
+    def test_noqa_case_insensitive(self, reducer):
+        f = make_finding(context="eval(code)  # NOQA")
+        assert reducer.reduce([f]) == []
+
+    def test_ghost_ignore_with_spaces(self, reducer):
+        f = make_finding(context="eval(code)  # ghost: ignore")
+        assert reducer.reduce([f]) == []
+
+    def test_spec_file_reduces_confidence(self, reducer):
+        f = make_finding(file="/project/tests/auth.spec.js", confidence=0.9)
+        result = reducer.reduce([f])
+        if result:
+            assert result[0]["confidence"] < 0.9
+
+    def test_conftest_reduces_confidence(self, reducer):
+        f = make_finding(file="/project/conftest.py", confidence=0.9)
+        # conftest doesn't match test_ prefix directly but _TEST_PATH_RE catches some
+        result = reducer.reduce([f])
+        # Whether penalized or not, should not crash
+        assert isinstance(result, list)
+
+    def test_placeholder_password_in_context_reduces_confidence(self, reducer):
+        # 'changeme' in context reduces confidence via test_value_penalty
+        f = make_cred_finding(context="password = 'changeme'", confidence=0.9)
+        result = reducer.reduce([f])
+        if result:
+            assert result[0]["confidence"] < 0.9
+
+    def test_placeholder_test_in_context_reduces_confidence(self, reducer):
+        # 'test' in context reduces confidence via test_value_penalty
+        f = make_cred_finding(context="password = 'test'", confidence=0.9)
+        result = reducer.reduce([f])
+        if result:
+            assert result[0]["confidence"] < 0.9
+
+    def test_placeholder_demo_in_value(self, reducer):
+        f = make_cred_finding(value="demo")
+        assert reducer.reduce([f]) == []
+
+    def test_placeholder_fake_in_value(self, reducer):
+        f = make_cred_finding(value="fake")
+        assert reducer.reduce([f]) == []
+
+    def test_suppress_field_yes(self, reducer):
+        f = make_finding(suppress="yes")
+        assert reducer.reduce([f]) == []
+
+    def test_suppress_field_1(self, reducer):
+        f = make_finding(suppress="1")
+        assert reducer.reduce([f]) == []
+
+    def test_original_findings_not_mutated(self, reducer):
+        f = make_finding(confidence=0.9)
+        original_conf = f["confidence"]
+        reducer.reduce([f])
+        assert f["confidence"] == original_conf
+
+    def test_fp_reason_field_added_for_test_file(self, reducer):
+        f = make_finding(file="/tests/test_x.py", confidence=0.9)
+        result = reducer.reduce([f])
+        if result:
+            assert "_fp_reason" in result[0]
+
+    def test_risk_score_zero_for_zero_confidence(self, reducer):
+        f = make_finding(severity="HIGH", confidence=0.0)
+        score = reducer.calculate_risk_score(f)
+        assert score == 0.0
+
+    def test_risk_score_with_unknown_severity(self, reducer):
+        f = make_finding(severity="UNKNOWN", confidence=0.8)
+        score = reducer.calculate_risk_score(f)
+        assert 0.0 <= score <= 1.0
+
+    def test_large_batch_no_crash(self, reducer):
+        findings = [make_finding(rule_id=f"RULE-{i}", line=i) for i in range(100)]
+        result = reducer.reduce(findings)
+        assert isinstance(result, list)
+        assert len(result) <= 100

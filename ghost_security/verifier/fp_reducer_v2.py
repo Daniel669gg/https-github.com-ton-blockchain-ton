@@ -23,7 +23,7 @@ _SUPPRESSED_DIRS = re.compile(
 
 # Test-file path patterns — matches test_foo.py, foo_test.py, foo.spec.js, spec_foo.py
 _TEST_PATH_RE = re.compile(
-    r"([\\/]|^)(test_|_test\.|\.spec\.|spec_)|\w_test\.",
+    r"([\\/]|^)(test_|_test\.|\.spec\.|spec_)|\w_test\.|\.spec\.",
     re.IGNORECASE,
 )
 
@@ -183,6 +183,9 @@ def _check_placeholder_secret(finding: dict) -> bool:
     ctx = _context(finding)
     # Template placeholders like ${VAR}, <PLACEHOLDER>
     if re.search(r"(\$\{[^}]+\}|<[A-Z_]+>)", ctx):
+        return True
+    # Also suppress if the context matches a known placeholder assignment pattern
+    if _TEST_VALUE_RE.search(ctx):
         return True
     return False
 
