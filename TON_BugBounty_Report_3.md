@@ -87,6 +87,57 @@ max(default_mtu_, local_id_mtu[local_id], max(peer_mtus[local_id][peer_id]))
 
 So `total_size` must be ≤ 1024 bytes — but this only limits the *declared size per transfer*, not how many transfers can be open simultaneously.
 
+### ADNL Channel Packets Bypass the Per-IP Rate Limiter
+
+TON's ADNL layer includes a per-source-IP rate limiter in `AdnlLocalId::receive()`:
+
+```cpp
+// adnl/adnl-local-id.h
+struct InboundRateLimiter {
+  RateLimiter rate_limiter = RateLimiter(75, 0.33);  // burst 75, emit ~3 pps steady-state
+  …
+};
+```
+
+`RateLimiter(capacity=75, period=0.33)` produces:
+- **Burst**: 75 packets consumed instantly
+- **Steady-state**: 1/0.33 ≈ **3 packets per second** per source IP
+
+This limiter is applied exclusively inside `AdnlLocalId::receive()` → `receive_coro()` at line 67:
+
+```cpp
+// adnl/adnl-local-id.cpp : 67
+if (!rate_limiter.rate_limiter.take()) { return "rate limit exceeded"; }
+```
+
+However, `adnl/adnl-peer-table.cpp` routes packets on a different path depending on whether the destination is a raw local-id address or an established **ADNL channel**:
+
+```cpp
+// adnl/adnl-peer-table.cpp : receive_packet()
+if (/* dst matches a channel ID */) {
+    td::actor::send_closure(channel, &AdnlChannel::receive, src, std::move(packet));
+    // ↑ goes to AdnlChannel::receive — NOT to AdnlLocalId::receive
+} else {
+    td::actor::send_closure(local_id, &AdnlLocalId::receive, …);
+    // ↑ rate-limited path
+}
+```
+
+`AdnlChannelImpl::receive()` in `adnl/adnl-channel.cpp` contains **no rate-limiting logic** — it decrypts the packet and forwards it immediately to the peer-pair handler:
+
+```cpp
+// adnl/adnl-channel.cpp : 74–88
+void AdnlChannelImpl::receive(adnl::AdnlNodeIdShort src, td::BufferSlice data) {
+  // AES decryption only; no rate check
+  td::actor::send_closure(peer_pair_, &AdnlPeerPair::receive_packet_from_channel,
+                          channel_id_short_, std::move(data));
+}
+```
+
+**Consequence for this vulnerability:** An attacker establishes one ADNL channel (requiring at most 75 raw packets, consumed from the burst allowance). All subsequent `rldp.messagePart` messages are sent as *channel packets*, bypassing `AdnlLocalId::receive` and its 3 pps rate limit entirely. The attacker can then send `rldp.messagePart` frames at **full wire speed** — creating new receiver actors in `receivers_` at thousands of entries per second — with no per-IP throttle applied.
+
+The per-IP rate limiter (`RateLimiter(75, 0.33)`) therefore provides **no mitigation** against this attack once a channel is established.
+
 ### Receiver Lifetime and Cleanup Path
 
 Receivers are removed only when the transfer completes (successfully or by timeout):
@@ -114,11 +165,16 @@ Key observations:
 
 ## Attack Prerequisites
 
-- Network reachability to the target node's ADNL UDP port (publicly listed in the global config, e.g., `config.ton.org`).
+- Network reachability to the target node's ADNL UDP port (publicly listed in the global config).
 - Knowledge of the target's ADNL public key (also in the global config) to create valid ADNL-encrypted packets.
 - **No authentication, no validator credentials, no on-chain stake required.**
 
-An ADNL channel can be established with a single handshake; subsequent packets use symmetric AES encryption and can be generated at wire speed.
+Attack phases:
+
+1. **Channel establishment** (one-time, ≤ 75 raw packets): The attacker performs the standard ADNL channel handshake. This consumes the rate-limiter burst allowance (`RateLimiter(75, 0.33)`) but does not exceed it.
+2. **Flood phase** (sustained, wire speed): All subsequent `rldp.messagePart` messages are sent as *channel* packets. These route through `AdnlChannel::receive`, which has no rate limiting. The attacker injects fresh random `transfer_id` values at full link speed indefinitely.
+
+No amplification, reflection, or protocol tricks are required — direct channel flooding is sufficient.
 
 ---
 
@@ -155,7 +211,25 @@ grep -n "Timestamp::in" rldp/rldp.cpp | grep "60"
 # Line 116: td::Timestamp::in(60.0)   ← timeout passed to RldpTransferReceiver::create()
 ```
 
-### Step 4 — Local memory-growth simulation (deterministic, offline)
+### Step 4 — Confirm ADNL channel packets bypass the per-IP rate limiter (static)
+
+```bash
+# The per-IP rate limiter lives exclusively in AdnlLocalId::receive
+grep -n "rate_limiter\|take()" adnl/adnl-local-id.cpp
+# Line 67: if (!rate_limiter.rate_limiter.take()) { return "rate limit exceeded"; }
+
+# AdnlChannel::receive has no rate-limiting call
+grep -n "rate_limiter\|take()" adnl/adnl-channel.cpp
+# (no output) — confirmed: zero rate-limiting in channel receive path
+
+# Packet routing: channel packets skip AdnlLocalId::receive entirely
+grep -n "AdnlChannel::receive\|AdnlLocalId::receive\|send_closure.*channel\|send_closure.*local_id" \
+    adnl/adnl-peer-table.cpp | head -20
+# Shows channel packets routed to AdnlChannel (no rate limit)
+# Shows raw packets routed to AdnlLocalId (rate limited)
+```
+
+### Step 5 — Local memory-growth simulation (deterministic, offline)
 
 The following Python script models `receivers_` size using exact constants from the source:
 
@@ -289,3 +363,7 @@ Rate-limit the number of `rldp.messagePart` messages with `part == 0` per source
 - `rldp/rldp-in.hpp` lines 56–59 — `global_mtu() = 2^37 = 128 GB` (absolute upper limit, NOT a per-receiver count limit)
 - `adnl/adnl-sender-ex.h` — `AdnlSenderEx::get_peer_mtu()`, `default_mtu_ = Adnl::get_mtu() = 1024`
 - `adnl/adnl.h` — `Adnl::get_mtu() { return 1024; }`
+- `adnl/adnl-local-id.h` — `InboundRateLimiter { RateLimiter(75, 0.33) }` — per-IP limit applies only to raw (non-channel) packets
+- `adnl/adnl-local-id.cpp` line 67 — `rate_limiter.rate_limiter.take()` — sole location of per-IP rate enforcement
+- `adnl/adnl-channel.cpp` lines 74–88 — `AdnlChannelImpl::receive()` — no rate limiting; channel packets bypass `AdnlLocalId::receive` entirely
+- `adnl/adnl-peer-table.cpp` — packet routing: channel packets → `AdnlChannel::receive`; raw packets → `AdnlLocalId::receive`
