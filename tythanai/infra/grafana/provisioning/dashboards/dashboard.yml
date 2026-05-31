@@ -1,0 +1,7 @@
+apiVersion: 1
+providers:
+  - name: TythanAI
+    folder: TythanAI
+    type: file
+    options:
+      path: /etc/grafana/provisioning/dashboards

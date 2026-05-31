@@ -1,0 +1,344 @@
+- id: GHOST-EVM-REEN-001
+  name: Reentrancy via call{value
+  description: External call with ETH before state change
+  severity: CRITICAL
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: '\.call\{value:'
+    confidence: 0.95
+  fix: Use CEI pattern or ReentrancyGuard
+  tags:
+  - reentrancy
+  - defi
+- id: GHOST-EVM-REEN-002
+  name: Cross-function Reentrancy
+  description: State shared across functions
+  severity: CRITICAL
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: msg\.sender\.call
+    confidence: 0.9
+  fix: Apply ReentrancyGuard to all state-changing functions
+  tags:
+  - reentrancy
+  - cross-function
+- id: GHOST-EVM-REEN-003
+  name: Reentrancy via send()
+  description: send() before state update
+  severity: HIGH
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: \.send\s*\(
+    confidence: 0.85
+  fix: Update balances before .send()
+  tags:
+  - reentrancy
+  - send
+- id: GHOST-EVM-REEN-004
+  name: Reentrancy via transfer()
+  description: transfer() reentrancy risk
+  severity: MEDIUM
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: \.transfer\s*\(
+    confidence: 0.75
+  fix: Update state before .transfer()
+  tags:
+  - reentrancy
+  - transfer
+- id: GHOST-EVM-REEN-005
+  name: delegatecall Reentrancy
+  description: delegatecall to external contract
+  severity: CRITICAL
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: \.delegatecall\(
+    confidence: 0.92
+  fix: Validate target and use ReentrancyGuard
+  tags:
+  - reentrancy
+  - delegatecall
+- id: GHOST-EVM-REEN-006
+  name: ERC777 Hook Reentrancy
+  description: tokensReceived hook enables reentrancy
+  severity: CRITICAL
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: tokensReceived|IERC777
+    confidence: 0.88
+  fix: Use ERC777 reentrancy guard
+  tags:
+  - reentrancy
+  - erc777
+- id: GHOST-EVM-REEN-007
+  name: NFT safeTransfer Reentrancy
+  description: onERC721Received callback reentrancy
+  severity: HIGH
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: safeTransferFrom|onERC721Received
+    confidence: 0.85
+  fix: Update state before safeTransferFrom
+  tags:
+  - reentrancy
+  - nft
+  - erc721
+- id: GHOST-EVM-REEN-008
+  name: Flash Loan Callback Reentrancy
+  description: Flash loan callback re-enters protocol
+  severity: CRITICAL
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: executeOperation|onFlashLoan
+    confidence: 0.9
+  fix: Use ReentrancyGuard in flash loan callbacks
+  tags:
+  - reentrancy
+  - flashloan
+- id: GHOST-EVM-REEN-009
+  name: Self-call Reentrancy
+  description: Contract calls itself externally
+  severity: HIGH
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: address\(this\)\.call
+    confidence: 0.82
+  fix: Use internal functions instead
+  tags:
+  - reentrancy
+  - self-call
+- id: GHOST-EVM-REEN-010
+  name: State Change After External Call
+  description: State updated after external call
+  severity: CRITICAL
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: \.call[^;]*;\s*\w+\s*[-+]?=
+    confidence: 0.93
+  fix: Move state changes before external calls
+  tags:
+  - reentrancy
+  - cei-violation
+- id: GHOST-EVM-REEN-011
+  name: Missing nonReentrant on withdraw
+  description: withdraw() lacks reentrancy guard
+  severity: CRITICAL
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: function\s+withdraw\b(?!.*nonReentrant)
+    confidence: 0.93
+  fix: Add nonReentrant to withdraw()
+  tags:
+  - reentrancy
+  - withdrawal
+- id: GHOST-EVM-REEN-012
+  name: Missing nonReentrant on claim
+  description: claim() lacks reentrancy guard
+  severity: HIGH
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: function\s+claim\w*\b(?!.*nonReentrant)
+    confidence: 0.87
+  fix: Add nonReentrant to claim functions
+  tags:
+  - reentrancy
+  - claim
+- id: GHOST-EVM-REEN-013
+  name: Missing nonReentrant on swap
+  description: swap() lacks reentrancy guard
+  severity: HIGH
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: function\s+swap\b(?!.*nonReentrant)
+    confidence: 0.85
+  fix: Add nonReentrant to swap()
+  tags:
+  - reentrancy
+  - defi
+  - swap
+- id: GHOST-EVM-REEN-014
+  name: ETH Transfer Pull Pattern Missing
+  description: Push pattern used instead of pull
+  severity: HIGH
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: \(bool\s+\w+,\s*\)\s*=\s*\w+\.call\{
+    confidence: 0.82
+  fix: Use pull payment pattern
+  tags:
+  - reentrancy
+  - eth-transfer
+- id: GHOST-EVM-REEN-015
+  name: Read-only Reentrancy
+  description: View function reads stale state in callback
+  severity: HIGH
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: getPrice\(\)|totalSupply\(\).*callback
+    confidence: 0.8
+  fix: Update state before making callbacks
+  tags:
+  - reentrancy
+  - view
+  - stale-state
+- id: GHOST-EVM-REEN-016
+  name: Delete After Call
+  description: Mapping deleted after external call
+  severity: HIGH
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: \.call[^;]*;\s*delete\s+
+    confidence: 0.85
+  fix: Delete mapping entries before external calls
+  tags:
+  - reentrancy
+  - delete
+- id: GHOST-EVM-REEN-017
+  name: Reentrancy in Deposit
+  description: deposit() without guard
+  severity: HIGH
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: function\s+deposit\b(?!.*nonReentrant)
+    confidence: 0.87
+  fix: Add nonReentrant to deposit()
+  tags:
+  - reentrancy
+  - deposit
+- id: GHOST-EVM-REEN-018
+  name: Reentrancy in Borrow
+  description: borrow() without guard
+  severity: CRITICAL
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: function\s+borrow\b(?!.*nonReentrant)
+    confidence: 0.9
+  fix: Add nonReentrant to borrow()
+  tags:
+  - reentrancy
+  - borrow
+  - lending
+- id: GHOST-EVM-REEN-019
+  name: Reentrancy in Liquidate
+  description: liquidate() without guard
+  severity: CRITICAL
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: function\s+liquidat\w+\b(?!.*nonReentrant)
+    confidence: 0.9
+  fix: Add nonReentrant to liquidation
+  tags:
+  - reentrancy
+  - liquidation
+- id: GHOST-EVM-REEN-020
+  name: Assembly Low-level call
+  description: Assembly call enables reentrancy
+  severity: HIGH
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: assembly\s*\{[^}]*call\(
+    confidence: 0.85
+  fix: Guard assembly calls with reentrancy check
+  tags:
+  - reentrancy
+  - assembly

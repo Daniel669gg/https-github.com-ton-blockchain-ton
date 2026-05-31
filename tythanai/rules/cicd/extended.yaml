@@ -1,0 +1,190 @@
+- id: GHOST-CI2-001
+  name: GitLab CI script inject
+  description: GitLab CI with user-controlled script
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  - jenkins
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: script:\s*\n\s*-\s*\$(?:CI_COMMIT_MESSAGE|CI_MERGE_REQUEST_TITLE)
+    confidence: 0.87
+  fix: Quote and sanitize CI variables
+  tags:
+  - gitlab-ci
+  - injection
+- id: GHOST-CI2-002
+  name: Jenkins Groovy eval
+  description: Jenkins pipeline with eval
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  - jenkins
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: evaluate\s*\([^)]*(?:params\.|env\.)
+    confidence: 0.87
+  fix: Never evaluate pipeline params as code
+  tags:
+  - jenkins
+  - eval
+- id: GHOST-CI2-003
+  name: CircleCI secret expose
+  description: CircleCI step echoing secret
+  severity: CRITICAL
+  cwe: CWE-312
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  - jenkins
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: echo\s+\$\w*(?:SECRET|TOKEN|KEY|PASSWORD)\w*
+    confidence: 0.87
+  fix: Remove echo of secrets
+  tags:
+  - circleci
+  - secret
+- id: GHOST-CI2-004
+  name: Travis env secret
+  description: Travis CI env in .travis.yml
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  - jenkins
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: (?:API_KEY|PASSWORD|SECRET|TOKEN)\s*=\s*[A-Za-z0-9+/=]{15,}
+    confidence: 0.87
+  fix: Use Travis CI encrypted variables
+  tags:
+  - travis
+  - secret
+- id: GHOST-CI2-005
+  name: Azure DevOps secret
+  description: Azure Pipeline secret in YAML
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  - jenkins
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: (?:API_KEY|PASSWORD|SECRET_KEY):\s*[A-Za-z0-9+/=]{15,}(?!\s*\$\()
+    confidence: 0.87
+  fix: Use Azure Key Vault variable group
+  tags:
+  - azure-devops
+  - secret
+- id: GHOST-CI2-006
+  name: Bitbucket pipeline secret
+  description: Bitbucket pipeline hardcoded secret
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  - jenkins
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: (?:API_KEY|PASSWORD|SECRET):\s*[A-Za-z0-9+/=]{15,}
+    confidence: 0.87
+  fix: Use Bitbucket repository variables
+  tags:
+  - bitbucket
+  - secret
+- id: GHOST-CI2-007
+  name: GHA pull_request_target
+  description: pwn request pattern
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  - jenkins
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: on:\s*pull_request_target[\s\S]{0,500}actions/checkout[\s\S]{0,200}ref:\s*\$\{\{\s*github\.event\.pull_request\.head\.sha
+    confidence: 0.87
+  fix: Pin checkout ref to PR merge commit
+  tags:
+  - github-actions
+  - pwn
+- id: GHOST-CI2-008
+  name: GHA upload artifact no hash
+  description: Upload artifact without checksum
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  - jenkins
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: uses:\s*actions/upload-artifact@v\d(?![\s\S]{0,300}sha256|checksum)
+    confidence: 0.87
+  fix: Verify artifact checksums
+  tags:
+  - github-actions
+  - artifact
+- id: GHOST-CI2-009
+  name: GHA env injection
+  description: Env context in shell
+  severity: HIGH
+  cwe: CWE-78
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  - jenkins
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: run:[\s\S]{0,200}\$\{\{\s*env\.[A-Z_]+\s*\}\}
+    confidence: 0.87
+  fix: Use env var mapping, not direct interpolation
+  tags:
+  - github-actions
+  - env
+- id: GHOST-CI2-010
+  name: GHA untrusted checkout
+  description: Checking out untrusted PR code
+  severity: HIGH
+  cwe: CWE-829
+  owasp: A05:2021
+  languages:
+  - yaml
+  - github-actions
+  - jenkins
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: ref:\s*\$\{\{\s*github\.event\.pull_request\.head\.ref\s*\}\}
+    confidence: 0.87
+  fix: Use pull_request event, not pull_request_target
+  tags:
+  - github-actions
+  - checkout

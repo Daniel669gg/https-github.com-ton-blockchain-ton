@@ -1,0 +1,122 @@
+<idea-plugin>
+  <id>io.ghost.security</id>
+  <name>Ghost Security</name>
+  <vendor email="security@ghost-security.io" url="https://ghost-security.io">Ghost Security</vendor>
+  <version>1.0.0</version>
+
+  <description><![CDATA[
+    <p><b>Ghost Security</b> — AI-native AppSec scanner for IntelliJ IDEA, PyCharm, WebStorm, GoLand, and Rider.</p>
+    <ul>
+      <li>Real-time vulnerability scanning as you type</li>
+      <li>250+ security rules: OWASP, TON/Web3, Kubernetes, Secrets</li>
+      <li>CWE/OWASP mapping with fix suggestions</li>
+      <li>AI-powered explanations via Claude/GPT/Ollama</li>
+      <li>Inline code inspections with quick-fix actions</li>
+      <li>Findings panel with severity filtering</li>
+    </ul>
+    <p>Requires Ghost Security server running locally or configured remote endpoint.</p>
+  ]]></description>
+
+  <depends>com.intellij.modules.platform</depends>
+  <depends optional="true" config-file="ghost-python.xml">com.intellij.modules.python</depends>
+  <depends optional="true" config-file="ghost-java.xml">com.intellij.modules.java</depends>
+  <depends optional="true" config-file="ghost-go.xml">org.jetbrains.plugins.go</depends>
+
+  <resource-bundle>messages.GhostBundle</resource-bundle>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <!-- Settings -->
+    <applicationConfigurable
+      parentId="tools"
+      instance="io.ghost.security.settings.GhostSettingsConfigurable"
+      id="io.ghost.security.settings"
+      displayName="Ghost Security"/>
+    <applicationService
+      serviceImplementation="io.ghost.security.settings.GhostSettings"/>
+
+    <!-- Tool window -->
+    <toolWindow
+      id="Ghost Security"
+      anchor="bottom"
+      factoryClass="io.ghost.security.ui.GhostToolWindowFactory"
+      icon="/icons/ghost_13.svg"/>
+
+    <!-- Inspections -->
+    <localInspection
+      language="Python"
+      shortName="GhostPythonInspection"
+      displayName="Ghost Security: Python vulnerabilities"
+      groupName="Ghost Security"
+      implementationClass="io.ghost.security.inspections.GhostPythonInspection"
+      enabledByDefault="true"
+      level="WARNING"/>
+
+    <localInspection
+      language="JAVA"
+      shortName="GhostJavaInspection"
+      displayName="Ghost Security: Java vulnerabilities"
+      groupName="Ghost Security"
+      implementationClass="io.ghost.security.inspections.GhostJavaInspection"
+      enabledByDefault="true"
+      level="WARNING"/>
+
+    <localInspection
+      language="kotlin"
+      shortName="GhostKotlinInspection"
+      displayName="Ghost Security: Kotlin vulnerabilities"
+      groupName="Ghost Security"
+      implementationClass="io.ghost.security.inspections.GhostKotlinInspection"
+      enabledByDefault="true"
+      level="WARNING"/>
+
+    <!-- Notifications -->
+    <notificationGroup
+      id="Ghost Security"
+      displayType="BALLOON"
+      key="notification.group.ghost"/>
+
+    <!-- Status bar widget -->
+    <statusBarWidgetFactory
+      id="GhostStatusWidget"
+      implementation="io.ghost.security.ui.GhostStatusBarWidgetFactory"
+      order="after Position"/>
+  </extensions>
+
+  <actions>
+    <group id="GhostMenu" text="Ghost Security" popup="true">
+      <add-to-group group-id="ToolsMenu" anchor="last"/>
+      <action id="ghost.ScanFile"
+              class="io.ghost.security.actions.ScanFileAction"
+              text="Scan Current File"
+              description="Run Ghost Security scan on current file"
+              icon="/icons/ghost_scan.svg"/>
+      <action id="ghost.ScanProject"
+              class="io.ghost.security.actions.ScanProjectAction"
+              text="Scan Project"
+              description="Run Ghost Security scan on entire project"
+              icon="/icons/ghost_scan_all.svg"/>
+      <action id="ghost.ExplainFinding"
+              class="io.ghost.security.actions.ExplainFindingAction"
+              text="Explain Security Finding"
+              description="Get AI explanation for selected finding"
+              icon="/icons/ghost_ai.svg"/>
+      <action id="ghost.GenerateFix"
+              class="io.ghost.security.actions.GenerateFixAction"
+              text="Generate AI Fix"
+              description="Generate AI-powered code fix"
+              icon="/icons/ghost_fix.svg"/>
+      <action id="ghost.ShowFindings"
+              class="io.ghost.security.actions.ShowFindingsAction"
+              text="Show Findings Panel"
+              description="Open Ghost Security findings panel"
+              icon="/icons/ghost_13.svg"/>
+    </group>
+
+    <action id="ghost.ScanFileContext"
+            class="io.ghost.security.actions.ScanFileAction"
+            text="Ghost: Scan File"
+            icon="/icons/ghost_scan.svg">
+      <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+    </action>
+  </actions>
+</idea-plugin>

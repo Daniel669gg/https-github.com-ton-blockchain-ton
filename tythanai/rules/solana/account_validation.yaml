@@ -1,0 +1,177 @@
+- id: GHOST-SOL-ACC-001
+  name: Missing Signer Check
+  description: Account not verified as signer
+  severity: CRITICAL
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: (?<!require!.*is_signer)ctx\.accounts\.\w+\.key\b
+    confidence: 0.93
+  fix: Add require!(ctx.accounts.authority.is_signer)
+  tags:
+  - solana
+  - signer
+  - access-control
+- id: GHOST-SOL-ACC-002
+  name: Missing Owner Check
+  description: Account owner not verified
+  severity: CRITICAL
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: ctx\.accounts\.\w+\.owner(?!.*==)
+    confidence: 0.92
+  fix: Verify account.owner == program_id
+  tags:
+  - solana
+  - owner
+  - validation
+- id: GHOST-SOL-ACC-003
+  name: Missing Account Key Check
+  description: Account key not validated
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: ctx\.accounts\.\w+\.key(?!.*==)
+    confidence: 0.88
+  fix: Validate account key against expected pubkey
+  tags:
+  - solana
+  - key
+  - validation
+- id: GHOST-SOL-ACC-004
+  name: Account Reinitialization
+  description: Initialized account can be overwritten
+  severity: HIGH
+  cwe: CWE-665
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: '#\[account\(init\b'
+    confidence: 0.88
+  fix: Use constraint to prevent reinitialization
+  tags:
+  - solana
+  - reinit
+  - anchor
+- id: GHOST-SOL-ACC-005
+  name: Writable Without Constraint
+  description: Mutable account without constraint
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: '#\[account\(mut\b(?!.*has_one|.*constraint)'
+    confidence: 0.85
+  fix: Add constraint to all mutable accounts
+  tags:
+  - solana
+  - writable
+  - constraint
+- id: GHOST-SOL-ACC-006
+  name: Program ID Not Checked
+  description: CPI to unverified program
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: invoke\s*\((?!.*program_id.*==)
+    confidence: 0.88
+  fix: Validate program ID before CPI
+  tags:
+  - solana
+  - cpi
+  - program-id
+- id: GHOST-SOL-ACC-007
+  name: Missing Discriminator
+  description: Account missing type discriminator
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: '#\[account\](?!.*discriminator)'
+    confidence: 0.85
+  fix: Add discriminator field to all PDA accounts
+  tags:
+  - solana
+  - discriminator
+- id: GHOST-SOL-ACC-008
+  name: Sysvar Not Validated
+  description: Sysvar used without validation
+  severity: MEDIUM
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: Sysvar::from_account_info\b
+    confidence: 0.82
+  fix: Validate sysvar authenticity
+  tags:
+  - solana
+  - sysvar
+- id: GHOST-SOL-ACC-009
+  name: Missing Rent Exemption
+  description: Account may not be rent-exempt
+  severity: MEDIUM
+  cwe: CWE-703
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: create_account\b(?!.*rent_exempt)
+    confidence: 0.8
+  fix: Ensure accounts are rent-exempt
+  tags:
+  - solana
+  - rent
+- id: GHOST-SOL-ACC-010
+  name: Close Without Zero
+  description: Closed account data not zeroed
+  severity: HIGH
+  cwe: CWE-703
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: '#\[account\(.*close\s*='
+    confidence: 0.85
+  fix: Ensure close zeroes discriminator
+  tags:
+  - solana
+  - close
+  - cleanup

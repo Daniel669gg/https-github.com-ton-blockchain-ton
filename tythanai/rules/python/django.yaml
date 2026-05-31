@@ -1,0 +1,340 @@
+- id: GHOST-PY-DJ-001
+  name: Django extra() injection
+  description: Django .extra() with user input
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: \.extra\s*\([^)]*(?:where|select|tables|order_by)\s*=.*\+
+    confidence: 0.87
+  fix: Use ORM methods instead of .extra()
+  tags:
+  - sql
+  - django
+- id: GHOST-PY-DJ-002
+  name: Django annotate injection
+  description: Django annotate with raw string
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: \.annotate\s*\([^)]*RawSQL\s*\([^)]*\+
+    confidence: 0.87
+  fix: Use parameterized RawSQL
+  tags:
+  - sql
+  - django
+- id: GHOST-PY-DJ-003
+  name: Django filter with raw
+  description: Django queryset raw filter
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: QuerySet\.raw\s*\([^)]*\+
+    confidence: 0.87
+  fix: Use parameterized raw()
+  tags:
+  - sql
+  - django
+- id: GHOST-PY-DJ-004
+  name: Django settings DEBUG True
+  description: Settings DEBUG=True exposed
+  severity: HIGH
+  cwe: CWE-693
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: ^DEBUG\s*=\s*True
+    confidence: 0.87
+  fix: Set DEBUG=False in production
+  tags:
+  - debug
+  - django
+- id: GHOST-PY-DJ-005
+  name: Django ALLOWED_HOSTS wildcard
+  description: ALLOWED_HOSTS contains *
+  severity: HIGH
+  cwe: CWE-693
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: ALLOWED_HOSTS\s*=\s*\[[^\]]*["\']?\*["\']?[^\]]*\]
+    confidence: 0.87
+  fix: List exact domain names in ALLOWED_HOSTS
+  tags:
+  - config
+  - django
+- id: GHOST-PY-DJ-006
+  name: Django SECRET_KEY hardcoded
+  description: Django SECRET_KEY in code
+  severity: CRITICAL
+  cwe: CWE-693
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: SECRET_KEY\s*=\s*["\'][^"\']{20,}["\']
+    confidence: 0.87
+  fix: Load SECRET_KEY from environment
+  tags:
+  - hardcoded
+  - django
+- id: GHOST-PY-DJ-007
+  name: Django open redirect
+  description: HttpResponseRedirect with user URL
+  severity: HIGH
+  cwe: CWE-693
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: HttpResponseRedirect\s*\([^)]*request\.GET|HttpResponseRedirect\s*\([^)]*request\.POST
+    confidence: 0.87
+  fix: Use url_has_allowed_host_and_scheme()
+  tags:
+  - redirect
+  - django
+- id: GHOST-PY-DJ-008
+  name: Django mark_safe XSS
+  description: mark_safe with user data
+  severity: CRITICAL
+  cwe: CWE-693
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: mark_safe\s*\([^)]*(?:request\.|user_input|data)
+    confidence: 0.87
+  fix: Escape data before mark_safe()
+  tags:
+  - xss
+  - django
+- id: GHOST-PY-DJ-009
+  name: Django template autoescape off
+  description: autoescape tag disabled
+  severity: HIGH
+  cwe: CWE-693
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: \{%\s*autoescape\s+off\s*%\}
+    confidence: 0.87
+  fix: Remove autoescape off; escape data explicitly
+  tags:
+  - xss
+  - django
+- id: GHOST-PY-DJ-010
+  name: Django safe filter XSS
+  description: Django |safe filter on user data
+  severity: CRITICAL
+  cwe: CWE-693
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: \{\{[^}]*\|\s*safe\s*\}\}
+    confidence: 0.87
+  fix: Remove |safe; use |escape
+  tags:
+  - xss
+  - django
+- id: GHOST-PY-DJ-011
+  name: Django CORS misconfiguration
+  description: Django CORS_ALLOW_ALL_ORIGINS
+  severity: MEDIUM
+  cwe: CWE-693
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: CORS_ALLOW_ALL_ORIGINS\s*=\s*True
+    confidence: 0.87
+  fix: Set CORS_ALLOWED_ORIGINS to specific origins
+  tags:
+  - cors
+  - django
+- id: GHOST-PY-DJ-012
+  name: Django session cookie insecure
+  description: SESSION_COOKIE_SECURE False
+  severity: HIGH
+  cwe: CWE-693
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: SESSION_COOKIE_SECURE\s*=\s*False
+    confidence: 0.87
+  fix: Set SESSION_COOKIE_SECURE = True
+  tags:
+  - cookie
+  - django
+- id: GHOST-PY-DJ-013
+  name: Django CSRF cookie insecure
+  description: CSRF_COOKIE_SECURE False
+  severity: HIGH
+  cwe: CWE-693
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: CSRF_COOKIE_SECURE\s*=\s*False
+    confidence: 0.87
+  fix: Set CSRF_COOKIE_SECURE = True
+  tags:
+  - csrf
+  - django
+- id: GHOST-PY-DJ-014
+  name: Django HSTS missing
+  description: SECURE_HSTS_SECONDS=0
+  severity: MEDIUM
+  cwe: CWE-693
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: SECURE_HSTS_SECONDS\s*=\s*0
+    confidence: 0.87
+  fix: Set SECURE_HSTS_SECONDS >= 31536000
+  tags:
+  - hsts
+  - django
+- id: GHOST-PY-DJ-015
+  name: Django X-Frame-Options missing
+  description: X_FRAME_OPTIONS not set
+  severity: MEDIUM
+  cwe: CWE-693
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: X_FRAME_OPTIONS\s*=\s*["\']ALLOWALL["\']
+    confidence: 0.87
+  fix: Set X_FRAME_OPTIONS = 'DENY'
+  tags:
+  - clickjacking
+  - django
+- id: GHOST-PY-DJ-016
+  name: Django content sniff
+  description: SECURE_CONTENT_TYPE_NOSNIFF off
+  severity: MEDIUM
+  cwe: CWE-693
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: SECURE_CONTENT_TYPE_NOSNIFF\s*=\s*False
+    confidence: 0.87
+  fix: Set SECURE_CONTENT_TYPE_NOSNIFF = True
+  tags:
+  - headers
+  - django
+- id: GHOST-PY-DJ-017
+  name: Django clickjacking protection off
+  description: MIDDLEWARE missing XFrameMiddleware
+  severity: MEDIUM
+  cwe: CWE-693
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: MIDDLEWARE\s*=\s*\[[^\]]*\](?!.*XFrameOptionsMiddleware)
+    confidence: 0.87
+  fix: Add XFrameOptionsMiddleware to MIDDLEWARE
+  tags:
+  - clickjacking
+  - django
+- id: GHOST-PY-DJ-018
+  name: Django eval in template tag
+  description: Custom template tag using eval
+  severity: CRITICAL
+  cwe: CWE-693
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: from\s+django.*template.*import.*Node[\s\S]{0,200}\beval\s*\(
+    confidence: 0.87
+  fix: Never use eval in template tags
+  tags:
+  - eval
+  - django
+- id: GHOST-PY-DJ-019
+  name: Django insecure hash algorithm
+  description: PASSWORD_HASHERS using MD5
+  severity: CRITICAL
+  cwe: CWE-693
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: PASSWORD_HASHERS\s*=[\s\S]*MD5PasswordHasher
+    confidence: 0.87
+  fix: Use Argon2PasswordHasher
+  tags:
+  - crypto
+  - django
+- id: GHOST-PY-DJ-020
+  name: Django database password default
+  description: Default DB password empty
+  severity: HIGH
+  cwe: CWE-693
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: PASSWORD.*:\s*["\']["\']
+    confidence: 0.87
+  fix: Set strong database password
+  tags:
+  - database
+  - django

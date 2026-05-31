@@ -1,0 +1,3946 @@
+- id: GHOST-GEN-A01-001
+  name: Broken access control
+  description: Admin endpoint without RBAC check
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - go
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: (?:admin|manage|internal).*(?:route|endpoint|handler)(?!.*(?:auth|role|permission|require))
+    confidence: 0.82
+  fix: Add role-based access control
+  tags:
+  - access_control
+- id: GHOST-GEN-A01-002
+  name: IDOR
+  description: Direct object access by user ID
+  severity: HIGH
+  cwe: CWE-639
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - java
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: (?:find|get|fetch)\s*(?:By)?Id\s*\([^)]*(?:params|query|request)\b
+    confidence: 0.82
+  fix: Verify ownership before returning object
+  tags:
+  - idor
+- id: GHOST-GEN-A02-001
+  name: Insecure direct storage
+  description: Sensitive data in plain text
+  severity: CRITICAL
+  cwe: CWE-312
+  owasp: A02:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - go
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: (?:password|ssn|credit_card|ccn|cvv)\s*[=:]\s*["\'][^"\']{4,}["\']
+    confidence: 0.82
+  fix: Encrypt sensitive fields at rest
+  tags:
+  - encryption
+- id: GHOST-GEN-A02-002
+  name: Weak cipher selection
+  description: Old cipher in algorithm choice
+  severity: CRITICAL
+  cwe: CWE-327
+  owasp: A02:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - go
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: (?:algorithm|cipher|method)\s*[=:]\s*["\'](?:md5|sha1|des|rc4|blowfish)["\']
+    confidence: 0.82
+  fix: Use AES-256-GCM or ChaCha20-Poly1305
+  tags:
+  - crypto
+- id: GHOST-GEN-A03-001
+  name: SQL injection generic
+  description: SQL string concatenation
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - go
+  - ruby
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: '["\'']SELECT\s+.*\+|["\'']INSERT\s+.*\+|["\'']UPDATE\s+.*\+|["\'']DELETE\s+.*\+'
+    confidence: 0.82
+  fix: Use parameterized queries
+  tags:
+  - sql
+- id: GHOST-GEN-A03-002
+  name: LDAP generic
+  description: LDAP filter concatenation
+  severity: HIGH
+  cwe: CWE-90
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - java
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: '[\w.]+\.search(?:One|All)?\s*\([^)]*\+[^)]*(?:user|input)'
+    confidence: 0.82
+  fix: Escape LDAP special characters
+  tags:
+  - ldap
+- id: GHOST-GEN-A03-003
+  name: NoSQL generic
+  description: MongoDB collection find with user
+  severity: HIGH
+  cwe: CWE-943
+  owasp: A03:2021
+  languages:
+  - javascript
+  - python
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: collection\.find\s*\(\s*\{[^}]*:\s*(?:req|request|query)\b
+    confidence: 0.82
+  fix: Sanitize MongoDB query inputs
+  tags:
+  - nosql
+- id: GHOST-GEN-A04-001
+  name: Insecure design
+  description: Lack of rate limiting on auth
+  severity: HIGH
+  cwe: CWE-307
+  owasp: A04:2021
+  languages:
+  - python
+  - ruby
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: def\s+(?:login|sign_in|authenticate)\s*\([^)]*\)(?![\s\S]{0,300}(?:rate|throttle|limit|lockout))
+    confidence: 0.82
+  fix: Add rate limiting to auth endpoints
+  tags:
+  - ratelimit
+- id: GHOST-GEN-A05-001
+  name: Security misconfiguration
+  description: Error details in response
+  severity: HIGH
+  cwe: CWE-209
+  owasp: A05:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - ruby
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: (?:return|response)\s*\([^)]*(?:traceback|stackTrace|stack_trace)
+    confidence: 0.82
+  fix: Return generic errors; log details server-side
+  tags:
+  - disclosure
+- id: GHOST-GEN-A05-002
+  name: Default credentials
+  description: Default username/password
+  severity: CRITICAL
+  cwe: CWE-1392
+  owasp: A05:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - go
+  - yaml
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: (?:username|user)\s*=\s*["\']admin["\'][\s\S]{0,100}(?:password|passwd)\s*=\s*["\'](?:admin|password|1234|123456)["\']
+    confidence: 0.82
+  fix: Change all default credentials
+  tags:
+  - default_creds
+- id: GHOST-GEN-A06-001
+  name: Vulnerable component
+  description: Known vulnerable dependency pattern
+  severity: CRITICAL
+  cwe: CWE-1104
+  owasp: A06:2021
+  languages:
+  - java
+  - python
+  - javascript
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: (?:requires?|import|include).*(?:struts|log4j|spring-core:4\.|jackson-databind:2\.9\.[0-6])
+    confidence: 0.82
+  fix: Upgrade to patched version
+  tags:
+  - dependencies
+- id: GHOST-GEN-A07-001
+  name: Auth failure
+  description: Plaintext password comparison
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A07:2021
+  languages:
+  - python
+  - javascript
+  - php
+  - ruby
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: (?:password|passwd)\s*==\s*(?:request|req|input|user_input)
+    confidence: 0.82
+  fix: Use constant-time secure comparison
+  tags:
+  - auth
+- id: GHOST-GEN-A08-001
+  name: Data integrity failure
+  description: Unsigned data from untrusted source
+  severity: HIGH
+  cwe: CWE-345
+  owasp: A08:2021
+  languages:
+  - javascript
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: JSON\.parse\s*\([^)]*(?:localStorage|cookie|param)\b(?![\s\S]{0,200}sign|verify)
+    confidence: 0.82
+  fix: Verify data integrity/signature
+  tags:
+  - integrity
+- id: GHOST-GEN-A09-001
+  name: Logging failure
+  description: Password in log statement
+  severity: CRITICAL
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  - ruby
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: (?:log|logger|console)\.\w+\s*\([^)]*password
+    confidence: 0.82
+  fix: Never log passwords
+  tags:
+  - logging
+- id: GHOST-GEN-A10-001
+  name: SSRF generic
+  description: HTTP request with user-controlled URL
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - go
+  - ruby
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: (?:get|post|fetch|request|open)\s*\([^)]*(?:user_url|target_url|callback_url)\b
+    confidence: 0.82
+  fix: Validate URL against allowlist
+  tags:
+  - ssrf
+- id: GHOST-GEN-EXTRA-001
+  name: XSS variant 1
+  description: Cross-site scripting variant 1
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: innerHTML\s*\+=\s*[^;]+
+    confidence: 0.8
+  fix: Sanitize before innerHTML (variant 1)
+  tags:
+  - xss
+- id: GHOST-GEN-EXTRA-002
+  name: Path traversal variant 2
+  description: Path traversal pattern 2
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: open\s*\([^)]*(?:file|path|name)\s*\+
+    confidence: 0.8
+  fix: Validate path (variant 2)
+  tags:
+  - path
+  - traversal
+- id: GHOST-GEN-EXTRA-003
+  name: Hardcoded credential variant 3
+  description: Hardcoded secret variant 3
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:key|token|pass|secret)\s*=\s*["\'][A-Za-z0-9!@#$%^&*]{12,}["\']
+    confidence: 0.8
+  fix: Use environment variables (variant 3)
+  tags:
+  - hardcoded
+- id: GHOST-GEN-EXTRA-004
+  name: SSRF variant 4
+  description: Server-side request forgery variant 4
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:request|fetch|urllib|curl)\s*\([^)]*(?:url|uri|host)\s*=\s*(?:request|req|params)
+    confidence: 0.8
+  fix: Validate URL (variant 4)
+  tags:
+  - ssrf
+- id: GHOST-GEN-EXTRA-005
+  name: Deserialization variant 5
+  description: Unsafe deserialization variant 5
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A08:2021
+  languages:
+  - python
+  - java
+  - php
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?|decode)\s*\([^)]*(?:user|input|data|body)
+    confidence: 0.8
+  fix: Use safe deserialization (variant 5)
+  tags:
+  - deserialization
+- id: GHOST-GEN-EXTRA-006
+  name: Command injection variant 6
+  description: OS command injection variant 6
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - php
+  - ruby
+  - java
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:system|exec|shell|popen|spawn)\s*\([^)]*(?:user|request|input|param)
+    confidence: 0.8
+  fix: Sanitize command input (variant 6)
+  tags:
+  - command
+- id: GHOST-GEN-EXTRA-007
+  name: Weak crypto variant 7
+  description: Weak cryptography variant 7
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A02:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - go
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.8
+  fix: Use strong cryptography (variant 7)
+  tags:
+  - crypto
+- id: GHOST-GEN-EXTRA-008
+  name: Open redirect variant 8
+  description: Open redirect variant 8
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - go
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: redirect\s*\([^)]*(?:url|location|next|return)\s*=\s*(?:request|req|params)
+    confidence: 0.8
+  fix: Validate redirect URL (variant 8)
+  tags:
+  - redirect
+- id: GHOST-GEN-EXTRA-009
+  name: File upload variant 9
+  description: Unrestricted file upload variant 9
+  severity: HIGH
+  cwe: CWE-434
+  owasp: A04:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.79
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:file|attachment|media)\b
+    confidence: 0.79
+  fix: Validate file type (variant 9)
+  tags:
+  - upload
+- id: GHOST-GEN-EXTRA-010
+  name: CSRF variant 10
+  description: Cross-site request forgery variant 10
+  severity: HIGH
+  cwe: CWE-352
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - ruby
+  confidence: 0.77
+  patterns:
+  - type: regex
+    pattern: '@(?:post|put|delete)_mapping|@PostMapping|router\.post'
+    confidence: 0.77
+  fix: Add CSRF protection (variant 10)
+  tags:
+  - csrf
+- id: GHOST-GEN-EXTRA-011
+  name: Template injection variant 11
+  description: Server-side template injection variant 11
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:render|template|Template)\s*\([^)]*(?:user|request|input)
+    confidence: 0.8
+  fix: Use file-based templates (variant 11)
+  tags:
+  - ssti
+- id: GHOST-GEN-EXTRA-012
+  name: XXE variant 12
+  description: XML external entity variant 12
+  severity: HIGH
+  cwe: CWE-611
+  owasp: A05:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.79
+  patterns:
+  - type: regex
+    pattern: (?:parse|load|from_string)\s*\([^)]*(?:xml|content|body)
+    confidence: 0.79
+  fix: Disable external entities (variant 12)
+  tags:
+  - xxe
+- id: GHOST-GEN-EXTRA-013
+  name: Logging sensitive data 13
+  description: Sensitive data in logs variant 13
+  severity: HIGH
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:token|key|ssn|card)
+    confidence: 0.8
+  fix: Redact sensitive fields (variant 13)
+  tags:
+  - logging
+- id: GHOST-GEN-EXTRA-014
+  name: Auth bypass variant 14
+  description: Authentication bypass variant 14
+  severity: HIGH
+  cwe: CWE-306
+  owasp: A07:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:bypass|skip|ignore)\s*(?:auth|authentication|authorization)
+    confidence: 0.78
+  fix: Implement proper authentication (variant 14)
+  tags:
+  - auth
+- id: GHOST-GEN-EXTRA-015
+  name: Generic injection variant 15
+  description: Injection pattern variant 15
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: execute\s*\([^)]*(?:input|param|user_data)
+    confidence: 0.8
+  fix: Use parameterized queries (variant 15)
+  tags:
+  - injection
+  - generic
+- id: GHOST-GEN-EXTRA-016
+  name: XSS variant 16
+  description: Cross-site scripting variant 16
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: innerHTML\s*\+=\s*[^;]+
+    confidence: 0.8
+  fix: Sanitize before innerHTML (variant 16)
+  tags:
+  - xss
+- id: GHOST-GEN-EXTRA-017
+  name: Path traversal variant 17
+  description: Path traversal pattern 17
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: open\s*\([^)]*(?:file|path|name)\s*\+
+    confidence: 0.8
+  fix: Validate path (variant 17)
+  tags:
+  - path
+  - traversal
+- id: GHOST-GEN-EXTRA-018
+  name: Hardcoded credential variant 18
+  description: Hardcoded secret variant 18
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:key|token|pass|secret)\s*=\s*["\'][A-Za-z0-9!@#$%^&*]{12,}["\']
+    confidence: 0.8
+  fix: Use environment variables (variant 18)
+  tags:
+  - hardcoded
+- id: GHOST-GEN-EXTRA-019
+  name: SSRF variant 19
+  description: Server-side request forgery variant 19
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:request|fetch|urllib|curl)\s*\([^)]*(?:url|uri|host)\s*=\s*(?:request|req|params)
+    confidence: 0.8
+  fix: Validate URL (variant 19)
+  tags:
+  - ssrf
+- id: GHOST-GEN-EXTRA-020
+  name: Deserialization variant 20
+  description: Unsafe deserialization variant 20
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A08:2021
+  languages:
+  - python
+  - java
+  - php
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?|decode)\s*\([^)]*(?:user|input|data|body)
+    confidence: 0.8
+  fix: Use safe deserialization (variant 20)
+  tags:
+  - deserialization
+- id: GHOST-GEN-EXTRA-021
+  name: Command injection variant 21
+  description: OS command injection variant 21
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - php
+  - ruby
+  - java
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:system|exec|shell|popen|spawn)\s*\([^)]*(?:user|request|input|param)
+    confidence: 0.8
+  fix: Sanitize command input (variant 21)
+  tags:
+  - command
+- id: GHOST-GEN-EXTRA-022
+  name: Weak crypto variant 22
+  description: Weak cryptography variant 22
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A02:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - go
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.8
+  fix: Use strong cryptography (variant 22)
+  tags:
+  - crypto
+- id: GHOST-GEN-EXTRA-023
+  name: Open redirect variant 23
+  description: Open redirect variant 23
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - go
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: redirect\s*\([^)]*(?:url|location|next|return)\s*=\s*(?:request|req|params)
+    confidence: 0.8
+  fix: Validate redirect URL (variant 23)
+  tags:
+  - redirect
+- id: GHOST-GEN-EXTRA-024
+  name: File upload variant 24
+  description: Unrestricted file upload variant 24
+  severity: HIGH
+  cwe: CWE-434
+  owasp: A04:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.79
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:file|attachment|media)\b
+    confidence: 0.79
+  fix: Validate file type (variant 24)
+  tags:
+  - upload
+- id: GHOST-GEN-EXTRA-025
+  name: CSRF variant 25
+  description: Cross-site request forgery variant 25
+  severity: HIGH
+  cwe: CWE-352
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - ruby
+  confidence: 0.77
+  patterns:
+  - type: regex
+    pattern: '@(?:post|put|delete)_mapping|@PostMapping|router\.post'
+    confidence: 0.77
+  fix: Add CSRF protection (variant 25)
+  tags:
+  - csrf
+- id: GHOST-GEN-EXTRA-026
+  name: Template injection variant 26
+  description: Server-side template injection variant 26
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:render|template|Template)\s*\([^)]*(?:user|request|input)
+    confidence: 0.8
+  fix: Use file-based templates (variant 26)
+  tags:
+  - ssti
+- id: GHOST-GEN-EXTRA-027
+  name: XXE variant 27
+  description: XML external entity variant 27
+  severity: HIGH
+  cwe: CWE-611
+  owasp: A05:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.79
+  patterns:
+  - type: regex
+    pattern: (?:parse|load|from_string)\s*\([^)]*(?:xml|content|body)
+    confidence: 0.79
+  fix: Disable external entities (variant 27)
+  tags:
+  - xxe
+- id: GHOST-GEN-EXTRA-028
+  name: Logging sensitive data 28
+  description: Sensitive data in logs variant 28
+  severity: HIGH
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:token|key|ssn|card)
+    confidence: 0.8
+  fix: Redact sensitive fields (variant 28)
+  tags:
+  - logging
+- id: GHOST-GEN-EXTRA-029
+  name: Auth bypass variant 29
+  description: Authentication bypass variant 29
+  severity: HIGH
+  cwe: CWE-306
+  owasp: A07:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:bypass|skip|ignore)\s*(?:auth|authentication|authorization)
+    confidence: 0.78
+  fix: Implement proper authentication (variant 29)
+  tags:
+  - auth
+- id: GHOST-GEN-EXTRA-030
+  name: Generic injection variant 30
+  description: Injection pattern variant 30
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: execute\s*\([^)]*(?:input|param|user_data)
+    confidence: 0.8
+  fix: Use parameterized queries (variant 30)
+  tags:
+  - injection
+  - generic
+- id: GHOST-GEN-EXTRA-031
+  name: XSS variant 31
+  description: Cross-site scripting variant 31
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: innerHTML\s*\+=\s*[^;]+
+    confidence: 0.8
+  fix: Sanitize before innerHTML (variant 31)
+  tags:
+  - xss
+- id: GHOST-GEN-EXTRA-032
+  name: Path traversal variant 32
+  description: Path traversal pattern 32
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: open\s*\([^)]*(?:file|path|name)\s*\+
+    confidence: 0.8
+  fix: Validate path (variant 32)
+  tags:
+  - path
+  - traversal
+- id: GHOST-GEN-EXTRA-033
+  name: Hardcoded credential variant 33
+  description: Hardcoded secret variant 33
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:key|token|pass|secret)\s*=\s*["\'][A-Za-z0-9!@#$%^&*]{12,}["\']
+    confidence: 0.8
+  fix: Use environment variables (variant 33)
+  tags:
+  - hardcoded
+- id: GHOST-GEN-EXTRA-034
+  name: SSRF variant 34
+  description: Server-side request forgery variant 34
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:request|fetch|urllib|curl)\s*\([^)]*(?:url|uri|host)\s*=\s*(?:request|req|params)
+    confidence: 0.8
+  fix: Validate URL (variant 34)
+  tags:
+  - ssrf
+- id: GHOST-GEN-EXTRA-035
+  name: Deserialization variant 35
+  description: Unsafe deserialization variant 35
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A08:2021
+  languages:
+  - python
+  - java
+  - php
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?|decode)\s*\([^)]*(?:user|input|data|body)
+    confidence: 0.8
+  fix: Use safe deserialization (variant 35)
+  tags:
+  - deserialization
+- id: GHOST-GEN-EXTRA-036
+  name: Command injection variant 36
+  description: OS command injection variant 36
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - php
+  - ruby
+  - java
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:system|exec|shell|popen|spawn)\s*\([^)]*(?:user|request|input|param)
+    confidence: 0.8
+  fix: Sanitize command input (variant 36)
+  tags:
+  - command
+- id: GHOST-GEN-EXTRA-037
+  name: Weak crypto variant 37
+  description: Weak cryptography variant 37
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A02:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - go
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.8
+  fix: Use strong cryptography (variant 37)
+  tags:
+  - crypto
+- id: GHOST-GEN-EXTRA-038
+  name: Open redirect variant 38
+  description: Open redirect variant 38
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - go
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: redirect\s*\([^)]*(?:url|location|next|return)\s*=\s*(?:request|req|params)
+    confidence: 0.8
+  fix: Validate redirect URL (variant 38)
+  tags:
+  - redirect
+- id: GHOST-GEN-EXTRA-039
+  name: File upload variant 39
+  description: Unrestricted file upload variant 39
+  severity: HIGH
+  cwe: CWE-434
+  owasp: A04:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.79
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:file|attachment|media)\b
+    confidence: 0.79
+  fix: Validate file type (variant 39)
+  tags:
+  - upload
+- id: GHOST-GEN-EXTRA-040
+  name: CSRF variant 40
+  description: Cross-site request forgery variant 40
+  severity: HIGH
+  cwe: CWE-352
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - ruby
+  confidence: 0.77
+  patterns:
+  - type: regex
+    pattern: '@(?:post|put|delete)_mapping|@PostMapping|router\.post'
+    confidence: 0.77
+  fix: Add CSRF protection (variant 40)
+  tags:
+  - csrf
+- id: GHOST-GEN-EXTRA-041
+  name: Template injection variant 41
+  description: Server-side template injection variant 41
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:render|template|Template)\s*\([^)]*(?:user|request|input)
+    confidence: 0.8
+  fix: Use file-based templates (variant 41)
+  tags:
+  - ssti
+- id: GHOST-GEN-EXTRA-042
+  name: XXE variant 42
+  description: XML external entity variant 42
+  severity: HIGH
+  cwe: CWE-611
+  owasp: A05:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.79
+  patterns:
+  - type: regex
+    pattern: (?:parse|load|from_string)\s*\([^)]*(?:xml|content|body)
+    confidence: 0.79
+  fix: Disable external entities (variant 42)
+  tags:
+  - xxe
+- id: GHOST-GEN-EXTRA-043
+  name: Logging sensitive data 43
+  description: Sensitive data in logs variant 43
+  severity: HIGH
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:token|key|ssn|card)
+    confidence: 0.8
+  fix: Redact sensitive fields (variant 43)
+  tags:
+  - logging
+- id: GHOST-GEN-EXTRA-044
+  name: Auth bypass variant 44
+  description: Authentication bypass variant 44
+  severity: HIGH
+  cwe: CWE-306
+  owasp: A07:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:bypass|skip|ignore)\s*(?:auth|authentication|authorization)
+    confidence: 0.78
+  fix: Implement proper authentication (variant 44)
+  tags:
+  - auth
+- id: GHOST-GEN-EXTRA-045
+  name: Generic injection variant 45
+  description: Injection pattern variant 45
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: execute\s*\([^)]*(?:input|param|user_data)
+    confidence: 0.8
+  fix: Use parameterized queries (variant 45)
+  tags:
+  - injection
+  - generic
+- id: GHOST-GEN-EXTRA-046
+  name: XSS variant 46
+  description: Cross-site scripting variant 46
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: innerHTML\s*\+=\s*[^;]+
+    confidence: 0.8
+  fix: Sanitize before innerHTML (variant 46)
+  tags:
+  - xss
+- id: GHOST-GEN-EXTRA-047
+  name: Path traversal variant 47
+  description: Path traversal pattern 47
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: open\s*\([^)]*(?:file|path|name)\s*\+
+    confidence: 0.8
+  fix: Validate path (variant 47)
+  tags:
+  - path
+  - traversal
+- id: GHOST-GEN-EXTRA-048
+  name: Hardcoded credential variant 48
+  description: Hardcoded secret variant 48
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:key|token|pass|secret)\s*=\s*["\'][A-Za-z0-9!@#$%^&*]{12,}["\']
+    confidence: 0.8
+  fix: Use environment variables (variant 48)
+  tags:
+  - hardcoded
+- id: GHOST-GEN-EXTRA-049
+  name: SSRF variant 49
+  description: Server-side request forgery variant 49
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:request|fetch|urllib|curl)\s*\([^)]*(?:url|uri|host)\s*=\s*(?:request|req|params)
+    confidence: 0.8
+  fix: Validate URL (variant 49)
+  tags:
+  - ssrf
+- id: GHOST-GEN-EXTRA-050
+  name: Deserialization variant 50
+  description: Unsafe deserialization variant 50
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A08:2021
+  languages:
+  - python
+  - java
+  - php
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?|decode)\s*\([^)]*(?:user|input|data|body)
+    confidence: 0.8
+  fix: Use safe deserialization (variant 50)
+  tags:
+  - deserialization
+- id: GHOST-GEN-EXTRA-051
+  name: Command injection variant 51
+  description: OS command injection variant 51
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - php
+  - ruby
+  - java
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:system|exec|shell|popen|spawn)\s*\([^)]*(?:user|request|input|param)
+    confidence: 0.8
+  fix: Sanitize command input (variant 51)
+  tags:
+  - command
+- id: GHOST-GEN-EXTRA-052
+  name: Weak crypto variant 52
+  description: Weak cryptography variant 52
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A02:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - go
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.8
+  fix: Use strong cryptography (variant 52)
+  tags:
+  - crypto
+- id: GHOST-GEN-EXTRA-053
+  name: Open redirect variant 53
+  description: Open redirect variant 53
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - go
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: redirect\s*\([^)]*(?:url|location|next|return)\s*=\s*(?:request|req|params)
+    confidence: 0.8
+  fix: Validate redirect URL (variant 53)
+  tags:
+  - redirect
+- id: GHOST-GEN-EXTRA-054
+  name: File upload variant 54
+  description: Unrestricted file upload variant 54
+  severity: HIGH
+  cwe: CWE-434
+  owasp: A04:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.79
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:file|attachment|media)\b
+    confidence: 0.79
+  fix: Validate file type (variant 54)
+  tags:
+  - upload
+- id: GHOST-GEN-EXTRA-055
+  name: CSRF variant 55
+  description: Cross-site request forgery variant 55
+  severity: HIGH
+  cwe: CWE-352
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - ruby
+  confidence: 0.77
+  patterns:
+  - type: regex
+    pattern: '@(?:post|put|delete)_mapping|@PostMapping|router\.post'
+    confidence: 0.77
+  fix: Add CSRF protection (variant 55)
+  tags:
+  - csrf
+- id: GHOST-GEN-EXTRA-056
+  name: Template injection variant 56
+  description: Server-side template injection variant 56
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:render|template|Template)\s*\([^)]*(?:user|request|input)
+    confidence: 0.8
+  fix: Use file-based templates (variant 56)
+  tags:
+  - ssti
+- id: GHOST-GEN-EXTRA-057
+  name: XXE variant 57
+  description: XML external entity variant 57
+  severity: HIGH
+  cwe: CWE-611
+  owasp: A05:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.79
+  patterns:
+  - type: regex
+    pattern: (?:parse|load|from_string)\s*\([^)]*(?:xml|content|body)
+    confidence: 0.79
+  fix: Disable external entities (variant 57)
+  tags:
+  - xxe
+- id: GHOST-GEN-EXTRA-058
+  name: Logging sensitive data 58
+  description: Sensitive data in logs variant 58
+  severity: HIGH
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:token|key|ssn|card)
+    confidence: 0.8
+  fix: Redact sensitive fields (variant 58)
+  tags:
+  - logging
+- id: GHOST-GEN-EXTRA-059
+  name: Auth bypass variant 59
+  description: Authentication bypass variant 59
+  severity: HIGH
+  cwe: CWE-306
+  owasp: A07:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:bypass|skip|ignore)\s*(?:auth|authentication|authorization)
+    confidence: 0.78
+  fix: Implement proper authentication (variant 59)
+  tags:
+  - auth
+- id: GHOST-GEN-EXTRA-060
+  name: Generic injection variant 60
+  description: Injection pattern variant 60
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: execute\s*\([^)]*(?:input|param|user_data)
+    confidence: 0.8
+  fix: Use parameterized queries (variant 60)
+  tags:
+  - injection
+  - generic
+- id: GHOST-GEN-EXTRA-061
+  name: XSS variant 61
+  description: Cross-site scripting variant 61
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: innerHTML\s*\+=\s*[^;]+
+    confidence: 0.8
+  fix: Sanitize before innerHTML (variant 61)
+  tags:
+  - xss
+- id: GHOST-GEN-EXTRA-062
+  name: Path traversal variant 62
+  description: Path traversal pattern 62
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: open\s*\([^)]*(?:file|path|name)\s*\+
+    confidence: 0.8
+  fix: Validate path (variant 62)
+  tags:
+  - path
+  - traversal
+- id: GHOST-GEN-EXTRA-063
+  name: Hardcoded credential variant 63
+  description: Hardcoded secret variant 63
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:key|token|pass|secret)\s*=\s*["\'][A-Za-z0-9!@#$%^&*]{12,}["\']
+    confidence: 0.8
+  fix: Use environment variables (variant 63)
+  tags:
+  - hardcoded
+- id: GHOST-GEN-EXTRA-064
+  name: SSRF variant 64
+  description: Server-side request forgery variant 64
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:request|fetch|urllib|curl)\s*\([^)]*(?:url|uri|host)\s*=\s*(?:request|req|params)
+    confidence: 0.8
+  fix: Validate URL (variant 64)
+  tags:
+  - ssrf
+- id: GHOST-GEN-EXTRA-065
+  name: Deserialization variant 65
+  description: Unsafe deserialization variant 65
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A08:2021
+  languages:
+  - python
+  - java
+  - php
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?|decode)\s*\([^)]*(?:user|input|data|body)
+    confidence: 0.8
+  fix: Use safe deserialization (variant 65)
+  tags:
+  - deserialization
+- id: GHOST-GEN-EXTRA-066
+  name: Command injection variant 66
+  description: OS command injection variant 66
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - php
+  - ruby
+  - java
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:system|exec|shell|popen|spawn)\s*\([^)]*(?:user|request|input|param)
+    confidence: 0.8
+  fix: Sanitize command input (variant 66)
+  tags:
+  - command
+- id: GHOST-GEN-EXTRA-067
+  name: Weak crypto variant 67
+  description: Weak cryptography variant 67
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A02:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - go
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.8
+  fix: Use strong cryptography (variant 67)
+  tags:
+  - crypto
+- id: GHOST-GEN-EXTRA-068
+  name: Open redirect variant 68
+  description: Open redirect variant 68
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - go
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: redirect\s*\([^)]*(?:url|location|next|return)\s*=\s*(?:request|req|params)
+    confidence: 0.8
+  fix: Validate redirect URL (variant 68)
+  tags:
+  - redirect
+- id: GHOST-GEN-EXTRA-069
+  name: File upload variant 69
+  description: Unrestricted file upload variant 69
+  severity: HIGH
+  cwe: CWE-434
+  owasp: A04:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.79
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:file|attachment|media)\b
+    confidence: 0.79
+  fix: Validate file type (variant 69)
+  tags:
+  - upload
+- id: GHOST-GEN-EXTRA-070
+  name: CSRF variant 70
+  description: Cross-site request forgery variant 70
+  severity: HIGH
+  cwe: CWE-352
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - ruby
+  confidence: 0.77
+  patterns:
+  - type: regex
+    pattern: '@(?:post|put|delete)_mapping|@PostMapping|router\.post'
+    confidence: 0.77
+  fix: Add CSRF protection (variant 70)
+  tags:
+  - csrf
+- id: GHOST-GEN-EXTRA-071
+  name: Template injection variant 71
+  description: Server-side template injection variant 71
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:render|template|Template)\s*\([^)]*(?:user|request|input)
+    confidence: 0.8
+  fix: Use file-based templates (variant 71)
+  tags:
+  - ssti
+- id: GHOST-GEN-EXTRA-072
+  name: XXE variant 72
+  description: XML external entity variant 72
+  severity: HIGH
+  cwe: CWE-611
+  owasp: A05:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.79
+  patterns:
+  - type: regex
+    pattern: (?:parse|load|from_string)\s*\([^)]*(?:xml|content|body)
+    confidence: 0.79
+  fix: Disable external entities (variant 72)
+  tags:
+  - xxe
+- id: GHOST-GEN-EXTRA-073
+  name: Logging sensitive data 73
+  description: Sensitive data in logs variant 73
+  severity: HIGH
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:token|key|ssn|card)
+    confidence: 0.8
+  fix: Redact sensitive fields (variant 73)
+  tags:
+  - logging
+- id: GHOST-GEN-EXTRA-074
+  name: Auth bypass variant 74
+  description: Authentication bypass variant 74
+  severity: HIGH
+  cwe: CWE-306
+  owasp: A07:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:bypass|skip|ignore)\s*(?:auth|authentication|authorization)
+    confidence: 0.78
+  fix: Implement proper authentication (variant 74)
+  tags:
+  - auth
+- id: GHOST-GEN-EXTRA-075
+  name: Generic injection variant 75
+  description: Injection pattern variant 75
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: execute\s*\([^)]*(?:input|param|user_data)
+    confidence: 0.8
+  fix: Use parameterized queries (variant 75)
+  tags:
+  - injection
+  - generic
+- id: GHOST-GEN-EXTRA-076
+  name: XSS variant 76
+  description: Cross-site scripting variant 76
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: innerHTML\s*\+=\s*[^;]+
+    confidence: 0.8
+  fix: Sanitize before innerHTML (variant 76)
+  tags:
+  - xss
+- id: GHOST-GEN-EXTRA-077
+  name: Path traversal variant 77
+  description: Path traversal pattern 77
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: open\s*\([^)]*(?:file|path|name)\s*\+
+    confidence: 0.8
+  fix: Validate path (variant 77)
+  tags:
+  - path
+  - traversal
+- id: GHOST-GEN-EXTRA-078
+  name: Hardcoded credential variant 78
+  description: Hardcoded secret variant 78
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:key|token|pass|secret)\s*=\s*["\'][A-Za-z0-9!@#$%^&*]{12,}["\']
+    confidence: 0.8
+  fix: Use environment variables (variant 78)
+  tags:
+  - hardcoded
+- id: GHOST-GEN-EXTRA-079
+  name: SSRF variant 79
+  description: Server-side request forgery variant 79
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:request|fetch|urllib|curl)\s*\([^)]*(?:url|uri|host)\s*=\s*(?:request|req|params)
+    confidence: 0.8
+  fix: Validate URL (variant 79)
+  tags:
+  - ssrf
+- id: GHOST-GEN-EXTRA-080
+  name: Deserialization variant 80
+  description: Unsafe deserialization variant 80
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A08:2021
+  languages:
+  - python
+  - java
+  - php
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?|decode)\s*\([^)]*(?:user|input|data|body)
+    confidence: 0.8
+  fix: Use safe deserialization (variant 80)
+  tags:
+  - deserialization
+- id: GHOST-GEN-EXTRA-081
+  name: Command injection variant 81
+  description: OS command injection variant 81
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - php
+  - ruby
+  - java
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:system|exec|shell|popen|spawn)\s*\([^)]*(?:user|request|input|param)
+    confidence: 0.8
+  fix: Sanitize command input (variant 81)
+  tags:
+  - command
+- id: GHOST-GEN-EXTRA-082
+  name: Weak crypto variant 82
+  description: Weak cryptography variant 82
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A02:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - go
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.8
+  fix: Use strong cryptography (variant 82)
+  tags:
+  - crypto
+- id: GHOST-GEN-EXTRA-083
+  name: Open redirect variant 83
+  description: Open redirect variant 83
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - go
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: redirect\s*\([^)]*(?:url|location|next|return)\s*=\s*(?:request|req|params)
+    confidence: 0.8
+  fix: Validate redirect URL (variant 83)
+  tags:
+  - redirect
+- id: GHOST-GEN-EXTRA-084
+  name: File upload variant 84
+  description: Unrestricted file upload variant 84
+  severity: HIGH
+  cwe: CWE-434
+  owasp: A04:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.79
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:file|attachment|media)\b
+    confidence: 0.79
+  fix: Validate file type (variant 84)
+  tags:
+  - upload
+- id: GHOST-GEN-EXTRA-085
+  name: CSRF variant 85
+  description: Cross-site request forgery variant 85
+  severity: HIGH
+  cwe: CWE-352
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - ruby
+  confidence: 0.77
+  patterns:
+  - type: regex
+    pattern: '@(?:post|put|delete)_mapping|@PostMapping|router\.post'
+    confidence: 0.77
+  fix: Add CSRF protection (variant 85)
+  tags:
+  - csrf
+- id: GHOST-GEN-EXTRA-086
+  name: Template injection variant 86
+  description: Server-side template injection variant 86
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:render|template|Template)\s*\([^)]*(?:user|request|input)
+    confidence: 0.8
+  fix: Use file-based templates (variant 86)
+  tags:
+  - ssti
+- id: GHOST-GEN-EXTRA-087
+  name: XXE variant 87
+  description: XML external entity variant 87
+  severity: HIGH
+  cwe: CWE-611
+  owasp: A05:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.79
+  patterns:
+  - type: regex
+    pattern: (?:parse|load|from_string)\s*\([^)]*(?:xml|content|body)
+    confidence: 0.79
+  fix: Disable external entities (variant 87)
+  tags:
+  - xxe
+- id: GHOST-GEN-EXTRA-088
+  name: Logging sensitive data 88
+  description: Sensitive data in logs variant 88
+  severity: HIGH
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:token|key|ssn|card)
+    confidence: 0.8
+  fix: Redact sensitive fields (variant 88)
+  tags:
+  - logging
+- id: GHOST-GEN-EXTRA-089
+  name: Auth bypass variant 89
+  description: Authentication bypass variant 89
+  severity: HIGH
+  cwe: CWE-306
+  owasp: A07:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:bypass|skip|ignore)\s*(?:auth|authentication|authorization)
+    confidence: 0.78
+  fix: Implement proper authentication (variant 89)
+  tags:
+  - auth
+- id: GHOST-GEN-EXTRA-090
+  name: Generic injection variant 90
+  description: Injection pattern variant 90
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: execute\s*\([^)]*(?:input|param|user_data)
+    confidence: 0.8
+  fix: Use parameterized queries (variant 90)
+  tags:
+  - injection
+  - generic
+- id: GHOST-GEN-EXTRA-091
+  name: XSS variant 91
+  description: Cross-site scripting variant 91
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: innerHTML\s*\+=\s*[^;]+
+    confidence: 0.8
+  fix: Sanitize before innerHTML (variant 91)
+  tags:
+  - xss
+- id: GHOST-GEN-EXTRA-092
+  name: Path traversal variant 92
+  description: Path traversal pattern 92
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: open\s*\([^)]*(?:file|path|name)\s*\+
+    confidence: 0.8
+  fix: Validate path (variant 92)
+  tags:
+  - path
+  - traversal
+- id: GHOST-GEN-EXTRA-093
+  name: Hardcoded credential variant 93
+  description: Hardcoded secret variant 93
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:key|token|pass|secret)\s*=\s*["\'][A-Za-z0-9!@#$%^&*]{12,}["\']
+    confidence: 0.8
+  fix: Use environment variables (variant 93)
+  tags:
+  - hardcoded
+- id: GHOST-GEN-EXTRA-094
+  name: SSRF variant 94
+  description: Server-side request forgery variant 94
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:request|fetch|urllib|curl)\s*\([^)]*(?:url|uri|host)\s*=\s*(?:request|req|params)
+    confidence: 0.8
+  fix: Validate URL (variant 94)
+  tags:
+  - ssrf
+- id: GHOST-GEN-EXTRA-095
+  name: Deserialization variant 95
+  description: Unsafe deserialization variant 95
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A08:2021
+  languages:
+  - python
+  - java
+  - php
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?|decode)\s*\([^)]*(?:user|input|data|body)
+    confidence: 0.8
+  fix: Use safe deserialization (variant 95)
+  tags:
+  - deserialization
+- id: GHOST-GEN-EXTRA-096
+  name: Command injection variant 96
+  description: OS command injection variant 96
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - php
+  - ruby
+  - java
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:system|exec|shell|popen|spawn)\s*\([^)]*(?:user|request|input|param)
+    confidence: 0.8
+  fix: Sanitize command input (variant 96)
+  tags:
+  - command
+- id: GHOST-GEN-EXTRA-097
+  name: Weak crypto variant 97
+  description: Weak cryptography variant 97
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A02:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - go
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.8
+  fix: Use strong cryptography (variant 97)
+  tags:
+  - crypto
+- id: GHOST-GEN-EXTRA-098
+  name: Open redirect variant 98
+  description: Open redirect variant 98
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - go
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: redirect\s*\([^)]*(?:url|location|next|return)\s*=\s*(?:request|req|params)
+    confidence: 0.8
+  fix: Validate redirect URL (variant 98)
+  tags:
+  - redirect
+- id: GHOST-GEN-EXTRA-099
+  name: File upload variant 99
+  description: Unrestricted file upload variant 99
+  severity: HIGH
+  cwe: CWE-434
+  owasp: A04:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.79
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:file|attachment|media)\b
+    confidence: 0.79
+  fix: Validate file type (variant 99)
+  tags:
+  - upload
+- id: GHOST-GEN-EXTRA-100
+  name: CSRF variant 100
+  description: Cross-site request forgery variant 100
+  severity: HIGH
+  cwe: CWE-352
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - ruby
+  confidence: 0.77
+  patterns:
+  - type: regex
+    pattern: '@(?:post|put|delete)_mapping|@PostMapping|router\.post'
+    confidence: 0.77
+  fix: Add CSRF protection (variant 100)
+  tags:
+  - csrf
+- id: GHOST-GEN-EXTRA-101
+  name: Template injection variant 101
+  description: Server-side template injection variant 101
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:render|template|Template)\s*\([^)]*(?:user|request|input)
+    confidence: 0.8
+  fix: Use file-based templates (variant 101)
+  tags:
+  - ssti
+- id: GHOST-GEN-EXTRA-102
+  name: XXE variant 102
+  description: XML external entity variant 102
+  severity: HIGH
+  cwe: CWE-611
+  owasp: A05:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.79
+  patterns:
+  - type: regex
+    pattern: (?:parse|load|from_string)\s*\([^)]*(?:xml|content|body)
+    confidence: 0.79
+  fix: Disable external entities (variant 102)
+  tags:
+  - xxe
+- id: GHOST-GEN-EXTRA-103
+  name: Logging sensitive data 103
+  description: Sensitive data in logs variant 103
+  severity: HIGH
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:token|key|ssn|card)
+    confidence: 0.8
+  fix: Redact sensitive fields (variant 103)
+  tags:
+  - logging
+- id: GHOST-GEN-EXTRA-104
+  name: Auth bypass variant 104
+  description: Authentication bypass variant 104
+  severity: HIGH
+  cwe: CWE-306
+  owasp: A07:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:bypass|skip|ignore)\s*(?:auth|authentication|authorization)
+    confidence: 0.78
+  fix: Implement proper authentication (variant 104)
+  tags:
+  - auth
+- id: GHOST-GEN-EXTRA-105
+  name: Generic injection variant 105
+  description: Injection pattern variant 105
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: execute\s*\([^)]*(?:input|param|user_data)
+    confidence: 0.8
+  fix: Use parameterized queries (variant 105)
+  tags:
+  - injection
+  - generic
+- id: GHOST-GEN-EXTRA-106
+  name: XSS variant 106
+  description: Cross-site scripting variant 106
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: innerHTML\s*\+=\s*[^;]+
+    confidence: 0.8
+  fix: Sanitize before innerHTML (variant 106)
+  tags:
+  - xss
+- id: GHOST-GEN-EXTRA-107
+  name: Path traversal variant 107
+  description: Path traversal pattern 107
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: open\s*\([^)]*(?:file|path|name)\s*\+
+    confidence: 0.8
+  fix: Validate path (variant 107)
+  tags:
+  - path
+  - traversal
+- id: GHOST-GEN-EXTRA-108
+  name: Hardcoded credential variant 108
+  description: Hardcoded secret variant 108
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:key|token|pass|secret)\s*=\s*["\'][A-Za-z0-9!@#$%^&*]{12,}["\']
+    confidence: 0.8
+  fix: Use environment variables (variant 108)
+  tags:
+  - hardcoded
+- id: GHOST-GEN-EXTRA-109
+  name: SSRF variant 109
+  description: Server-side request forgery variant 109
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:request|fetch|urllib|curl)\s*\([^)]*(?:url|uri|host)\s*=\s*(?:request|req|params)
+    confidence: 0.8
+  fix: Validate URL (variant 109)
+  tags:
+  - ssrf
+- id: GHOST-GEN-EXTRA-110
+  name: Deserialization variant 110
+  description: Unsafe deserialization variant 110
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A08:2021
+  languages:
+  - python
+  - java
+  - php
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?|decode)\s*\([^)]*(?:user|input|data|body)
+    confidence: 0.8
+  fix: Use safe deserialization (variant 110)
+  tags:
+  - deserialization
+- id: GHOST-GEN-EXTRA-111
+  name: Command injection variant 111
+  description: OS command injection variant 111
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - php
+  - ruby
+  - java
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:system|exec|shell|popen|spawn)\s*\([^)]*(?:user|request|input|param)
+    confidence: 0.8
+  fix: Sanitize command input (variant 111)
+  tags:
+  - command
+- id: GHOST-GEN-EXTRA-112
+  name: Weak crypto variant 112
+  description: Weak cryptography variant 112
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A02:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - go
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.8
+  fix: Use strong cryptography (variant 112)
+  tags:
+  - crypto
+- id: GHOST-GEN-EXTRA-113
+  name: Open redirect variant 113
+  description: Open redirect variant 113
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - go
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: redirect\s*\([^)]*(?:url|location|next|return)\s*=\s*(?:request|req|params)
+    confidence: 0.8
+  fix: Validate redirect URL (variant 113)
+  tags:
+  - redirect
+- id: GHOST-GEN-EXTRA-114
+  name: File upload variant 114
+  description: Unrestricted file upload variant 114
+  severity: HIGH
+  cwe: CWE-434
+  owasp: A04:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.79
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:file|attachment|media)\b
+    confidence: 0.79
+  fix: Validate file type (variant 114)
+  tags:
+  - upload
+- id: GHOST-GEN-EXTRA-115
+  name: CSRF variant 115
+  description: Cross-site request forgery variant 115
+  severity: HIGH
+  cwe: CWE-352
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - ruby
+  confidence: 0.77
+  patterns:
+  - type: regex
+    pattern: '@(?:post|put|delete)_mapping|@PostMapping|router\.post'
+    confidence: 0.77
+  fix: Add CSRF protection (variant 115)
+  tags:
+  - csrf
+- id: GHOST-GEN-EXTRA-116
+  name: Template injection variant 116
+  description: Server-side template injection variant 116
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:render|template|Template)\s*\([^)]*(?:user|request|input)
+    confidence: 0.8
+  fix: Use file-based templates (variant 116)
+  tags:
+  - ssti
+- id: GHOST-GEN-EXTRA-117
+  name: XXE variant 117
+  description: XML external entity variant 117
+  severity: HIGH
+  cwe: CWE-611
+  owasp: A05:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.79
+  patterns:
+  - type: regex
+    pattern: (?:parse|load|from_string)\s*\([^)]*(?:xml|content|body)
+    confidence: 0.79
+  fix: Disable external entities (variant 117)
+  tags:
+  - xxe
+- id: GHOST-GEN-EXTRA-118
+  name: Logging sensitive data 118
+  description: Sensitive data in logs variant 118
+  severity: HIGH
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:token|key|ssn|card)
+    confidence: 0.8
+  fix: Redact sensitive fields (variant 118)
+  tags:
+  - logging
+- id: GHOST-GEN-EXTRA-119
+  name: Auth bypass variant 119
+  description: Authentication bypass variant 119
+  severity: HIGH
+  cwe: CWE-306
+  owasp: A07:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:bypass|skip|ignore)\s*(?:auth|authentication|authorization)
+    confidence: 0.78
+  fix: Implement proper authentication (variant 119)
+  tags:
+  - auth
+- id: GHOST-GEN-EXTRA-120
+  name: Generic injection variant 120
+  description: Injection pattern variant 120
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: execute\s*\([^)]*(?:input|param|user_data)
+    confidence: 0.8
+  fix: Use parameterized queries (variant 120)
+  tags:
+  - injection
+  - generic
+- id: GHOST-GEN-EXTRA-121
+  name: XSS variant 121
+  description: Cross-site scripting variant 121
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: innerHTML\s*\+=\s*[^;]+
+    confidence: 0.8
+  fix: Sanitize before innerHTML (variant 121)
+  tags:
+  - xss
+- id: GHOST-GEN-EXTRA-122
+  name: Path traversal variant 122
+  description: Path traversal pattern 122
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: open\s*\([^)]*(?:file|path|name)\s*\+
+    confidence: 0.8
+  fix: Validate path (variant 122)
+  tags:
+  - path
+  - traversal
+- id: GHOST-GEN-EXTRA-123
+  name: Hardcoded credential variant 123
+  description: Hardcoded secret variant 123
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:key|token|pass|secret)\s*=\s*["\'][A-Za-z0-9!@#$%^&*]{12,}["\']
+    confidence: 0.8
+  fix: Use environment variables (variant 123)
+  tags:
+  - hardcoded
+- id: GHOST-GEN-EXTRA-124
+  name: SSRF variant 124
+  description: Server-side request forgery variant 124
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:request|fetch|urllib|curl)\s*\([^)]*(?:url|uri|host)\s*=\s*(?:request|req|params)
+    confidence: 0.8
+  fix: Validate URL (variant 124)
+  tags:
+  - ssrf
+- id: GHOST-GEN-EXTRA-125
+  name: Deserialization variant 125
+  description: Unsafe deserialization variant 125
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A08:2021
+  languages:
+  - python
+  - java
+  - php
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?|decode)\s*\([^)]*(?:user|input|data|body)
+    confidence: 0.8
+  fix: Use safe deserialization (variant 125)
+  tags:
+  - deserialization
+- id: GHOST-GEN-EXTRA-126
+  name: Command injection variant 126
+  description: OS command injection variant 126
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - php
+  - ruby
+  - java
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:system|exec|shell|popen|spawn)\s*\([^)]*(?:user|request|input|param)
+    confidence: 0.8
+  fix: Sanitize command input (variant 126)
+  tags:
+  - command
+- id: GHOST-GEN-EXTRA-127
+  name: Weak crypto variant 127
+  description: Weak cryptography variant 127
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A02:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - go
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.8
+  fix: Use strong cryptography (variant 127)
+  tags:
+  - crypto
+- id: GHOST-GEN-EXTRA-128
+  name: Open redirect variant 128
+  description: Open redirect variant 128
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - go
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: redirect\s*\([^)]*(?:url|location|next|return)\s*=\s*(?:request|req|params)
+    confidence: 0.8
+  fix: Validate redirect URL (variant 128)
+  tags:
+  - redirect
+- id: GHOST-GEN-EXTRA-129
+  name: File upload variant 129
+  description: Unrestricted file upload variant 129
+  severity: HIGH
+  cwe: CWE-434
+  owasp: A04:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.79
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:file|attachment|media)\b
+    confidence: 0.79
+  fix: Validate file type (variant 129)
+  tags:
+  - upload
+- id: GHOST-GEN-EXTRA-130
+  name: CSRF variant 130
+  description: Cross-site request forgery variant 130
+  severity: HIGH
+  cwe: CWE-352
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - ruby
+  confidence: 0.77
+  patterns:
+  - type: regex
+    pattern: '@(?:post|put|delete)_mapping|@PostMapping|router\.post'
+    confidence: 0.77
+  fix: Add CSRF protection (variant 130)
+  tags:
+  - csrf
+- id: GHOST-GEN-EXTRA-131
+  name: Template injection variant 131
+  description: Server-side template injection variant 131
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:render|template|Template)\s*\([^)]*(?:user|request|input)
+    confidence: 0.8
+  fix: Use file-based templates (variant 131)
+  tags:
+  - ssti
+- id: GHOST-GEN-EXTRA-132
+  name: XXE variant 132
+  description: XML external entity variant 132
+  severity: HIGH
+  cwe: CWE-611
+  owasp: A05:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.79
+  patterns:
+  - type: regex
+    pattern: (?:parse|load|from_string)\s*\([^)]*(?:xml|content|body)
+    confidence: 0.79
+  fix: Disable external entities (variant 132)
+  tags:
+  - xxe
+- id: GHOST-GEN-EXTRA-133
+  name: Logging sensitive data 133
+  description: Sensitive data in logs variant 133
+  severity: HIGH
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:token|key|ssn|card)
+    confidence: 0.8
+  fix: Redact sensitive fields (variant 133)
+  tags:
+  - logging
+- id: GHOST-GEN-EXTRA-134
+  name: Auth bypass variant 134
+  description: Authentication bypass variant 134
+  severity: HIGH
+  cwe: CWE-306
+  owasp: A07:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:bypass|skip|ignore)\s*(?:auth|authentication|authorization)
+    confidence: 0.78
+  fix: Implement proper authentication (variant 134)
+  tags:
+  - auth
+- id: GHOST-GEN-EXTRA-135
+  name: Generic injection variant 135
+  description: Injection pattern variant 135
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: execute\s*\([^)]*(?:input|param|user_data)
+    confidence: 0.8
+  fix: Use parameterized queries (variant 135)
+  tags:
+  - injection
+  - generic
+- id: GHOST-GEN-EXTRA-136
+  name: XSS variant 136
+  description: Cross-site scripting variant 136
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: innerHTML\s*\+=\s*[^;]+
+    confidence: 0.8
+  fix: Sanitize before innerHTML (variant 136)
+  tags:
+  - xss
+- id: GHOST-GEN-EXTRA-137
+  name: Path traversal variant 137
+  description: Path traversal pattern 137
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: open\s*\([^)]*(?:file|path|name)\s*\+
+    confidence: 0.8
+  fix: Validate path (variant 137)
+  tags:
+  - path
+  - traversal
+- id: GHOST-GEN-EXTRA-138
+  name: Hardcoded credential variant 138
+  description: Hardcoded secret variant 138
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:key|token|pass|secret)\s*=\s*["\'][A-Za-z0-9!@#$%^&*]{12,}["\']
+    confidence: 0.8
+  fix: Use environment variables (variant 138)
+  tags:
+  - hardcoded
+- id: GHOST-GEN-EXTRA-139
+  name: SSRF variant 139
+  description: Server-side request forgery variant 139
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:request|fetch|urllib|curl)\s*\([^)]*(?:url|uri|host)\s*=\s*(?:request|req|params)
+    confidence: 0.8
+  fix: Validate URL (variant 139)
+  tags:
+  - ssrf
+- id: GHOST-GEN-EXTRA-140
+  name: Deserialization variant 140
+  description: Unsafe deserialization variant 140
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A08:2021
+  languages:
+  - python
+  - java
+  - php
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?|decode)\s*\([^)]*(?:user|input|data|body)
+    confidence: 0.8
+  fix: Use safe deserialization (variant 140)
+  tags:
+  - deserialization
+- id: GHOST-GEN-EXTRA-141
+  name: Command injection variant 141
+  description: OS command injection variant 141
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - php
+  - ruby
+  - java
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:system|exec|shell|popen|spawn)\s*\([^)]*(?:user|request|input|param)
+    confidence: 0.8
+  fix: Sanitize command input (variant 141)
+  tags:
+  - command
+- id: GHOST-GEN-EXTRA-142
+  name: Weak crypto variant 142
+  description: Weak cryptography variant 142
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A02:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - go
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.8
+  fix: Use strong cryptography (variant 142)
+  tags:
+  - crypto
+- id: GHOST-GEN-EXTRA-143
+  name: Open redirect variant 143
+  description: Open redirect variant 143
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - go
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: redirect\s*\([^)]*(?:url|location|next|return)\s*=\s*(?:request|req|params)
+    confidence: 0.8
+  fix: Validate redirect URL (variant 143)
+  tags:
+  - redirect
+- id: GHOST-GEN-EXTRA-144
+  name: File upload variant 144
+  description: Unrestricted file upload variant 144
+  severity: HIGH
+  cwe: CWE-434
+  owasp: A04:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.79
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:file|attachment|media)\b
+    confidence: 0.79
+  fix: Validate file type (variant 144)
+  tags:
+  - upload
+- id: GHOST-GEN-EXTRA-145
+  name: CSRF variant 145
+  description: Cross-site request forgery variant 145
+  severity: HIGH
+  cwe: CWE-352
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - ruby
+  confidence: 0.77
+  patterns:
+  - type: regex
+    pattern: '@(?:post|put|delete)_mapping|@PostMapping|router\.post'
+    confidence: 0.77
+  fix: Add CSRF protection (variant 145)
+  tags:
+  - csrf
+- id: GHOST-GEN-EXTRA-146
+  name: Template injection variant 146
+  description: Server-side template injection variant 146
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:render|template|Template)\s*\([^)]*(?:user|request|input)
+    confidence: 0.8
+  fix: Use file-based templates (variant 146)
+  tags:
+  - ssti
+- id: GHOST-GEN-EXTRA-147
+  name: XXE variant 147
+  description: XML external entity variant 147
+  severity: HIGH
+  cwe: CWE-611
+  owasp: A05:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.79
+  patterns:
+  - type: regex
+    pattern: (?:parse|load|from_string)\s*\([^)]*(?:xml|content|body)
+    confidence: 0.79
+  fix: Disable external entities (variant 147)
+  tags:
+  - xxe
+- id: GHOST-GEN-EXTRA-148
+  name: Logging sensitive data 148
+  description: Sensitive data in logs variant 148
+  severity: HIGH
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:token|key|ssn|card)
+    confidence: 0.8
+  fix: Redact sensitive fields (variant 148)
+  tags:
+  - logging
+- id: GHOST-GEN-EXTRA-149
+  name: Auth bypass variant 149
+  description: Authentication bypass variant 149
+  severity: HIGH
+  cwe: CWE-306
+  owasp: A07:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:bypass|skip|ignore)\s*(?:auth|authentication|authorization)
+    confidence: 0.78
+  fix: Implement proper authentication (variant 149)
+  tags:
+  - auth
+- id: GHOST-GEN-EXTRA-150
+  name: Generic injection variant 150
+  description: Injection pattern variant 150
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: execute\s*\([^)]*(?:input|param|user_data)
+    confidence: 0.8
+  fix: Use parameterized queries (variant 150)
+  tags:
+  - injection
+  - generic
+- id: GHOST-GEN-EXTRA-151
+  name: XSS variant 151
+  description: Cross-site scripting variant 151
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: innerHTML\s*\+=\s*[^;]+
+    confidence: 0.8
+  fix: Sanitize before innerHTML (variant 151)
+  tags:
+  - xss
+- id: GHOST-GEN-EXTRA-152
+  name: Path traversal variant 152
+  description: Path traversal pattern 152
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: open\s*\([^)]*(?:file|path|name)\s*\+
+    confidence: 0.8
+  fix: Validate path (variant 152)
+  tags:
+  - path
+  - traversal
+- id: GHOST-GEN-EXTRA-153
+  name: Hardcoded credential variant 153
+  description: Hardcoded secret variant 153
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:key|token|pass|secret)\s*=\s*["\'][A-Za-z0-9!@#$%^&*]{12,}["\']
+    confidence: 0.8
+  fix: Use environment variables (variant 153)
+  tags:
+  - hardcoded
+- id: GHOST-GEN-EXTRA-154
+  name: SSRF variant 154
+  description: Server-side request forgery variant 154
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:request|fetch|urllib|curl)\s*\([^)]*(?:url|uri|host)\s*=\s*(?:request|req|params)
+    confidence: 0.8
+  fix: Validate URL (variant 154)
+  tags:
+  - ssrf
+- id: GHOST-GEN-EXTRA-155
+  name: Deserialization variant 155
+  description: Unsafe deserialization variant 155
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A08:2021
+  languages:
+  - python
+  - java
+  - php
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?|decode)\s*\([^)]*(?:user|input|data|body)
+    confidence: 0.8
+  fix: Use safe deserialization (variant 155)
+  tags:
+  - deserialization
+- id: GHOST-GEN-EXTRA-156
+  name: Command injection variant 156
+  description: OS command injection variant 156
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - php
+  - ruby
+  - java
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:system|exec|shell|popen|spawn)\s*\([^)]*(?:user|request|input|param)
+    confidence: 0.8
+  fix: Sanitize command input (variant 156)
+  tags:
+  - command
+- id: GHOST-GEN-EXTRA-157
+  name: Weak crypto variant 157
+  description: Weak cryptography variant 157
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A02:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - go
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.8
+  fix: Use strong cryptography (variant 157)
+  tags:
+  - crypto
+- id: GHOST-GEN-EXTRA-158
+  name: Open redirect variant 158
+  description: Open redirect variant 158
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - go
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: redirect\s*\([^)]*(?:url|location|next|return)\s*=\s*(?:request|req|params)
+    confidence: 0.8
+  fix: Validate redirect URL (variant 158)
+  tags:
+  - redirect
+- id: GHOST-GEN-EXTRA-159
+  name: File upload variant 159
+  description: Unrestricted file upload variant 159
+  severity: HIGH
+  cwe: CWE-434
+  owasp: A04:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.79
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:file|attachment|media)\b
+    confidence: 0.79
+  fix: Validate file type (variant 159)
+  tags:
+  - upload
+- id: GHOST-GEN-EXTRA-160
+  name: CSRF variant 160
+  description: Cross-site request forgery variant 160
+  severity: HIGH
+  cwe: CWE-352
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - ruby
+  confidence: 0.77
+  patterns:
+  - type: regex
+    pattern: '@(?:post|put|delete)_mapping|@PostMapping|router\.post'
+    confidence: 0.77
+  fix: Add CSRF protection (variant 160)
+  tags:
+  - csrf
+- id: GHOST-GEN-EXTRA-161
+  name: Template injection variant 161
+  description: Server-side template injection variant 161
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:render|template|Template)\s*\([^)]*(?:user|request|input)
+    confidence: 0.8
+  fix: Use file-based templates (variant 161)
+  tags:
+  - ssti
+- id: GHOST-GEN-EXTRA-162
+  name: XXE variant 162
+  description: XML external entity variant 162
+  severity: HIGH
+  cwe: CWE-611
+  owasp: A05:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.79
+  patterns:
+  - type: regex
+    pattern: (?:parse|load|from_string)\s*\([^)]*(?:xml|content|body)
+    confidence: 0.79
+  fix: Disable external entities (variant 162)
+  tags:
+  - xxe
+- id: GHOST-GEN-EXTRA-163
+  name: Logging sensitive data 163
+  description: Sensitive data in logs variant 163
+  severity: HIGH
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:token|key|ssn|card)
+    confidence: 0.8
+  fix: Redact sensitive fields (variant 163)
+  tags:
+  - logging
+- id: GHOST-GEN-EXTRA-164
+  name: Auth bypass variant 164
+  description: Authentication bypass variant 164
+  severity: HIGH
+  cwe: CWE-306
+  owasp: A07:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:bypass|skip|ignore)\s*(?:auth|authentication|authorization)
+    confidence: 0.78
+  fix: Implement proper authentication (variant 164)
+  tags:
+  - auth
+- id: GHOST-GEN-EXTRA-165
+  name: Generic injection variant 165
+  description: Injection pattern variant 165
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: execute\s*\([^)]*(?:input|param|user_data)
+    confidence: 0.8
+  fix: Use parameterized queries (variant 165)
+  tags:
+  - injection
+  - generic
+- id: GHOST-GEN-EXTRA-166
+  name: XSS variant 166
+  description: Cross-site scripting variant 166
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: innerHTML\s*\+=\s*[^;]+
+    confidence: 0.8
+  fix: Sanitize before innerHTML (variant 166)
+  tags:
+  - xss
+- id: GHOST-GEN-EXTRA-167
+  name: Path traversal variant 167
+  description: Path traversal pattern 167
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: open\s*\([^)]*(?:file|path|name)\s*\+
+    confidence: 0.8
+  fix: Validate path (variant 167)
+  tags:
+  - path
+  - traversal
+- id: GHOST-GEN-EXTRA-168
+  name: Hardcoded credential variant 168
+  description: Hardcoded secret variant 168
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:key|token|pass|secret)\s*=\s*["\'][A-Za-z0-9!@#$%^&*]{12,}["\']
+    confidence: 0.8
+  fix: Use environment variables (variant 168)
+  tags:
+  - hardcoded
+- id: GHOST-GEN-EXTRA-169
+  name: SSRF variant 169
+  description: Server-side request forgery variant 169
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:request|fetch|urllib|curl)\s*\([^)]*(?:url|uri|host)\s*=\s*(?:request|req|params)
+    confidence: 0.8
+  fix: Validate URL (variant 169)
+  tags:
+  - ssrf
+- id: GHOST-GEN-EXTRA-170
+  name: Deserialization variant 170
+  description: Unsafe deserialization variant 170
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A08:2021
+  languages:
+  - python
+  - java
+  - php
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?|decode)\s*\([^)]*(?:user|input|data|body)
+    confidence: 0.8
+  fix: Use safe deserialization (variant 170)
+  tags:
+  - deserialization
+- id: GHOST-GEN-EXTRA-171
+  name: Command injection variant 171
+  description: OS command injection variant 171
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - php
+  - ruby
+  - java
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:system|exec|shell|popen|spawn)\s*\([^)]*(?:user|request|input|param)
+    confidence: 0.8
+  fix: Sanitize command input (variant 171)
+  tags:
+  - command
+- id: GHOST-GEN-EXTRA-172
+  name: Weak crypto variant 172
+  description: Weak cryptography variant 172
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A02:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - go
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:md5|sha1|des|rc4)\s*\(
+    confidence: 0.8
+  fix: Use strong cryptography (variant 172)
+  tags:
+  - crypto
+- id: GHOST-GEN-EXTRA-173
+  name: Open redirect variant 173
+  description: Open redirect variant 173
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - go
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: redirect\s*\([^)]*(?:url|location|next|return)\s*=\s*(?:request|req|params)
+    confidence: 0.8
+  fix: Validate redirect URL (variant 173)
+  tags:
+  - redirect
+- id: GHOST-GEN-EXTRA-174
+  name: File upload variant 174
+  description: Unrestricted file upload variant 174
+  severity: HIGH
+  cwe: CWE-434
+  owasp: A04:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.79
+  patterns:
+  - type: regex
+    pattern: (?:upload|save|write)\s*\([^)]*(?:file|attachment|media)\b
+    confidence: 0.79
+  fix: Validate file type (variant 174)
+  tags:
+  - upload
+- id: GHOST-GEN-EXTRA-175
+  name: CSRF variant 175
+  description: Cross-site request forgery variant 175
+  severity: HIGH
+  cwe: CWE-352
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - ruby
+  confidence: 0.77
+  patterns:
+  - type: regex
+    pattern: '@(?:post|put|delete)_mapping|@PostMapping|router\.post'
+    confidence: 0.77
+  fix: Add CSRF protection (variant 175)
+  tags:
+  - csrf
+- id: GHOST-GEN-EXTRA-176
+  name: Template injection variant 176
+  description: Server-side template injection variant 176
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:render|template|Template)\s*\([^)]*(?:user|request|input)
+    confidence: 0.8
+  fix: Use file-based templates (variant 176)
+  tags:
+  - ssti
+- id: GHOST-GEN-EXTRA-177
+  name: XXE variant 177
+  description: XML external entity variant 177
+  severity: HIGH
+  cwe: CWE-611
+  owasp: A05:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.79
+  patterns:
+  - type: regex
+    pattern: (?:parse|load|from_string)\s*\([^)]*(?:xml|content|body)
+    confidence: 0.79
+  fix: Disable external entities (variant 177)
+  tags:
+  - xxe
+- id: GHOST-GEN-EXTRA-178
+  name: Logging sensitive data 178
+  description: Sensitive data in logs variant 178
+  severity: HIGH
+  cwe: CWE-532
+  owasp: A09:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:log|print|console)\s*\([^)]*(?:token|key|ssn|card)
+    confidence: 0.8
+  fix: Redact sensitive fields (variant 178)
+  tags:
+  - logging
+- id: GHOST-GEN-EXTRA-179
+  name: Auth bypass variant 179
+  description: Authentication bypass variant 179
+  severity: HIGH
+  cwe: CWE-306
+  owasp: A07:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  - ruby
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: (?:bypass|skip|ignore)\s*(?:auth|authentication|authorization)
+    confidence: 0.78
+  fix: Implement proper authentication (variant 179)
+  tags:
+  - auth
+- id: GHOST-GEN-EXTRA-180
+  name: Generic injection variant 180
+  description: Injection pattern variant 180
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: execute\s*\([^)]*(?:input|param|user_data)
+    confidence: 0.8
+  fix: Use parameterized queries (variant 180)
+  tags:
+  - injection
+  - generic
+- id: GHOST-GEN-EXTRA-181
+  name: XSS variant 181
+  description: Cross-site scripting variant 181
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: innerHTML\s*\+=\s*[^;]+
+    confidence: 0.8
+  fix: Sanitize before innerHTML (variant 181)
+  tags:
+  - xss
+- id: GHOST-GEN-EXTRA-182
+  name: Path traversal variant 182
+  description: Path traversal pattern 182
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A01:2021
+  languages:
+  - python
+  - javascript
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: open\s*\([^)]*(?:file|path|name)\s*\+
+    confidence: 0.8
+  fix: Validate path (variant 182)
+  tags:
+  - path
+  - traversal
+- id: GHOST-GEN-EXTRA-183
+  name: Hardcoded credential variant 183
+  description: Hardcoded secret variant 183
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  - php
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:key|token|pass|secret)\s*=\s*["\'][A-Za-z0-9!@#$%^&*]{12,}["\']
+    confidence: 0.8
+  fix: Use environment variables (variant 183)
+  tags:
+  - hardcoded
+- id: GHOST-GEN-EXTRA-184
+  name: SSRF variant 184
+  description: Server-side request forgery variant 184
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - python
+  - javascript
+  - java
+  - go
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:request|fetch|urllib|curl)\s*\([^)]*(?:url|uri|host)\s*=\s*(?:request|req|params)
+    confidence: 0.8
+  fix: Validate URL (variant 184)
+  tags:
+  - ssrf
+- id: GHOST-GEN-EXTRA-185
+  name: Deserialization variant 185
+  description: Unsafe deserialization variant 185
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A08:2021
+  languages:
+  - python
+  - java
+  - php
+  - ruby
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:deserialize|unmarshal|loads?|decode)\s*\([^)]*(?:user|input|data|body)
+    confidence: 0.8
+  fix: Use safe deserialization (variant 185)
+  tags:
+  - deserialization

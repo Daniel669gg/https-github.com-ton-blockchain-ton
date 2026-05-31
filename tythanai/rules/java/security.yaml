@@ -1,0 +1,1054 @@
+- id: GHOST-JAVA-SQL-001
+  name: JDBC SQL Injection
+  description: Statement.execute with concat
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: Statement.*execute(?:Query|Update)?\s*\([^)]*\+
+    confidence: 0.92
+  fix: Use PreparedStatement
+  tags:
+  - sql
+  - injection
+- id: GHOST-JAVA-SQL-002
+  name: PreparedStatement misuse
+  description: PreparedStatement with concat
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: prepareStatement\s*\([^"\']*\+
+    confidence: 0.91
+  fix: Use ? placeholders in PreparedStatement
+  tags:
+  - sql
+  - injection
+- id: GHOST-JAVA-SQL-003
+  name: JPA JPQL injection
+  description: JPA createQuery with concat
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: createQuery\s*\([^)]*\+[^)]*\)
+    confidence: 0.9
+  fix: Use named parameters in JPQL
+  tags:
+  - sql
+  - jpa
+- id: GHOST-JAVA-SQL-004
+  name: Hibernate HQL injection
+  description: HQL with string concat
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: createQuery\s*\(["\'][^"\']*"\s*\+
+    confidence: 0.9
+  fix: Use parameterized HQL
+  tags:
+  - sql
+  - hibernate
+- id: GHOST-JAVA-SQL-005
+  name: Spring JdbcTemplate injection
+  description: JdbcTemplate with concat
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.89
+  patterns:
+  - type: regex
+    pattern: jdbcTemplate\.query(?:ForObject)?\s*\(["\'][^"\']*"\s*\+
+    confidence: 0.89
+  fix: Use ? placeholders with args array
+  tags:
+  - sql
+  - spring
+- id: GHOST-JAVA-SQL-006
+  name: MyBatis SQL injection
+  description: MyBatis ${ } interpolation
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: \$\{[^}]+\}
+    confidence: 0.93
+  fix: 'Use #{} for safe parameterization in MyBatis'
+  tags:
+  - sql
+  - mybatis
+- id: GHOST-JAVA-SQL-007
+  name: Spring Data native query
+  description: '@Query nativeQuery concat'
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: '@Query\s*\(.*nativeQuery\s*=\s*true[^)]*\+'
+    confidence: 0.88
+  fix: Use named parameters in native queries
+  tags:
+  - sql
+  - spring
+- id: GHOST-JAVA-CMD-001
+  name: Runtime.exec injection
+  description: Runtime.exec with user input
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: Runtime\.getRuntime\(\)\.exec\s*\([^)]*(?:request\.|req\.|userInput)
+    confidence: 0.92
+  fix: Use ProcessBuilder with args list
+  tags:
+  - command
+  - injection
+- id: GHOST-JAVA-CMD-002
+  name: ProcessBuilder injection
+  description: ProcessBuilder with user args
+  severity: HIGH
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: new\s+ProcessBuilder\s*\([^)]*(?:request\.|req\.|input)
+    confidence: 0.9
+  fix: Validate and whitelist process arguments
+  tags:
+  - command
+  - injection
+- id: GHOST-JAVA-CMD-003
+  name: ScriptEngine injection
+  description: ScriptEngine.eval with user code
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: scriptEngine\.eval\s*\([^)]*(?:request\.|req\.|userCode)
+    confidence: 0.92
+  fix: Never eval user-controlled scripts
+  tags:
+  - eval
+  - injection
+- id: GHOST-JAVA-XSS-001
+  name: PrintWriter XSS
+  description: PrintWriter.println with user input
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: (?:out|writer|response\.getWriter\(\))\.(?:print|println|write)\s*\([^)]*(?:request\.|getParameter|req\.)
+    confidence: 0.88
+  fix: Use JSTL c:out or encode output
+  tags:
+  - xss
+  - servlet
+- id: GHOST-JAVA-XSS-002
+  name: Thymeleaf th:utext
+  description: Thymeleaf utext unescaped
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: th:utext\s*=
+    confidence: 0.91
+  fix: Use th:text for escaped output
+  tags:
+  - xss
+  - thymeleaf
+- id: GHOST-JAVA-XSS-003
+  name: JSP unescaped output
+  description: JSP <%= with user input
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.89
+  patterns:
+  - type: regex
+    pattern: <%=\s*request\.getParameter
+    confidence: 0.89
+  fix: Use <c:out value="..."/> for escaping
+  tags:
+  - xss
+  - jsp
+- id: GHOST-JAVA-PATH-001
+  name: File path traversal
+  description: new File() with user path
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.89
+  patterns:
+  - type: regex
+    pattern: new\s+File\s*\([^)]*(?:request\.|getParameter|req\.)
+    confidence: 0.89
+  fix: Validate path against allowed directory
+  tags:
+  - path
+  - traversal
+- id: GHOST-JAVA-PATH-002
+  name: FileInputStream traversal
+  description: FileInputStream with user path
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.89
+  patterns:
+  - type: regex
+    pattern: new\s+FileInputStream\s*\([^)]*(?:request\.|getParameter)
+    confidence: 0.89
+  fix: Normalize and validate file path
+  tags:
+  - path
+  - traversal
+- id: GHOST-JAVA-PATH-003
+  name: Files.readAllBytes traversal
+  description: Files.readAllBytes with user path
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.89
+  patterns:
+  - type: regex
+    pattern: Files\.readAllBytes\s*\([^)]*(?:request\.|req\.|userPath)
+    confidence: 0.89
+  fix: Validate path is within allowed root
+  tags:
+  - path
+  - traversal
+- id: GHOST-JAVA-DESER-001
+  name: ObjectInputStream deser
+  description: ObjectInputStream readObject
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: new\s+ObjectInputStream\s*\(|readObject\s*\(\s*\)
+    confidence: 0.93
+  fix: Use serialization filter or JSON
+  tags:
+  - deserialization
+  - java
+- id: GHOST-JAVA-DESER-002
+  name: XStream deser
+  description: XStream.fromXML with user data
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: xstream\.fromXML\s*\(
+    confidence: 0.92
+  fix: Use XStream whitelist mode
+  tags:
+  - deserialization
+  - xstream
+- id: GHOST-JAVA-DESER-003
+  name: Jackson enableDefaultTyping
+  description: Jackson polymorphic deser
+  severity: HIGH
+  cwe: CWE-502
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: enableDefaultTyping\s*\(|activateDefaultTyping\s*\(
+    confidence: 0.91
+  fix: Use @JsonTypeInfo with specific subtypes
+  tags:
+  - deserialization
+  - jackson
+- id: GHOST-JAVA-DESER-004
+  name: Kryo unsafe deserialize
+  description: Kryo without ClassResolver
+  severity: HIGH
+  cwe: CWE-502
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: new\s+Kryo\s*\(\s*\)(?!.*ClassResolver|.*register)
+    confidence: 0.88
+  fix: Register allowed classes with Kryo
+  tags:
+  - deserialization
+  - kryo
+- id: GHOST-JAVA-SSRF-001
+  name: URL.openConnection SSRF
+  description: URL.openConnection with user URL
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: new\s+URL\s*\([^)]*(?:request\.|getParameter)\s*\([^)]+\)\s*\)\.openConnection
+    confidence: 0.9
+  fix: Validate URL against allowlist
+  tags:
+  - ssrf
+  - java
+- id: GHOST-JAVA-SSRF-002
+  name: HttpURLConnection SSRF
+  description: HttpURLConnection with user URL
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.89
+  patterns:
+  - type: regex
+    pattern: HttpURLConnection\s*\([^)]*(?:request\.|getParameter)
+    confidence: 0.89
+  fix: Validate URL against allowlist
+  tags:
+  - ssrf
+  - java
+- id: GHOST-JAVA-XXE-001
+  name: SAX parser XXE
+  description: SAXParser without entity disable
+  severity: HIGH
+  cwe: CWE-611
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: SAXParserFactory\.newInstance\s*\(\s*\)(?!.*FEATURE_SECURE_PROCESSING|.*XMLConstants)
+    confidence: 0.88
+  fix: Disable external entities in SAXParser
+  tags:
+  - xxe
+  - xml
+- id: GHOST-JAVA-XXE-002
+  name: DOM parser XXE
+  description: DocumentBuilder without entity disable
+  severity: HIGH
+  cwe: CWE-611
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: DocumentBuilderFactory\.newInstance\s*\(\s*\)(?!.*setExpandEntityReferences|.*XMLConstants)
+    confidence: 0.87
+  fix: Disable external entities in DocumentBuilder
+  tags:
+  - xxe
+  - xml
+- id: GHOST-JAVA-XXE-003
+  name: StAX parser XXE
+  description: XMLInputFactory without entity disable
+  severity: HIGH
+  cwe: CWE-611
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: XMLInputFactory\.newInstance\s*\(\s*\)(?!.*IS_SUPPORTING_EXTERNAL_ENTITIES\s*,\s*false)
+    confidence: 0.87
+  fix: Disable external entities in XMLInputFactory
+  tags:
+  - xxe
+  - xml
+- id: GHOST-JAVA-CRYPTO-001
+  name: DES cipher Java
+  description: Cipher.getInstance DES
+  severity: CRITICAL
+  cwe: CWE-327
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: Cipher\.getInstance\s*\(["\']DES[^A-Z]
+    confidence: 0.93
+  fix: Use AES/GCM/NoPadding
+  tags:
+  - crypto
+  - des
+- id: GHOST-JAVA-CRYPTO-002
+  name: ECB mode Java
+  description: Cipher.getInstance ECB
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: Cipher\.getInstance\s*\(["\'][^"\']*\/ECB\/
+    confidence: 0.93
+  fix: Use AES/GCM/NoPadding
+  tags:
+  - crypto
+  - ecb
+- id: GHOST-JAVA-CRYPTO-003
+  name: MD5 MessageDigest
+  description: MessageDigest MD5
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: MessageDigest\.getInstance\s*\(["\']MD5["\']
+    confidence: 0.93
+  fix: Use SHA-256 or SHA-3
+  tags:
+  - crypto
+  - md5
+- id: GHOST-JAVA-CRYPTO-004
+  name: SHA1 MessageDigest
+  description: MessageDigest SHA-1
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: MessageDigest\.getInstance\s*\(["\']SHA-1["\']
+    confidence: 0.93
+  fix: Use SHA-256 or SHA-3
+  tags:
+  - crypto
+  - sha1
+- id: GHOST-JAVA-CRYPTO-005
+  name: SecureRandom seed
+  description: SecureRandom seeded with constant
+  severity: HIGH
+  cwe: CWE-335
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: new\s+SecureRandom\s*\(\s*["\'][^"\']*["\']
+    confidence: 0.88
+  fix: Use SecureRandom() without seed
+  tags:
+  - crypto
+  - random
+- id: GHOST-JAVA-CRYPTO-006
+  name: Weak RSA key Java
+  description: KeyPairGenerator RSA < 2048
+  severity: HIGH
+  cwe: CWE-326
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: initialize\s*\(\s*(?:512|768|1024)\s*\)
+    confidence: 0.91
+  fix: Use at least 2048-bit RSA keys
+  tags:
+  - crypto
+  - rsa
+- id: GHOST-JAVA-CRYPTO-007
+  name: Hardcoded key Java
+  description: byte[] key literal
+  severity: CRITICAL
+  cwe: CWE-321
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: new\s+SecretKeySpec\s*\(\s*new\s+byte\s*\[\s*\]\s*\{
+    confidence: 0.88
+  fix: Load keys from secure storage
+  tags:
+  - hardcoded
+  - key
+- id: GHOST-JAVA-CRYPTO-008
+  name: SSL verify disabled
+  description: HostnameVerifier always true
+  severity: CRITICAL
+  cwe: CWE-295
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: return\s+true\s*;(?=[\s\S]{0,50}verify\s*\(|HostnameVerifier)
+    confidence: 0.9
+  fix: Implement proper hostname verification
+  tags:
+  - ssl
+  - tls
+- id: GHOST-JAVA-CRYPTO-009
+  name: TrustManager all certs
+  description: TrustManager that trusts all
+  severity: CRITICAL
+  cwe: CWE-295
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: checkClientTrusted|checkServerTrusted(?=[\s\S]{0,50}\{\s*\})
+    confidence: 0.91
+  fix: Implement proper certificate validation
+  tags:
+  - ssl
+  - tls
+- id: GHOST-JAVA-LOG-001
+  name: Log4Shell pattern
+  description: Log4j JNDI lookup
+  severity: CRITICAL
+  cwe: CWE-917
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: \$\{(?:jndi|ctx|upper|lower|env|sys|java|j)(?::|%[0-9a-fA-F]{2}|\\u00)
+    confidence: 0.95
+  fix: Upgrade Log4j; disable JNDI lookup
+  tags:
+  - log4shell
+  - injection
+- id: GHOST-JAVA-LOG-002
+  name: Sensitive data logged
+  description: Logger with password/token
+  severity: HIGH
+  cwe: CWE-312
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: log(?:ger)?\.(?:info|debug|error|warn)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.87
+  fix: Never log sensitive data
+  tags:
+  - logging
+  - credentials
+- id: GHOST-JAVA-LDAP-001
+  name: LDAP injection
+  description: DirContext.search with user input
+  severity: HIGH
+  cwe: CWE-90
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: dirContext\.search\s*\([^,]+,[^)]*(?:request\.|getParameter)
+    confidence: 0.87
+  fix: Escape LDAP special characters
+  tags:
+  - ldap
+  - injection
+- id: GHOST-JAVA-CSRF-001
+  name: Missing CSRF Spring
+  description: Spring @PostMapping without CSRF
+  severity: HIGH
+  cwe: CWE-352
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: '@PostMapping(?![\s\S]{0,200}csrf)'
+    confidence: 0.78
+  fix: Enable Spring Security CSRF protection
+  tags:
+  - csrf
+  - spring
+- id: GHOST-JAVA-OPEN-001
+  name: Open redirect Spring
+  description: RedirectView with user URL
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: new\s+RedirectView\s*\([^)]*(?:request\.|getParameter)
+    confidence: 0.88
+  fix: Validate redirect URL against allowlist
+  tags:
+  - redirect
+  - spring
+- id: GHOST-JAVA-MASS-001
+  name: Spring mass assignment
+  description: '@ModelAttribute with user object'
+  severity: HIGH
+  cwe: CWE-915
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: '@ModelAttribute\s+\w+\s+\w+\s*,\s*BindingResult\b(?![\s\S]{0,200}@InitBinder)'
+    confidence: 0.82
+  fix: Use @InitBinder to whitelist fields
+  tags:
+  - mass_assignment
+  - spring
+- id: GHOST-JAVA-SSTI-001
+  name: Velocity SSTI
+  description: Velocity template with user input
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: ve\.evaluate\s*\([^,]+,\s*[^,]+,\s*[^,]+,\s*(?:request\.|req\.|userInput)
+    confidence: 0.9
+  fix: Never evaluate user input as Velocity template
+  tags:
+  - ssti
+  - velocity
+- id: GHOST-JAVA-SSTI-002
+  name: FreeMarker SSTI
+  description: FreeMarker template injection
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: new\s+Template\s*\([^,]+,\s*new\s+StringReader\s*\(\s*(?:request\.|req\.)
+    confidence: 0.9
+  fix: Sandbox FreeMarker execution
+  tags:
+  - ssti
+  - freemarker
+- id: GHOST-JAVA-UPLOAD-001
+  name: MultipartFile no type check
+  description: getOriginalFilename without validation
+  severity: HIGH
+  cwe: CWE-434
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: getOriginalFilename\s*\(\s*\)(?![\s\S]{0,100}(?:endsWith|contentType|mimetype))
+    confidence: 0.85
+  fix: Validate file type by content, not extension
+  tags:
+  - upload
+  - multipart
+- id: GHOST-JAVA-REFLECT-001
+  name: Class.forName injection
+  description: Class.forName with user input
+  severity: HIGH
+  cwe: CWE-470
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: Class\.forName\s*\([^)]*(?:request\.|getParameter)
+    confidence: 0.9
+  fix: Whitelist allowed class names
+  tags:
+  - reflection
+  - injection
+- id: GHOST-JAVA-REFLECT-002
+  name: Method invoke injection
+  description: Method.invoke with user args
+  severity: HIGH
+  cwe: CWE-470
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: method\.invoke\s*\([^)]*(?:request\.|getParameter)
+    confidence: 0.88
+  fix: Validate method and args before reflection invoke
+  tags:
+  - reflection
+  - injection
+- id: GHOST-JAVA-TIMING-001
+  name: String equals timing
+  description: String.equals for sensitive compare
+  severity: HIGH
+  cwe: CWE-208
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: (?:token|secret|password|hash)\.equals\s*\(
+    confidence: 0.85
+  fix: Use MessageDigest.isEqual() for constant-time compare
+  tags:
+  - timing
+  - auth
+- id: GHOST-JAVA-TRUST-001
+  name: Insecure random Java
+  description: java.util.Random for security
+  severity: HIGH
+  cwe: CWE-330
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: new\s+Random\s*\(\s*\)(?=[\s\S]{0,200}(?:token|secret|password|key))
+    confidence: 0.86
+  fix: Use SecureRandom for security-sensitive values
+  tags:
+  - crypto
+  - random
+- id: GHOST-JAVA-COOKIE-001
+  name: Cookie missing HttpOnly
+  description: Cookie without HttpOnly
+  severity: MEDIUM
+  cwe: CWE-1004
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: new\s+Cookie\s*\([^)]+\)(?![\s\S]{0,100}setHttpOnly\s*\(\s*true)
+    confidence: 0.84
+  fix: Call cookie.setHttpOnly(true)
+  tags:
+  - cookie
+  - xss
+- id: GHOST-JAVA-COOKIE-002
+  name: Cookie missing Secure
+  description: Cookie without Secure flag
+  severity: MEDIUM
+  cwe: CWE-614
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: new\s+Cookie\s*\([^)]+\)(?![\s\S]{0,100}setSecure\s*\(\s*true)
+    confidence: 0.83
+  fix: Call cookie.setSecure(true)
+  tags:
+  - cookie
+  - ssl
+- id: GHOST-JAVA-HEADER-001
+  name: Response splitting
+  description: setHeader with CRLF
+  severity: HIGH
+  cwe: CWE-113
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: setHeader\s*\([^,]+,\s*[^)]*(?:request\.|getParameter)
+    confidence: 0.86
+  fix: Validate and strip CR/LF from header values
+  tags:
+  - header
+  - injection
+- id: GHOST-JAVA-TRUST-002
+  name: XML entity expansion
+  description: Billion laughs XXE
+  severity: HIGH
+  cwe: CWE-776
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: DocumentBuilderFactory\.newInstance\s*\(\s*\)(?!.*FEATURE_SECURE_PROCESSING)
+    confidence: 0.88
+  fix: Enable FEATURE_SECURE_PROCESSING on XML parsers
+  tags:
+  - xxe
+  - dos
+- id: GHOST-JAVA-SESS-001
+  name: Session fixation
+  description: Session not invalidated on login
+  severity: HIGH
+  cwe: CWE-384
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: getSession\s*\(\s*\)(?!.*invalidate|.*changeSessionId)
+    confidence: 0.82
+  fix: Call session.invalidate() and create new session on login
+  tags:
+  - session
+  - fixation
+- id: GHOST-JAVA-TRUST-003
+  name: Java deserialization gadget
+  description: Commons Collections gadget chain
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: commons-collections|CommonsCollections
+    confidence: 0.88
+  fix: Upgrade commons-collections; apply serialization filters
+  tags:
+  - deserialization
+  - gadget
+- id: GHOST-JAVA-JNDI-001
+  name: JNDI injection
+  description: JNDI lookup with user input
+  severity: CRITICAL
+  cwe: CWE-917
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: context\.lookup\s*\([^)]*(?:request\.|getParameter)
+    confidence: 0.93
+  fix: Never pass user input to JNDI lookup
+  tags:
+  - jndi
+  - injection
+- id: GHOST-JAVA-TRUST-004
+  name: Groovy script injection
+  description: GroovyShell.evaluate with user
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: new\s+GroovyShell\s*\([^)]*\)\.evaluate\s*\([^)]*(?:request\.|req\.)
+    confidence: 0.92
+  fix: Never evaluate user input as Groovy script
+  tags:
+  - eval
+  - groovy
+- id: GHOST-JAVA-REGEX-001
+  name: ReDoS Java
+  description: Pattern.compile with user input
+  severity: HIGH
+  cwe: CWE-730
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: Pattern\.compile\s*\([^)]*(?:request\.|getParameter)
+    confidence: 0.87
+  fix: Never compile user-supplied regex patterns
+  tags:
+  - redos
+  - regex
+- id: GHOST-JAVA-TRUST-005
+  name: Velocity context injection
+  description: VelocityContext from request
+  severity: HIGH
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: velocityContext\.put\s*\([^,]+,\s*request\.|velocityContext\.put.*getParameter
+    confidence: 0.86
+  fix: Sanitize data before adding to Velocity context
+  tags:
+  - ssti
+  - velocity
+- id: GHOST-JAVA-TRUST-006
+  name: Spring EL injection
+  description: Spring SpEL with user input
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: new\s+SpelExpressionParser\s*\(\s*\)\.parseExpression\s*\([^)]*(?:request\.|req\.)
+    confidence: 0.93
+  fix: Never parse user input as SpEL expression
+  tags:
+  - spel
+  - injection
+- id: GHOST-JAVA-TRUST-007
+  name: Gzip bomb
+  description: ZipInputStream without size limit
+  severity: HIGH
+  cwe: CWE-400
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: new\s+ZipInputStream\s*\((?![\s\S]{0,200}(?:maxSize|THRESHOLD|limit))
+    confidence: 0.84
+  fix: Add decompression size limit check
+  tags:
+  - dos
+  - zip
+- id: GHOST-JAVA-TRUST-008
+  name: Path traversal ZipEntry
+  description: ZipEntry.getName without validation
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: entry\.getName\s*\(\s*\)(?![\s\S]{0,100}(?:normalize|startsWith|contains\(\"..\"\)))
+    confidence: 0.88
+  fix: Validate ZipEntry paths before extraction
+  tags:
+  - path
+  - zip
+- id: GHOST-JAVA-TRUST-009
+  name: Insecure Cipher transform
+  description: Triple DES ECB
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: Cipher\.getInstance\s*\(["\'](?:DESede|TripleDES)[^"\']*ECB
+    confidence: 0.91
+  fix: Use AES/GCM/NoPadding
+  tags:
+  - crypto
+  - 3des
+- id: GHOST-JAVA-TRUST-010
+  name: Hardcoded password Java
+  description: Password as String constant
+  severity: CRITICAL
+  cwe: CWE-259
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: String\s+(?:password|passwd|pwd)\s*=\s*"[^"]{4,}"
+    confidence: 0.9
+  fix: Load passwords from secure vault
+  tags:
+  - hardcoded
+  - password

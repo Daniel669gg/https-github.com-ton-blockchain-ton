@@ -1,0 +1,28 @@
+# TythanAI Platform — Pre-commit hooks (v13)
+# Install: pip install pre-commit && pre-commit install
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.4
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: detect-private-key
+
+  - repo: local
+    hooks:
+      - id: ghost-security-check
+        name: TythanAI Self-Scan
+        entry: python ghost_cli.py scan --path . --severity HIGH --quiet
+        language: system
+        pass_filenames: false
+        stages: [commit]

@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  orchestrator:
+    build: .
+    command: python ghost_cli.py
+    volumes:
+      - .:/app
+
+  chromadb:
+    image: chromadb/chroma
+
+  qdrant:
+    image: qdrant/qdrant
+
+  sandbox:
+    image: python:3.11-slim

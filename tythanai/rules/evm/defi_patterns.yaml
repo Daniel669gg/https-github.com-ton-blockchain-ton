@@ -1,0 +1,145 @@
+- id: GHOST-EVM-DEFI-001
+  name: Unchecked TWAP Observation
+  description: TWAP observation array not bounds-checked
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: observe\(\s*secondsAgos\s*\)(?!.*require.*<)
+    confidence: 0.85
+  fix: Validate secondsAgos array length
+  tags:
+  - defi
+  - twap
+  - uniswap
+- id: GHOST-EVM-DEFI-002
+  name: LP Token Price Manipulation
+  description: LP token price from reserve ratio manipulable
+  severity: CRITICAL
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: getReserves\(\).*price|price.*getReserves\(\)
+    confidence: 0.9
+  fix: Use TWAP for LP token pricing
+  tags:
+  - defi
+  - lp-token
+  - manipulation
+- id: GHOST-EVM-DEFI-003
+  name: Liquidity Removal Sandwich
+  description: Remove liquidity vulnerable to sandwich
+  severity: HIGH
+  cwe: CWE-362
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: removeLiquidity\b(?!.*amountAMin|.*amountBMin)
+    confidence: 0.85
+  fix: Set min amounts on removeLiquidity
+  tags:
+  - defi
+  - liquidity
+  - sandwich
+- id: GHOST-EVM-DEFI-004
+  name: Interest Rate Manipulation
+  description: Interest rate from manipulable on-chain data
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: utilizationRate\b|borrowRate\b
+    confidence: 0.85
+  fix: Use smoothed/TWAP interest rate
+  tags:
+  - defi
+  - interest-rate
+  - lending
+- id: GHOST-EVM-DEFI-005
+  name: Collateral Price Staleness
+  description: Collateral value from stale oracle
+  severity: CRITICAL
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: collateralValue\b|getCollateral\b
+    confidence: 0.92
+  fix: Validate oracle freshness before liquidation
+  tags:
+  - defi
+  - collateral
+  - oracle
+  - lending
+- id: GHOST-EVM-DEFI-006
+  name: Partial Liquidation Risk
+  description: Liquidation leaves bad debt
+  severity: HIGH
+  cwe: CWE-682
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: liquidate\b(?!.*full|.*whole|.*100)
+    confidence: 0.85
+  fix: Implement full liquidation or bad debt handling
+  tags:
+  - defi
+  - liquidation
+  - bad-debt
+- id: GHOST-EVM-DEFI-007
+  name: Dust Attack
+  description: Tiny token amounts exploit rounding errors
+  severity: MEDIUM
+  cwe: CWE-682
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: amount\s*<\s*\d+\b(?!.*revert|.*require)
+    confidence: 0.8
+  fix: Add minimum amount check to prevent dust attacks
+  tags:
+  - defi
+  - dust
+  - rounding
+- id: GHOST-EVM-DEFI-008
+  name: Token Approval Before Transfer
+  description: Approval set before checking transfer result
+  severity: HIGH
+  cwe: CWE-362
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: approve\([^)]+\);\s*\n.*transferFrom
+    confidence: 0.85
+  fix: Use SafeERC20.safeApprove and verify
+  tags:
+  - defi
+  - erc20
+  - approval

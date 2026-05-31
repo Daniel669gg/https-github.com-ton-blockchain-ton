@@ -1,0 +1,851 @@
+- id: GHOST-PY-AUTH-001
+  name: Missing auth decorator
+  description: Route without authentication
+  severity: HIGH
+  cwe: CWE-306
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: '@app\.route\s*\([^)]+\)(?!\s*@login_required|\s*@jwt_required|\s*@requires_auth)'
+    confidence: 0.75
+  fix: Add authentication decorator
+  tags:
+  - auth
+  - flask
+- id: GHOST-PY-AUTH-002
+  name: Debug mode in production
+  description: Flask debug=True
+  severity: HIGH
+  cwe: CWE-94
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: app\.run\s*\([^)]*debug\s*=\s*True
+    confidence: 0.93
+  fix: Disable debug mode in production
+  tags:
+  - debug
+  - flask
+- id: GHOST-PY-AUTH-003
+  name: Django DEBUG True
+  description: Django DEBUG=True
+  severity: HIGH
+  cwe: CWE-94
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: ^DEBUG\s*=\s*True
+    confidence: 0.92
+  fix: Set DEBUG=False in production
+  tags:
+  - debug
+  - django
+- id: GHOST-PY-AUTH-004
+  name: Weak session secret
+  description: Flask secret_key too short
+  severity: HIGH
+  cwe: CWE-330
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: secret_key\s*=\s*["\'][^"\']{1,15}["\']
+    confidence: 0.88
+  fix: Use os.urandom(32) for secret_key
+  tags:
+  - session
+  - flask
+- id: GHOST-PY-AUTH-005
+  name: Session fixation
+  description: Session not regenerated after login
+  severity: HIGH
+  cwe: CWE-384
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: session\[.user.\]\s*=|session\[.username.\]\s*=(?!.*session\.regenerate|.*session_id)
+    confidence: 0.78
+  fix: Regenerate session ID after login
+  tags:
+  - session
+  - auth
+- id: GHOST-PY-AUTH-006
+  name: Hardcoded admin credentials
+  description: Admin username/password literal
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: (?:admin|root)\s*=\s*["\'](?:admin|password|123456|root)["\']
+    confidence: 0.92
+  fix: Never hardcode admin credentials
+  tags:
+  - hardcoded
+  - auth
+- id: GHOST-PY-AUTH-007
+  name: SQL auth bypass
+  description: Authentication via string SQL
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: execute\s*\(["\']SELECT.*WHERE.*password.*=.*\+
+    confidence: 0.91
+  fix: Use parameterized queries for auth
+  tags:
+  - auth
+  - sqli
+- id: GHOST-PY-AUTH-008
+  name: Insecure password reset
+  description: Password reset without rate limiting
+  severity: MEDIUM
+  cwe: CWE-640
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: def\s+reset_password\s*\([^)]*\)(?!.*rate_limit|.*throttle)
+    confidence: 0.75
+  fix: Add rate limiting to password reset
+  tags:
+  - auth
+  - reset
+- id: GHOST-PY-AUTH-009
+  name: Token in URL
+  description: Auth token in URL query string
+  severity: HIGH
+  cwe: CWE-598
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: request\.args\.get\s*\(["\']token["\']|request\.args\[["\']token["\']
+    confidence: 0.87
+  fix: Pass tokens in Authorization header, not URL
+  tags:
+  - auth
+  - token
+- id: GHOST-PY-AUTH-010
+  name: Insecure remember me
+  description: Remember-me with weak token
+  severity: HIGH
+  cwe: CWE-614
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: remember_me.*=.*str\(user\.id\)|remember.*cookie.*username
+    confidence: 0.83
+  fix: Use cryptographically random remember-me tokens
+  tags:
+  - auth
+  - cookie
+- id: GHOST-PY-AUTH-011
+  name: Password in log
+  description: Logging password value
+  severity: CRITICAL
+  cwe: CWE-312
+  owasp: A09:2021
+  languages:
+  - python
+  confidence: 0.89
+  patterns:
+  - type: regex
+    pattern: log(?:ger)?\.\w+\s*\([^)]*password|print\s*\([^)]*password
+    confidence: 0.89
+  fix: Never log passwords
+  tags:
+  - auth
+  - logging
+- id: GHOST-PY-AUTH-012
+  name: Plaintext password storage
+  description: Storing password without hash
+  severity: CRITICAL
+  cwe: CWE-312
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: user\.password\s*=\s*password\s*$|db.*password.*=.*request\.form
+    confidence: 0.88
+  fix: Hash passwords before storage
+  tags:
+  - auth
+  - password
+- id: GHOST-PY-AUTH-013
+  name: LDAP bind with user creds
+  description: Exposing LDAP bind credentials
+  severity: HIGH
+  cwe: CWE-522
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: ldap.*bind_s?\s*\([^)]*password\s*=\s*request\.
+    confidence: 0.85
+  fix: Validate user before LDAP bind
+  tags:
+  - auth
+  - ldap
+- id: GHOST-PY-AUTH-014
+  name: Account enumeration
+  description: Revealing if username exists
+  severity: MEDIUM
+  cwe: CWE-204
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.77
+  patterns:
+  - type: regex
+    pattern: '["\'']User not found["\'']|["\'']Invalid username["\'']'
+    confidence: 0.77
+  fix: Return generic auth error messages
+  tags:
+  - auth
+  - enumeration
+- id: GHOST-PY-AUTH-015
+  name: Missing brute force protection
+  description: Login without lockout
+  severity: HIGH
+  cwe: CWE-307
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.73
+  patterns:
+  - type: regex
+    pattern: def\s+login\s*\([^)]*\)(?!.*lockout|.*rate_limit|.*attempts)
+    confidence: 0.73
+  fix: Add account lockout after failed attempts
+  tags:
+  - auth
+  - bruteforce
+- id: GHOST-PY-AUTH-016
+  name: Insecure token comparison
+  description: JWT/token == string compare
+  severity: HIGH
+  cwe: CWE-208
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: token\s*==\s*|api_key\s*==\s*
+    confidence: 0.84
+  fix: Use hmac.compare_digest() for token comparison
+  tags:
+  - auth
+  - timing
+- id: GHOST-PY-AUTH-017
+  name: Missing HTTPS redirect
+  description: HTTP allowed for auth routes
+  severity: HIGH
+  cwe: CWE-319
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.73
+  patterns:
+  - type: regex
+    pattern: '@app\.route.*login.*methods.*\[.*GET.*\](?!.*https_required|.*ssl_required)'
+    confidence: 0.73
+  fix: Enforce HTTPS for login routes
+  tags:
+  - auth
+  - tls
+- id: GHOST-PY-AUTH-018
+  name: OAuth state missing
+  description: OAuth without state parameter
+  severity: HIGH
+  cwe: CWE-352
+  owasp: A01:2021
+  languages:
+  - python
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: oauth.*authorize.*(?!.*state=)
+    confidence: 0.82
+  fix: Include state parameter in OAuth flows
+  tags:
+  - auth
+  - oauth
+- id: GHOST-PY-AUTH-019
+  name: JWT stored in localStorage
+  description: JWT in localStorage (XSS risk)
+  severity: MEDIUM
+  cwe: CWE-922
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: localStorage\.setItem.*["\'](?:token|jwt|access_token)["\']
+    confidence: 0.83
+  fix: Store JWTs in httpOnly cookies
+  tags:
+  - auth
+  - jwt
+- id: GHOST-PY-AUTH-020
+  name: Permission check missing
+  description: Admin action without permission check
+  severity: HIGH
+  cwe: CWE-285
+  owasp: A01:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: '@app\.route.*admin.*(?!.*@admin_required|.*@permission_required|.*@requires_role)'
+    confidence: 0.75
+  fix: Add permission check to admin routes
+  tags:
+  - auth
+  - authorization
+- id: GHOST-PY-AUTH-021
+  name: Insecure direct object ref
+  description: IDOR — accessing object by user ID
+  severity: HIGH
+  cwe: CWE-639
+  owasp: A01:2021
+  languages:
+  - python
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: get_object_or_404\s*\(\w+,\s*(?:id|pk)\s*=\s*request\.(?:GET|POST|args)
+    confidence: 0.84
+  fix: Verify ownership before returning object
+  tags:
+  - auth
+  - idor
+- id: GHOST-PY-AUTH-022
+  name: JWT expiry missing
+  description: JWT without exp claim
+  severity: HIGH
+  cwe: CWE-613
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: jwt\.encode\s*\([^)]*\)(?!.*exp)
+    confidence: 0.85
+  fix: Always include exp in JWT payload
+  tags:
+  - auth
+  - jwt
+- id: GHOST-PY-AUTH-023
+  name: Weak API key format
+  description: Short/predictable API keys
+  severity: HIGH
+  cwe: CWE-330
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: api_key\s*=\s*str\(uuid\.uuid4\(\)\)
+    confidence: 0.82
+  fix: Use secrets.token_urlsafe(32) for API keys
+  tags:
+  - auth
+  - apikey
+- id: GHOST-PY-AUTH-024
+  name: Session timeout missing
+  description: Session without expiry
+  severity: MEDIUM
+  cwe: CWE-613
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: session\[.user.\]\s*=(?!.*PERMANENT_SESSION_LIFETIME|.*expires)
+    confidence: 0.78
+  fix: Set session timeout / PERMANENT_SESSION_LIFETIME
+  tags:
+  - auth
+  - session
+- id: GHOST-PY-AUTH-025
+  name: Unauthenticated websocket
+  description: WebSocket without auth check
+  severity: HIGH
+  cwe: CWE-306
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.77
+  patterns:
+  - type: regex
+    pattern: '@websocket\.route|@sock\.route(?!.*@login_required)'
+    confidence: 0.77
+  fix: Authenticate WebSocket connections
+  tags:
+  - auth
+  - websocket
+- id: GHOST-PY-AUTH-026
+  name: Default Django secret key
+  description: Django default SECRET_KEY
+  severity: CRITICAL
+  cwe: CWE-321
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: SECRET_KEY\s*=\s*["\']django-insecure-
+    confidence: 0.95
+  fix: Replace default SECRET_KEY immediately
+  tags:
+  - auth
+  - django
+- id: GHOST-PY-AUTH-027
+  name: Flask WTF CSRF disabled
+  description: WTF_CSRF_ENABLED = False
+  severity: HIGH
+  cwe: CWE-352
+  owasp: A01:2021
+  languages:
+  - python
+  confidence: 0.94
+  patterns:
+  - type: regex
+    pattern: WTF_CSRF_ENABLED\s*=\s*False
+    confidence: 0.94
+  fix: Enable CSRF protection
+  tags:
+  - auth
+  - csrf
+- id: GHOST-PY-AUTH-028
+  name: Django CSRF exempt
+  description: '@csrf_exempt on sensitive route'
+  severity: HIGH
+  cwe: CWE-352
+  owasp: A01:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: '@csrf_exempt'
+    confidence: 0.87
+  fix: Remove csrf_exempt from non-API routes
+  tags:
+  - auth
+  - csrf
+  - django
+- id: GHOST-PY-AUTH-029
+  name: GraphQL introspection enabled
+  description: GraphQL introspection in production
+  severity: MEDIUM
+  cwe: CWE-200
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: introspection\s*=\s*True|GRAPHQL_INTROSPECTION\s*=\s*True
+    confidence: 0.85
+  fix: Disable GraphQL introspection in production
+  tags:
+  - auth
+  - graphql
+- id: GHOST-PY-AUTH-030
+  name: Unvalidated JWT algorithm
+  description: JWT decode accepts any algorithm
+  severity: CRITICAL
+  cwe: CWE-347
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: jwt\.decode\s*\([^)]*algorithms\s*=\s*None
+    confidence: 0.93
+  fix: Explicitly specify allowed algorithms
+  tags:
+  - auth
+  - jwt
+- id: GHOST-PY-AUTH-031
+  name: API key in URL parameter
+  description: API key as query parameter
+  severity: HIGH
+  cwe: CWE-598
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: request\.args\.get\s*\(["\'](?:api_key|apikey|key)["\']
+    confidence: 0.87
+  fix: Use Authorization header for API keys
+  tags:
+  - auth
+  - apikey
+- id: GHOST-PY-AUTH-032
+  name: Hardcoded test credentials
+  description: test user/password in code
+  severity: HIGH
+  cwe: CWE-798
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: '["\''](?:test|testing|demo)_(?:user|password|token)["\'']'
+    confidence: 0.86
+  fix: Remove test credentials from production code
+  tags:
+  - auth
+  - hardcoded
+- id: GHOST-PY-AUTH-033
+  name: Password without min length
+  description: Password validation without length check
+  severity: MEDIUM
+  cwe: CWE-521
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.76
+  patterns:
+  - type: regex
+    pattern: def\s+validate_password\s*\([^)]*\)(?!.*len\s*\([^)]+\)\s*[<>]=?\s*\d)
+    confidence: 0.76
+  fix: Enforce minimum password length of 12+
+  tags:
+  - auth
+  - password
+- id: GHOST-PY-AUTH-034
+  name: Autocomplete on password
+  description: Password field with autocomplete
+  severity: LOW
+  cwe: CWE-522
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: type=["\']password["\'](?!.*autocomplete=["\']off["\'])
+    confidence: 0.75
+  fix: Add autocomplete="new-password" to password fields
+  tags:
+  - auth
+  - ui
+- id: GHOST-PY-AUTH-035
+  name: HTTP basic auth unencrypted
+  description: Basic auth over HTTP
+  severity: HIGH
+  cwe: CWE-319
+  owasp: A02:2021
+  languages:
+  - python
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: Authorization.*Basic.*http://
+    confidence: 0.88
+  fix: Always use HTTPS with Basic auth
+  tags:
+  - auth
+  - http
+- id: GHOST-PY-AUTH-036
+  name: Blank password allowed
+  description: Empty password accepted
+  severity: HIGH
+  cwe: CWE-521
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: password\s*=\s*["\']["\']|if\s+not\s+password:\s*pass
+    confidence: 0.86
+  fix: Reject empty passwords
+  tags:
+  - auth
+  - password
+- id: GHOST-PY-AUTH-037
+  name: Concurrent session not limited
+  description: No limit on active sessions
+  severity: MEDIUM
+  cwe: CWE-613
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.74
+  patterns:
+  - type: regex
+    pattern: session\[.user_id.\]\s*=\s*user\.id(?!.*revoke|.*sessions|.*active_tokens)
+    confidence: 0.74
+  fix: Limit and track concurrent sessions
+  tags:
+  - auth
+  - session
+- id: GHOST-PY-AUTH-038
+  name: Verbose error disclosure
+  description: Stack trace returned to client
+  severity: HIGH
+  cwe: CWE-209
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: return\s+str\s*\(\s*(?:e|err|error|ex|exception)\s*\)|traceback\.format_exc
+    confidence: 0.86
+  fix: Never expose stack traces to clients
+  tags:
+  - auth
+  - disclosure
+- id: GHOST-PY-AUTH-039
+  name: Unpinned dependency
+  description: Dependency without version pin
+  severity: MEDIUM
+  cwe: CWE-1104
+  owasp: A06:2021
+  languages:
+  - python
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: (?:requests|flask|django|fastapi|sqlalchemy)\s*$
+    confidence: 0.8
+  fix: Pin all dependency versions in requirements.txt
+  tags:
+  - deps
+  - supply_chain
+- id: GHOST-PY-AUTH-040
+  name: eval in config
+  description: eval() parsing config values
+  severity: HIGH
+  cwe: CWE-94
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: eval\s*\(\s*config\.|eval\s*\(\s*os\.environ
+    confidence: 0.88
+  fix: Use ast.literal_eval() for config values
+  tags:
+  - eval
+  - config
+- id: GHOST-PY-AUTH-041
+  name: Insecure Pickle in cache
+  description: pickle in Redis/Memcached
+  severity: HIGH
+  cwe: CWE-502
+  owasp: A08:2021
+  languages:
+  - python
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: redis.*pickle\.dumps|cache\.set.*pickle\.dumps
+    confidence: 0.86
+  fix: Use JSON serialization for cache
+  tags:
+  - cache
+  - deserialization
+- id: GHOST-PY-AUTH-042
+  name: GraphQL mutation no auth
+  description: GraphQL mutation without authorization
+  severity: HIGH
+  cwe: CWE-285
+  owasp: A01:2021
+  languages:
+  - python
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: def\s+mutate\s*\([^)]*\)(?!.*context\.user|.*info\.context)
+    confidence: 0.78
+  fix: Check user authorization in mutations
+  tags:
+  - auth
+  - graphql
+- id: GHOST-PY-AUTH-043
+  name: Insecure file permissions
+  description: chmod 777 on sensitive file
+  severity: HIGH
+  cwe: CWE-732
+  owasp: A01:2021
+  languages:
+  - python
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: os\.chmod\s*\([^)]*0o777|chmod.*777
+    confidence: 0.9
+  fix: Use restrictive file permissions (0o600)
+  tags:
+  - auth
+  - permissions
+- id: GHOST-PY-AUTH-044
+  name: Global variable auth bypass
+  description: Auth stored in mutable global
+  severity: HIGH
+  cwe: CWE-362
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: global\s+(?:user|authenticated|is_admin|logged_in)\b
+    confidence: 0.82
+  fix: Never use global variables for auth state
+  tags:
+  - auth
+  - race
+- id: GHOST-PY-AUTH-045
+  name: Debug endpoint exposed
+  description: Debug/admin endpoint in production
+  severity: HIGH
+  cwe: CWE-94
+  owasp: A05:2021
+  languages:
+  - python
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: '@app\.route\s*\(["\''](?:/debug|/admin/debug|/__debug__|/phpinfo)["\'']'
+    confidence: 0.88
+  fix: Remove debug endpoints before deployment
+  tags:
+  - auth
+  - debug
+- id: GHOST-PY-AUTH-046
+  name: Insecure UUID for session
+  description: uuid4 for session token (not secrets)
+  severity: MEDIUM
+  cwe: CWE-330
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: session_id\s*=\s*str\s*\(\s*uuid\.uuid4\s*\(\s*\)
+    confidence: 0.84
+  fix: Use secrets.token_urlsafe() for session IDs
+  tags:
+  - auth
+  - session
+- id: GHOST-PY-AUTH-047
+  name: Missing authorization on delete
+  description: DELETE route without ownership check
+  severity: HIGH
+  cwe: CWE-285
+  owasp: A01:2021
+  languages:
+  - python
+  confidence: 0.77
+  patterns:
+  - type: regex
+    pattern: '@app\.route\s*\([^)]*methods=\[.*DELETE.*\]\s*\)(?!.*@login_required|\s*@jwt_required)'
+    confidence: 0.77
+  fix: Verify ownership before allowing deletion
+  tags:
+  - auth
+  - idor
+- id: GHOST-PY-AUTH-048
+  name: SSRF via image URL
+  description: Image download from user URL
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - python
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: requests\.get\s*\([^)]*(?:image|img|avatar|photo)_url|PIL.*open\s*\(.*request\.
+    confidence: 0.85
+  fix: Validate image URLs against allowlist
+  tags:
+  - ssrf
+  - upload
+- id: GHOST-PY-AUTH-049
+  name: XML signature wrapping
+  description: XML signature not verified
+  severity: HIGH
+  cwe: CWE-347
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: saml.*verify\s*=\s*False|SAMLResponse.*skip_signature
+    confidence: 0.88
+  fix: Always verify SAML signatures
+  tags:
+  - auth
+  - saml
+- id: GHOST-PY-AUTH-050
+  name: Insecure random OTP
+  description: random.randint() for OTP
+  severity: HIGH
+  cwe: CWE-330
+  owasp: A07:2021
+  languages:
+  - python
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: otp\s*=\s*random\.randint\s*\(
+    confidence: 0.88
+  fix: Use secrets.randbelow() for OTP generation
+  tags:
+  - auth
+  - otp

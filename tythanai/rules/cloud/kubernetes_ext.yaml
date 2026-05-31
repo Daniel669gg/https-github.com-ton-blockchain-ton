@@ -1,0 +1,270 @@
+- id: GHOST-K8S2-001
+  name: Helm chart secret plain
+  description: Secret in Helm values.yaml
+  severity: CRITICAL
+  cwe: CWE-312
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*:\s*[A-Za-z0-9+/=_\-]{8,}(?!\s*\{\{)
+    confidence: 0.85
+  fix: Use SealedSecrets or external-secrets
+  tags:
+  - helm
+  - secret
+- id: GHOST-K8S2-002
+  name: Helm no resource limits
+  description: Helm chart without resource limits
+  severity: HIGH
+  cwe: CWE-400
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: replicaCount:\s*\d+(?![\s\S]{0,500}resources:\s*\n\s*limits:)
+    confidence: 0.85
+  fix: Set resources.limits in chart
+  tags:
+  - helm
+  - resources
+- id: GHOST-K8S2-003
+  name: K8s configmap secret
+  description: Secret data in ConfigMap
+  severity: HIGH
+  cwe: CWE-312
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: 'kind:\s*ConfigMap[\s\S]{0,500}(?:password|secret|token|key)\s*:'
+    confidence: 0.85
+  fix: Use Secret kind for sensitive data
+  tags:
+  - kubernetes
+  - secret
+- id: GHOST-K8S2-004
+  name: K8s service account bind
+  description: ServiceAccount with cluster-role
+  severity: CRITICAL
+  cwe: CWE-285
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: subjects:[\s\S]{0,200}kind:\s*ServiceAccount[\s\S]{0,200}roleRef:[\s\S]{0,200}name:\s*cluster-admin
+    confidence: 0.85
+  fix: Bind to minimal role
+  tags:
+  - kubernetes
+  - rbac
+- id: GHOST-K8S2-005
+  name: K8s automount SA token
+  description: automountServiceAccountToken true
+  severity: HIGH
+  cwe: CWE-285
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: automountServiceAccountToken:\s*true
+    confidence: 0.85
+  fix: 'Set automountServiceAccountToken: false'
+  tags:
+  - kubernetes
+  - serviceaccount
+- id: GHOST-K8S2-006
+  name: K8s default namespace
+  description: Deploying to default namespace
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: namespace:\s*default
+    confidence: 0.85
+  fix: Use dedicated namespaces
+  tags:
+  - kubernetes
+  - namespace
+- id: GHOST-K8S2-007
+  name: K8s seccomp missing
+  description: No seccomp profile set
+  severity: HIGH
+  cwe: CWE-250
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: containers:(?![\s\S]{0,500}seccompProfile)
+    confidence: 0.85
+  fix: Set seccompProfile to RuntimeDefault
+  tags:
+  - kubernetes
+  - seccomp
+- id: GHOST-K8S2-008
+  name: K8s AppArmor missing
+  description: No AppArmor annotation
+  severity: MEDIUM
+  cwe: CWE-250
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: metadata:(?![\s\S]{0,300}apparmor\.security\.beta\.kubernetes\.io)
+    confidence: 0.85
+  fix: Add AppArmor runtime/default profile
+  tags:
+  - kubernetes
+  - apparmor
+- id: GHOST-K8S2-009
+  name: K8s no pod anti-affinity
+  description: No pod anti-affinity rules
+  severity: LOW
+  cwe: CWE-400
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: kind:\s*Deployment(?![\s\S]{0,1000}podAntiAffinity)
+    confidence: 0.85
+  fix: Add podAntiAffinity for HA
+  tags:
+  - kubernetes
+  - availability
+- id: GHOST-K8S2-010
+  name: K8s env secret plain
+  description: Env var with plaintext secret
+  severity: CRITICAL
+  cwe: CWE-312
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: '- name:\s*\w*(?:PASSWORD|SECRET|TOKEN|KEY)\w*\s*\n\s*value:\s*[^\$\{][^\n]{5,}'
+    confidence: 0.85
+  fix: Use secretKeyRef for sensitive env vars
+  tags:
+  - kubernetes
+  - env
+- id: GHOST-K8S2-011
+  name: K8s image pull always
+  description: ImagePullPolicy not Always
+  severity: MEDIUM
+  cwe: CWE-1104
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: imagePullPolicy:\s*(?:Never|IfNotPresent)(?=[\s\S]{0,100}image:.*:latest)
+    confidence: 0.85
+  fix: Use Always with latest tag
+  tags:
+  - kubernetes
+  - image
+- id: GHOST-K8S2-012
+  name: K8s writable rootfs
+  description: Not read-only root filesystem
+  severity: HIGH
+  cwe: CWE-732
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: containers:(?![\s\S]{0,500}readOnlyRootFilesystem:\s*true)
+    confidence: 0.85
+  fix: 'Set readOnlyRootFilesystem: true'
+  tags:
+  - kubernetes
+  - filesystem
+- id: GHOST-K8S2-013
+  name: K8s node port exposed
+  description: NodePort service type
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: type:\s*NodePort
+    confidence: 0.85
+  fix: Use ClusterIP with Ingress instead
+  tags:
+  - kubernetes
+  - network
+- id: GHOST-K8S2-014
+  name: K8s loadbalancer no policy
+  description: LoadBalancer without externalTrafficPolicy
+  severity: LOW
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: type:\s*LoadBalancer(?![\s\S]{0,200}externalTrafficPolicy)
+    confidence: 0.85
+  fix: 'Set externalTrafficPolicy: Local'
+  tags:
+  - kubernetes
+  - network
+- id: GHOST-K8S2-015
+  name: K8s etcd not encrypted
+  description: etcd without encryption config
+  severity: HIGH
+  cwe: CWE-311
+  owasp: A05:2021
+  languages:
+  - yaml
+  - kubernetes
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: etcd-servers:(?![\s\S]{0,500}encryption-provider-config)
+    confidence: 0.85
+  fix: Enable etcd encryption at rest
+  tags:
+  - kubernetes
+  - etcd

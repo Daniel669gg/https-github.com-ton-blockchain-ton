@@ -1,0 +1,11 @@
+#!/usr/bin/env python3
+"""
+Ghost Security CLI — ghost scan . / ghost ton . / ghost k8s . / ghost fix
+Использование без сервера: pip install -r requirements.txt && ghost scan .
+"""
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from ghost_cli_main import main
+if __name__ == "__main__":
+    main()

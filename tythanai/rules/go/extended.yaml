@@ -1,0 +1,340 @@
+- id: GHOST-GO-EXT-001
+  name: Go hardcoded secret
+  description: Const secret string
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: const\s+\w*(?:[Ss]ecret|[Pp]assword|[Kk]ey)\w*\s*=\s*"[^"]{6,}"
+    confidence: 0.86
+  fix: Use os.Getenv()
+  tags:
+  - hardcoded
+  - go
+- id: GHOST-GO-EXT-002
+  name: Go http no timeout
+  description: http.Get without timeout
+  severity: MEDIUM
+  cwe: CWE-400
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: http\.Get\s*\([^)]+\)(?!.*Timeout)
+    confidence: 0.86
+  fix: Create http.Client with Timeout
+  tags:
+  - timeout
+  - go
+- id: GHOST-GO-EXT-003
+  name: Go sql concat
+  description: Sprintf in DB query
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: Sprintf\s*\([^)]*(?:SELECT|INSERT|UPDATE|DELETE)
+    confidence: 0.86
+  fix: Use parameterized queries
+  tags:
+  - sql
+  - go
+- id: GHOST-GO-EXT-004
+  name: Go weak TLS
+  description: TLS MinVersion too old
+  severity: HIGH
+  cwe: CWE-326
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: tls\.Config\s*\{(?![\s\S]{0,200}MinVersion)
+    confidence: 0.86
+  fix: 'Set MinVersion: tls.VersionTLS12'
+  tags:
+  - tls
+  - go
+- id: GHOST-GO-EXT-005
+  name: Go open redirect
+  description: http.Redirect user URL
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: http\.Redirect\s*\([^,]+,[^,]+,[^)]*r\.Form
+    confidence: 0.86
+  fix: Validate redirect URL
+  tags:
+  - redirect
+  - go
+- id: GHOST-GO-EXT-006
+  name: Go file path user
+  description: ioutil.ReadFile user path
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: ioutil\.ReadFile\s*\([^)]*r\.(?:Form|URL)
+    confidence: 0.86
+  fix: Validate path against base dir
+  tags:
+  - path
+  - go
+- id: GHOST-GO-EXT-007
+  name: Go xml parse XXE
+  description: xml.Unmarshal without entity disable
+  severity: HIGH
+  cwe: CWE-611
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: xml\.Unmarshal\s*\([^,]+,
+    confidence: 0.86
+  fix: Disable external entities
+  tags:
+  - xxe
+  - go
+- id: GHOST-GO-EXT-008
+  name: Go math rand secret
+  description: math/rand for token
+  severity: HIGH
+  cwe: CWE-338
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: rand\.Int(?:n|63)?\s*\(\s*\)
+    confidence: 0.86
+  fix: Use crypto/rand
+  tags:
+  - random
+  - go
+- id: GHOST-GO-EXT-009
+  name: Go goroutine leak
+  description: Goroutine without done channel
+  severity: MEDIUM
+  cwe: CWE-400
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: go\s+func\s*\([^)]*\)\s*\{(?![\s\S]{0,500}done|[\s\S]{0,500}ctx\.Done)
+    confidence: 0.86
+  fix: Use context cancellation
+  tags:
+  - goroutine
+  - go
+- id: GHOST-GO-EXT-010
+  name: Go unsafe package
+  description: import unsafe
+  severity: HIGH
+  cwe: CWE-119
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: ^import\s+"unsafe"
+    confidence: 0.86
+  fix: Audit all unsafe usage carefully
+  tags:
+  - unsafe
+  - go
+- id: GHOST-GO-EXT-011
+  name: Go no input limit
+  description: bufio.Scanner default size
+  severity: MEDIUM
+  cwe: CWE-400
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: bufio\.NewScanner\s*\([^)]+\)(?![\s\S]{0,100}Buffer)
+    confidence: 0.86
+  fix: Set max token size with Buffer()
+  tags:
+  - dos
+  - go
+- id: GHOST-GO-EXT-012
+  name: Go template XSS
+  description: text/template for HTML
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: '"text/template"(?![\s\S]{0,500}"html/template")'
+    confidence: 0.86
+  fix: Use html/template package
+  tags:
+  - xss
+  - go
+- id: GHOST-GO-EXT-013
+  name: Go password md5
+  description: MD5 for password hash
+  severity: CRITICAL
+  cwe: CWE-916
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: md5\.Sum\s*\([^)]*(?:password|passwd)
+    confidence: 0.86
+  fix: Use bcrypt or argon2
+  tags:
+  - crypto
+  - go
+- id: GHOST-GO-EXT-014
+  name: Go log sensitive
+  description: log.Printf with password
+  severity: HIGH
+  cwe: CWE-312
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: log\.(?:Printf|Println)\s*\([^)]*(?:password|token|secret)
+    confidence: 0.86
+  fix: Redact sensitive fields from logs
+  tags:
+  - logging
+  - go
+- id: GHOST-GO-EXT-015
+  name: Go exec context shell
+  description: exec.CommandContext shell=true
+  severity: HIGH
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: CommandContext\s*\([^,]+,\s*["\'](?:sh|bash)["\'],\s*["\'][-]c["\']
+    confidence: 0.86
+  fix: Avoid shell wrapper; use exec form
+  tags:
+  - command
+  - go
+- id: GHOST-GO-EXT-016
+  name: Go string format injection
+  description: fmt.Fprintf to http.ResponseWriter
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: fmt\.Fprintf\s*\(\s*w\s*,[^)]*(?:r\.FormValue|r\.URL\b)
+    confidence: 0.86
+  fix: Use html/template for safe output
+  tags:
+  - xss
+  - go
+- id: GHOST-GO-EXT-017
+  name: Go cookie no httponly
+  description: Cookie without HttpOnly
+  severity: MEDIUM
+  cwe: CWE-1004
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: http\.Cookie\s*\{(?![\s\S]{0,200}HttpOnly\s*:\s*true)
+    confidence: 0.86
+  fix: 'Set HttpOnly: true on session cookies'
+  tags:
+  - cookie
+  - go
+- id: GHOST-GO-EXT-018
+  name: Go cookie no secure
+  description: Cookie without Secure
+  severity: MEDIUM
+  cwe: CWE-614
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: http\.Cookie\s*\{(?![\s\S]{0,200}Secure\s*:\s*true)
+    confidence: 0.86
+  fix: 'Set Secure: true on auth cookies'
+  tags:
+  - cookie
+  - go
+- id: GHOST-GO-EXT-019
+  name: Go gin no auth
+  description: Gin route without auth
+  severity: MEDIUM
+  cwe: CWE-306
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: router\.(?:GET|POST|PUT|DELETE)\s*\([^)]+\)(?![\s\S]{0,200}AuthMiddleware|[\s\S]{0,200}JWTAuth)
+    confidence: 0.86
+  fix: Add authentication middleware to routes
+  tags:
+  - auth
+  - gin
+- id: GHOST-GO-EXT-020
+  name: Go gin cors wildcard
+  description: Gin CORS wildcard
+  severity: MEDIUM
+  cwe: CWE-942
+  owasp: A03:2021
+  languages:
+  - go
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: cors\.New\s*\([^)]*AllowAllOrigins\s*:\s*true
+    confidence: 0.86
+  fix: Restrict CORS origins
+  tags:
+  - cors
+  - gin

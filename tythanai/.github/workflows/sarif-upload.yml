@@ -1,0 +1,57 @@
+name: TythanAI SARIF Upload
+
+on:
+  schedule:
+    # Run every day at 02:00 UTC
+    - cron: "0 2 * * *"
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write   # required to upload SARIF results
+
+jobs:
+  sarif:
+    name: Scan and upload SARIF
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Ghost scan — produce JSON findings
+        run: |
+          python ghost_cli_main.py scan . \
+            --output json \
+            --min-severity MEDIUM > findings.json || true
+
+      - name: Convert findings to SARIF
+        run: |
+          python ghost_cli_main.py sarif findings.json --out results.sarif
+
+      - name: Upload SARIF to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: results.sarif
+          category: ghost-security
+
+      - name: Upload findings as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sarif-results-${{ github.run_id }}
+          path: |
+            findings.json
+            results.sarif
+          retention-days: 30

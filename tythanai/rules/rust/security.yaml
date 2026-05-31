@@ -1,0 +1,340 @@
+- id: GHOST-RS-001
+  name: Rust unsafe block
+  description: Unsafe block in code
+  severity: HIGH
+  cwe: CWE-119
+  owasp: A03:2021
+  languages:
+  - rust
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: \bunsafe\s*\{
+    confidence: 0.87
+  fix: Document and minimize unsafe blocks
+  tags:
+  - rust
+  - unsafe
+- id: GHOST-RS-002
+  name: Rust raw pointer
+  description: Raw pointer dereference
+  severity: HIGH
+  cwe: CWE-476
+  owasp: A03:2021
+  languages:
+  - rust
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: \*(?:mut\s+|const\s+)\w+(?:\s+as\s+\*(?:mut|const))?
+    confidence: 0.87
+  fix: Use safe references instead
+  tags:
+  - rust
+  - pointer
+- id: GHOST-RS-003
+  name: Rust unwrap panic
+  description: unwrap() on Option/Result
+  severity: MEDIUM
+  cwe: CWE-390
+  owasp: A03:2021
+  languages:
+  - rust
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: \.unwrap\s*\(\s*\)(?!\s*//.*ok\b)
+    confidence: 0.87
+  fix: Use expect() with message or ? operator
+  tags:
+  - rust
+  - panic
+- id: GHOST-RS-004
+  name: Rust command injection
+  description: Command::new with user input
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - rust
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: Command::new\s*\([^)]*(?:user|input|arg|param)
+    confidence: 0.87
+  fix: Validate all command arguments
+  tags:
+  - rust
+  - command
+- id: GHOST-RS-005
+  name: Rust SQL injection
+  description: format! in SQL query
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - rust
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: format!\s*\(["\'][^"\']*SELECT[^"\']*\{
+    confidence: 0.87
+  fix: Use parameterized sqlx queries
+  tags:
+  - rust
+  - sql
+- id: GHOST-RS-006
+  name: Rust path traversal
+  description: Path::new with user input
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - rust
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: Path::new\s*\([^)]*(?:user|input|req\.|request\.)
+    confidence: 0.87
+  fix: Use Path.canonicalize() and check prefix
+  tags:
+  - rust
+  - path
+- id: GHOST-RS-007
+  name: Rust integer overflow
+  description: Wrapping arithmetic not used
+  severity: HIGH
+  cwe: CWE-190
+  owasp: A03:2021
+  languages:
+  - rust
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: \.overflowing_(?:add|sub|mul)\s*\(|as\s+u(?:8|16|32)(?!\s*//.*checked)
+    confidence: 0.87
+  fix: Use checked_ or saturating_ arithmetic
+  tags:
+  - rust
+  - overflow
+- id: GHOST-RS-008
+  name: Rust panic in lib
+  description: panic!() in library code
+  severity: HIGH
+  cwe: CWE-248
+  owasp: A03:2021
+  languages:
+  - rust
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: \bpanic!\s*\(
+    confidence: 0.87
+  fix: Return Result/Option instead of panic
+  tags:
+  - rust
+  - panic
+- id: GHOST-RS-009
+  name: Rust hardcoded secret
+  description: const with secret value
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A03:2021
+  languages:
+  - rust
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: const\s+\w*(?:SECRET|PASSWORD|KEY|TOKEN)\w*\s*:\s*&str\s*=\s*"[^"]{6,}"
+    confidence: 0.87
+  fix: Load from environment variables
+  tags:
+  - rust
+  - hardcoded
+- id: GHOST-RS-010
+  name: Rust TLS disabled
+  description: TLS verification disabled
+  severity: CRITICAL
+  cwe: CWE-295
+  owasp: A03:2021
+  languages:
+  - rust
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: danger_accept_invalid_certs\s*\(\s*true\s*\)
+    confidence: 0.87
+  fix: Enable certificate verification
+  tags:
+  - rust
+  - tls
+- id: GHOST-RS-011
+  name: Rust env_logger verbose
+  description: Log level debug in production
+  severity: LOW
+  cwe: CWE-532
+  owasp: A03:2021
+  languages:
+  - rust
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: env_logger::(?:init|Builder::from_env)\s*\([^)]*\)(?=[\s\S]{0,100}debug|trace)
+    confidence: 0.87
+  fix: Set appropriate log level for production
+  tags:
+  - rust
+  - logging
+- id: GHOST-RS-012
+  name: Rust SSRF reqwest
+  description: reqwest with user URL
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A03:2021
+  languages:
+  - rust
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: reqwest::get\s*\([^)]*(?:user|input|req\.|url)
+    confidence: 0.87
+  fix: Validate URL against allowlist
+  tags:
+  - rust
+  - ssrf
+- id: GHOST-RS-013
+  name: Rust file open unsafe
+  description: File::open with user path
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - rust
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: File::open\s*\([^)]*(?:user|input|req\.)
+    confidence: 0.87
+  fix: Validate path before opening
+  tags:
+  - rust
+  - file
+- id: GHOST-RS-014
+  name: Rust regex user pattern
+  description: Regex::new with user pattern
+  severity: HIGH
+  cwe: CWE-730
+  owasp: A03:2021
+  languages:
+  - rust
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: Regex::new\s*\([^)]*(?:user|input|req\.)
+    confidence: 0.87
+  fix: Never compile user-supplied regex
+  tags:
+  - rust
+  - redos
+- id: GHOST-RS-015
+  name: Rust serde arbitrary
+  description: serde deserialize unvalidated
+  severity: MEDIUM
+  cwe: CWE-20
+  owasp: A03:2021
+  languages:
+  - rust
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: '#\[derive\s*\([^)]*Deserialize[^)]*\)\](?![\s\S]{0,300}#\[serde\s*\(validate)'
+    confidence: 0.87
+  fix: Add custom validation after deserialization
+  tags:
+  - rust
+  - deserialization
+- id: GHOST-RS-016
+  name: Rust from_utf8_unchecked
+  description: from_utf8_unchecked usage
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A03:2021
+  languages:
+  - rust
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: from_utf8_unchecked\s*\(
+    confidence: 0.87
+  fix: Use from_utf8() with error handling
+  tags:
+  - rust
+  - unsafe
+- id: GHOST-RS-017
+  name: Rust transmute unsafe
+  description: mem::transmute usage
+  severity: CRITICAL
+  cwe: CWE-119
+  owasp: A03:2021
+  languages:
+  - rust
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: mem::transmute\s*::<
+    confidence: 0.87
+  fix: Avoid transmute; use safe casts
+  tags:
+  - rust
+  - unsafe
+- id: GHOST-RS-018
+  name: Rust drop unsafe
+  description: ptr::drop_in_place
+  severity: HIGH
+  cwe: CWE-416
+  owasp: A03:2021
+  languages:
+  - rust
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: ptr::drop_in_place\s*\(
+    confidence: 0.87
+  fix: Ensure pointer is valid before drop
+  tags:
+  - rust
+  - unsafe
+- id: GHOST-RS-019
+  name: Rust null ptr deref
+  description: ptr::null() dereferenced
+  severity: CRITICAL
+  cwe: CWE-476
+  owasp: A03:2021
+  languages:
+  - rust
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: \*ptr::null\s*\(\s*\)
+    confidence: 0.87
+  fix: Never dereference null pointer
+  tags:
+  - rust
+  - pointer
+- id: GHOST-RS-020
+  name: Rust env var secret
+  description: std::env::var for secret compare
+  severity: HIGH
+  cwe: CWE-208
+  owasp: A03:2021
+  languages:
+  - rust
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: std::env::var\s*\([^)]+\)(?=[\s\S]{0,100}==\s*["\'])
+    confidence: 0.87
+  fix: Use hmac::equal for timing-safe compare
+  tags:
+  - rust
+  - timing

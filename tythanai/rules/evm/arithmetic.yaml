@@ -1,0 +1,172 @@
+- id: GHOST-EVM-ARITH-001
+  name: Integer Overflow Pre-0.8
+  description: Arithmetic without SafeMath in <0.8
+  severity: HIGH
+  cwe: CWE-190
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: pragma solidity \^?0\.[0-7]
+    confidence: 0.88
+  fix: Upgrade to ^0.8.0 or use SafeMath
+  tags:
+  - arithmetic
+  - overflow
+- id: GHOST-EVM-ARITH-002
+  name: Unchecked Block Risk
+  description: unchecked block may hide overflow
+  severity: HIGH
+  cwe: CWE-190
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: unchecked\s*\{
+    confidence: 0.9
+  fix: Review all arithmetic inside unchecked blocks
+  tags:
+  - arithmetic
+  - unchecked
+- id: GHOST-EVM-ARITH-003
+  name: Division Before Multiplication
+  description: Precision loss from order
+  severity: MEDIUM
+  cwe: CWE-682
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: \w+\s*/\s*\w+\s*\*
+    confidence: 0.85
+  fix: Multiply before dividing
+  tags:
+  - arithmetic
+  - precision
+- id: GHOST-EVM-ARITH-004
+  name: Unsafe Downcast to uint8
+  description: Truncation on downcast
+  severity: HIGH
+  cwe: CWE-197
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: uint8\s*\(
+    confidence: 0.88
+  fix: Check range before casting to uint8
+  tags:
+  - arithmetic
+  - cast
+  - truncation
+- id: GHOST-EVM-ARITH-005
+  name: Division By totalSupply
+  description: Division by potentially zero supply
+  severity: HIGH
+  cwe: CWE-369
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: /\s*totalSupply\b(?!\s*>\s*0)
+    confidence: 0.85
+  fix: Require totalSupply > 0 before division
+  tags:
+  - arithmetic
+  - division-by-zero
+- id: GHOST-EVM-ARITH-006
+  name: Subtraction Underflow in unchecked
+  description: Subtraction may underflow
+  severity: HIGH
+  cwe: CWE-191
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: unchecked\s*\{[^}]*-
+    confidence: 0.88
+  fix: Add underflow guard inside unchecked
+  tags:
+  - arithmetic
+  - underflow
+- id: GHOST-EVM-ARITH-007
+  name: Accumulator Overflow
+  description: Running sum without cap
+  severity: HIGH
+  cwe: CWE-190
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: total\w+\s*\+=
+    confidence: 0.82
+  fix: Cap accumulator or use SafeMath
+  tags:
+  - arithmetic
+  - accumulator
+- id: GHOST-EVM-ARITH-008
+  name: Fee Precision Loss
+  description: Fee calc loses precision
+  severity: MEDIUM
+  cwe: CWE-682
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: amount\s*\*\s*fee\s*/\s*\d+
+    confidence: 0.8
+  fix: Use basis points for fee calculations
+  tags:
+  - arithmetic
+  - fee
+  - precision
+- id: GHOST-EVM-ARITH-009
+  name: Signed/Unsigned Comparison
+  description: Mixing int and uint in comparison
+  severity: MEDIUM
+  cwe: CWE-190
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: int\d*\s*\w+\s*[<>=]+\s*uint
+    confidence: 0.8
+  fix: Avoid mixing signed/unsigned comparisons
+  tags:
+  - arithmetic
+  - signedness
+- id: GHOST-EVM-ARITH-010
+  name: Timestamp Arithmetic Overflow
+  description: block.timestamp addition may wrap
+  severity: LOW
+  cwe: CWE-190
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: block\.timestamp\s*\+\s*\d
+    confidence: 0.75
+  fix: Validate timestamp arithmetic
+  tags:
+  - arithmetic
+  - timestamp

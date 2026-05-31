@@ -1,0 +1,574 @@
+- id: GHOST-TF-AWS-001
+  name: S3 public access
+  description: S3 bucket publicly accessible
+  severity: CRITICAL
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: acl\s*=\s*"public-read(?:-write)?"
+    confidence: 0.93
+  fix: Set bucket-level public access block
+  tags:
+  - aws
+  - s3
+  - public
+- id: GHOST-TF-AWS-002
+  name: S3 no encryption
+  description: S3 bucket without encryption
+  severity: HIGH
+  cwe: CWE-311
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: resource\s+"aws_s3_bucket"\s+"[^"]+"\s+\{(?![\s\S]{0,500}server_side_encryption)
+    confidence: 0.83
+  fix: Enable SSE-S3 or SSE-KMS encryption
+  tags:
+  - aws
+  - s3
+  - encryption
+- id: GHOST-TF-AWS-003
+  name: S3 no versioning
+  description: S3 bucket without versioning
+  severity: MEDIUM
+  cwe: CWE-693
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: resource\s+"aws_s3_bucket"\s+"[^"]+"\s+\{(?![\s\S]{0,500}versioning)
+    confidence: 0.8
+  fix: Enable S3 versioning for data protection
+  tags:
+  - aws
+  - s3
+- id: GHOST-TF-AWS-004
+  name: S3 no logging
+  description: S3 bucket without access logging
+  severity: MEDIUM
+  cwe: CWE-778
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: resource\s+"aws_s3_bucket"\s+"[^"]+"\s+\{(?![\s\S]{0,500}logging)
+    confidence: 0.78
+  fix: Enable S3 access logging
+  tags:
+  - aws
+  - s3
+  - logging
+- id: GHOST-TF-AWS-005
+  name: Security group all traffic
+  description: SG allows all inbound
+  severity: CRITICAL
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: cidr_blocks\s*=\s*\["0\.0\.0\.0/0"\]
+    confidence: 0.93
+  fix: Restrict security group ingress to required ranges
+  tags:
+  - aws
+  - sg
+  - network
+- id: GHOST-TF-AWS-006
+  name: Security group IPv6 all
+  description: SG allows all IPv6 inbound
+  severity: CRITICAL
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: ipv6_cidr_blocks\s*=\s*\["::/0"\]
+    confidence: 0.93
+  fix: Restrict IPv6 security group ingress
+  tags:
+  - aws
+  - sg
+  - network
+- id: GHOST-TF-AWS-007
+  name: RDS public access
+  description: RDS publicly accessible
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: publicly_accessible\s*=\s*true(?=[\s\S]{0,200}aws_db_instance)
+    confidence: 0.93
+  fix: Set publicly_accessible = false
+  tags:
+  - aws
+  - rds
+  - public
+- id: GHOST-TF-AWS-008
+  name: RDS no encryption
+  description: RDS without storage encryption
+  severity: HIGH
+  cwe: CWE-311
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: resource\s+"aws_db_instance"[^{]+\{(?![\s\S]{0,500}storage_encrypted\s*=\s*true)
+    confidence: 0.83
+  fix: Set storage_encrypted = true
+  tags:
+  - aws
+  - rds
+  - encryption
+- id: GHOST-TF-AWS-009
+  name: RDS no backup
+  description: RDS with backup_retention_period=0
+  severity: HIGH
+  cwe: CWE-693
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: backup_retention_period\s*=\s*0
+    confidence: 0.91
+  fix: Set backup_retention_period >= 7
+  tags:
+  - aws
+  - rds
+  - backup
+- id: GHOST-TF-AWS-010
+  name: RDS no deletion protection
+  description: RDS without deletion protection
+  severity: MEDIUM
+  cwe: CWE-693
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: resource\s+"aws_db_instance"[^{]+\{(?![\s\S]{0,500}deletion_protection\s*=\s*true)
+    confidence: 0.8
+  fix: Set deletion_protection = true
+  tags:
+  - aws
+  - rds
+- id: GHOST-TF-AWS-011
+  name: EC2 public IP
+  description: EC2 with auto public IP
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: associate_public_ip_address\s*=\s*true
+    confidence: 0.9
+  fix: Use NAT gateway; avoid direct public IPs
+  tags:
+  - aws
+  - ec2
+  - network
+- id: GHOST-TF-AWS-012
+  name: IAM admin policy
+  description: IAM policy with *:*
+  severity: CRITICAL
+  cwe: CWE-285
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: '"Action"\s*:\s*"\*"'
+    confidence: 0.93
+  fix: Use least-privilege IAM policies
+  tags:
+  - aws
+  - iam
+  - permissions
+- id: GHOST-TF-AWS-013
+  name: IAM wildcard resource
+  description: IAM policy with resource *
+  severity: HIGH
+  cwe: CWE-285
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: '"Resource"\s*:\s*"\*"'
+    confidence: 0.9
+  fix: Specify exact resource ARNs in IAM policies
+  tags:
+  - aws
+  - iam
+  - permissions
+- id: GHOST-TF-AWS-014
+  name: Lambda public URL
+  description: Lambda with public function URL
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: resource\s+"aws_lambda_function_url"[^{]+\{(?=[\s\S]{0,300}auth_type\s*=\s*"NONE")
+    confidence: 0.91
+  fix: Use auth_type = AWS_IAM for Lambda URLs
+  tags:
+  - aws
+  - lambda
+  - public
+- id: GHOST-TF-AWS-015
+  name: CloudTrail no encrypt
+  description: CloudTrail without encryption
+  severity: HIGH
+  cwe: CWE-311
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: resource\s+"aws_cloudtrail"[^{]+\{(?![\s\S]{0,500}kms_key_id)
+    confidence: 0.83
+  fix: Enable KMS encryption for CloudTrail
+  tags:
+  - aws
+  - cloudtrail
+  - encryption
+- id: GHOST-TF-AWS-016
+  name: EKS public endpoint
+  description: EKS cluster with public API
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: endpoint_public_access\s*=\s*true
+    confidence: 0.88
+  fix: Restrict EKS API endpoint to private or known CIDRs
+  tags:
+  - aws
+  - eks
+  - network
+- id: GHOST-TF-AWS-017
+  name: EKS no logging
+  description: EKS without cluster logging
+  severity: MEDIUM
+  cwe: CWE-778
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: resource\s+"aws_eks_cluster"[^{]+\{(?![\s\S]{0,600}enabled_cluster_log_types)
+    confidence: 0.8
+  fix: Enable EKS control plane logging
+  tags:
+  - aws
+  - eks
+  - logging
+- id: GHOST-TF-AWS-018
+  name: Elastic IP unrestricted
+  description: ElasticSearch public access
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: resource\s+"aws_elasticsearch_domain"[^{]+\{(?=[\s\S]{0,800}"AWS"\s*:\s*"\*")
+    confidence: 0.82
+  fix: Restrict Elasticsearch to VPC
+  tags:
+  - aws
+  - elasticsearch
+- id: GHOST-TF-AWS-019
+  name: ECR no image scan
+  description: ECR without scan on push
+  severity: MEDIUM
+  cwe: CWE-1104
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: resource\s+"aws_ecr_repository"[^{]+\{(?![\s\S]{0,300}scan_on_push\s*=\s*true)
+    confidence: 0.82
+  fix: Enable image scanning on push
+  tags:
+  - aws
+  - ecr
+  - security
+- id: GHOST-TF-AWS-020
+  name: Secrets in variables
+  description: Terraform variable with default secret
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: variable\s+"[^"]*(?:password|secret|key|token)[^"]*"\s+\{[^}]*default\s*=\s*"[^"]{4,}"
+    confidence: 0.9
+  fix: Never set secret defaults in variables
+  tags:
+  - terraform
+  - hardcoded
+- id: GHOST-TF-GCP-001
+  name: GCP compute public IP
+  description: GCP instance with external IP
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: access_config\s*\{(?![\s\S]{0,100}nat_ip\s*=\s*"")
+    confidence: 0.83
+  fix: Use internal IPs; avoid external compute addresses
+  tags:
+  - gcp
+  - compute
+- id: GHOST-TF-GCP-002
+  name: GCP bucket public
+  description: GCS bucket public access
+  severity: CRITICAL
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: role\s*=\s*"roles/storage\.objectViewer"(?=[\s\S]{0,100}member\s*=\s*"allUsers")
+    confidence: 0.93
+  fix: Remove allUsers/allAuthenticatedUsers IAM bindings
+  tags:
+  - gcp
+  - storage
+- id: GHOST-TF-GCP-003
+  name: GCP SQL public
+  description: Cloud SQL with public IP
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: ipv4_enabled\s*=\s*true(?=[\s\S]{0,100}google_sql_database_instance)
+    confidence: 0.88
+  fix: Disable public IP on Cloud SQL
+  tags:
+  - gcp
+  - sql
+- id: GHOST-TF-GCP-004
+  name: GCP logging disabled
+  description: GCP project without audit logging
+  severity: MEDIUM
+  cwe: CWE-778
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.77
+  patterns:
+  - type: regex
+    pattern: resource\s+"google_project"[^{]+\{(?![\s\S]{0,800}google_project_iam_audit_config)
+    confidence: 0.77
+  fix: Enable audit logging for all services
+  tags:
+  - gcp
+  - logging
+- id: GHOST-TF-AZ-001
+  name: Azure storage public
+  description: Azure storage with public access
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: allow_blob_public_access\s*=\s*true
+    confidence: 0.92
+  fix: Set allow_blob_public_access = false
+  tags:
+  - azure
+  - storage
+- id: GHOST-TF-AZ-002
+  name: Azure SQL public
+  description: Azure SQL with public endpoint
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: public_network_access_enabled\s*=\s*true(?=[\s\S]{0,100}azurerm_mssql)
+    confidence: 0.9
+  fix: Disable public network access on Azure SQL
+  tags:
+  - azure
+  - sql
+- id: GHOST-TF-AZ-003
+  name: Azure NSG allow all
+  description: Azure NSG allowing all traffic
+  severity: CRITICAL
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: access\s*=\s*"Allow"[^}]*source_address_prefix\s*=\s*"\*"
+    confidence: 0.91
+  fix: Restrict NSG rules to specific ranges
+  tags:
+  - azure
+  - nsg
+- id: GHOST-TF-AZ-004
+  name: Azure Key Vault no purge
+  description: Key Vault without purge protection
+  severity: HIGH
+  cwe: CWE-693
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: resource\s+"azurerm_key_vault"[^{]+\{(?![\s\S]{0,500}purge_protection_enabled\s*=\s*true)
+    confidence: 0.82
+  fix: Enable purge protection on Key Vault
+  tags:
+  - azure
+  - keyvault
+- id: GHOST-TF-AZ-005
+  name: Azure VM password auth
+  description: Azure VM with password auth
+  severity: HIGH
+  cwe: CWE-521
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: resource\s+"azurerm_linux_virtual_machine"[^{]+\{(?=[\s\S]{0,500}admin_password)
+    confidence: 0.85
+  fix: Prefer SSH key authentication over password
+  tags:
+  - azure
+  - vm
+- id: GHOST-TF-DOCKER-001
+  name: Privileged Docker Terraform
+  description: Privileged container via Terraform
+  severity: CRITICAL
+  cwe: CWE-250
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: privileged\s*=\s*true(?=[\s\S]{0,100}docker_container)
+    confidence: 0.93
+  fix: Set privileged = false
+  tags:
+  - docker
+  - privilege
+- id: GHOST-TF-SECRETS-001
+  name: Hardcoded credentials
+  description: Resource with hardcoded password
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|token|key)\s*=\s*"[^"${]{6,}"
+    confidence: 0.88
+  fix: Use aws_secretsmanager_secret or var references
+  tags:
+  - hardcoded
+  - secrets

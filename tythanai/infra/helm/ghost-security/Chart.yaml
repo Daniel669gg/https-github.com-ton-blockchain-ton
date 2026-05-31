@@ -1,0 +1,18 @@
+apiVersion: v2
+name: ghost-security
+description: TythanAI Platform v13 - Multi-chain Web3 Security Scanner
+type: application
+version: 13.0.0
+appVersion: "13.0.0"
+maintainers:
+  - name: TythanAI Team
+keywords:
+  - security
+  - web3
+  - blockchain
+  - solidity
+  - defi
+  - smart-contracts
+home: https://github.com/ton-blockchain/ghost_security
+sources:
+  - https://github.com/ton-blockchain/ghost_security

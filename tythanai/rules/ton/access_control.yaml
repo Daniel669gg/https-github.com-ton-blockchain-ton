@@ -1,0 +1,17 @@
+- id: GHOST-TON-AC-001
+  name: Missing sender validation before privileged operation
+  description: Privileged operation executed without equal_slices() sender check
+  severity: CRITICAL
+  cwe: CWE-284
+  languages: [ton]
+  confidence: 0.85
+  patterns:
+    - type: regex
+      pattern: 'set_code\s*\('
+      confidence: 0.85
+    - type: regex
+      pattern: 'equal_slices\s*\('
+      negate: true
+      confidence: 0.85
+  fix: "Add: throw_unless(error::unauthorized, equal_slices(sender, storage::owner));"
+  tags: [access-control, ton, upgrade]

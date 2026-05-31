@@ -1,0 +1,23 @@
+{
+  "name": "FunC",
+  "scopeName": "source.func",
+  "fileTypes": ["fc", "func"],
+  "patterns": [
+    {"name": "comment.line.double-slash.func", "match": ";;.*$"},
+    {"name": "keyword.control.func",
+     "match": "\\b(if|else|elseif|while|do|until|return|repeat|throw|throw_if|throw_unless|accept_message|send_raw_message|raw_reserve|randomize_lt)\\b"},
+    {"name": "storage.type.func",
+     "match": "\\b(int|cell|slice|builder|tuple|cont|var|_)\\b"},
+    {"name": "keyword.other.func",
+     "match": "\\b(impure|inline|inline_ref|method_id|forall|global|const|asm|rec)\\b"},
+    {"name": "keyword.operator.func",
+     "match": "\\b(begin_cell|end_cell|begin_parse|end_parse|store_uint|load_uint|store_slice|load_ref|equal_slices)\\b"},
+    {"name": "string.quoted.double.func", "match": "\"[^\"]*\""},
+    {"name": "constant.numeric.hex.func", "match": "0x[0-9a-fA-F]+"},
+    {"name": "constant.numeric.func", "match": "\\b[0-9]+\\b"},
+    {"name": "variable.language.func",
+     "match": "\\b(now|cur_lt|block_lt|my_balance|get_balance|my_address|get_data|set_data)\\b"},
+    {"name": "entity.name.function.func",
+     "match": "(?<=^|\\s)([a-z_][a-zA-Z0-9_]*)(?=\\s*\\()"}
+  ]
+}

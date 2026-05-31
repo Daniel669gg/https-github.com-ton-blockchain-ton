@@ -1,0 +1,39 @@
+# Ghost Security Platform v3.0 — Production Dependencies
+
+# ── API & Web ──────────────────────────────────────────────────────
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+pydantic>=2.0.0
+python-multipart>=0.0.9
+
+# ── LLM Providers ─────────────────────────────────────────────────
+openai>=1.30.0           # OpenAI + any OpenAI-compatible API
+# anthropic>=0.25.0      # Claude SDK (optional, router uses raw HTTP)
+# google-generativeai>=0.5.0  # Gemini (optional)
+
+# ── Vector Memory ─────────────────────────────────────────────────
+chromadb>=0.4.24         # ChromaDB fallback (always installed)
+# qdrant-client>=1.9.0   # Qdrant (install separately for production)
+
+# ── Security Scanners ─────────────────────────────────────────────
+bandit>=1.7.7
+# semgrep>=1.70.0        # install separately: pip install semgrep
+
+# ── Kubernetes ────────────────────────────────────────────────────
+PyYAML>=6.0.1            # YAML manifest parsing
+
+# ── HTTP / GitHub ─────────────────────────────────────────────────
+requests>=2.31.0
+httpx>=0.27.0
+
+# ── Utilities ─────────────────────────────────────────────────────
+python-dotenv>=1.0.0
+
+# ── Telemetry (optional) ──────────────────────────────────────────
+# opentelemetry-sdk>=1.24.0
+# opentelemetry-exporter-otlp>=1.24.0
+# prometheus-client>=0.20.0
+
+# ── Testing ───────────────────────────────────────────────────────
+pytest>=8.0.0
+pytest-asyncio>=0.23.0

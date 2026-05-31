@@ -1,0 +1,146 @@
+{
+  "name": "ghost-security",
+  "displayName": "Ghost Security",
+  "description": "Real-time security scanning for 3000+ vulnerability patterns. TON/Web3, Ethereum, Solana, Python, JS, Go, Java, Solidity and more.",
+  "version": "2.1.0",
+  "publisher": "ghost-security",
+  "license": "MIT",
+  "homepage": "https://ghost-security.io",
+  "bugs": {"url": "https://github.com/ghost-security/vscode-extension/issues"},
+  "repository": {"type": "git", "url": "https://github.com/ghost-security/vscode-extension"},
+  "engines": {"vscode": "^1.85.0"},
+  "categories": ["Linters", "Other"],
+  "keywords": ["security", "vulnerability", "sast", "blockchain", "ton", "solidity", "ethereum", "solana", "audit", "defi", "web3"],
+  "icon": "media/ghost-icon.png",
+  "galleryBanner": {"color": "#1a1a2e", "theme": "dark"},
+  "qna": "marketplace",
+  "repository": { "type": "git", "url": "https://github.com/ghost-security/vscode-extension" },
+  "activationEvents": ["onStartupFinished"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {"command": "ghost.scanFile",       "title": "Ghost Security: Scan Current File",      "icon": "$(shield)"},
+      {"command": "ghost.scanWorkspace",  "title": "Ghost Security: Scan Workspace",          "icon": "$(search)"},
+      {"command": "ghost.showFindings",   "title": "Ghost Security: Show Findings Panel",     "icon": "$(list-unordered)"},
+      {"command": "ghost.clearFindings",  "title": "Ghost Security: Clear Findings",          "icon": "$(clear-all)"},
+      {"command": "ghost.openSettings",   "title": "Ghost Security: Open Settings",           "icon": "$(gear)"},
+      {"command": "ghost.showRuleInfo",   "title": "Ghost Security: Show Rule Information",   "icon": "$(info)"},
+      {"command": "ghost.runQuickFix",    "title": "Ghost Security: Apply Quick Fix",         "icon": "$(lightbulb)"},
+      {"command": "ghost.exportSarif",    "title": "Ghost Security: Export SARIF Report",     "icon": "$(export)"},
+      {"command": "ghost.exportJson",     "title": "Ghost Security: Export JSON Report",      "icon": "$(file-code)"},
+      {"command": "ghost.updateRules",    "title": "Ghost Security: Update Rules from CDN",   "icon": "$(cloud-download)"}
+    ],
+    "configuration": {
+      "title": "Ghost Security",
+      "properties": {
+        "ghostSecurity.cliPath": {
+          "type": "string",
+          "default": "ghost",
+          "description": "Path to the Ghost Security CLI executable"
+        },
+        "ghostSecurity.scanOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically scan files on save"
+        },
+        "ghostSecurity.scanOnOpen": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically scan files when opened"
+        },
+        "ghostSecurity.minSeverity": {
+          "type": "string",
+          "enum": ["INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL"],
+          "default": "MEDIUM",
+          "description": "Minimum severity level to show in editor"
+        },
+        "ghostSecurity.rulesDir": {
+          "type": "string",
+          "default": "",
+          "description": "Custom path to rules directory (leave empty for defaults)"
+        },
+        "ghostSecurity.enabledLanguages": {
+          "type": "array",
+          "items": {"type": "string"},
+          "default": ["python", "javascript", "typescript", "java", "go", "php", "ruby", "rust", "solidity"],
+          "description": "Languages to scan"
+        },
+        "ghostSecurity.showInlineHints": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show inline code lens hints for findings"
+        },
+        "ghostSecurity.maxFindingsPerFile": {
+          "type": "number",
+          "default": 100,
+          "description": "Maximum findings to display per file"
+        },
+        "ghostSecurity.suppressedRules": {
+          "type": "array",
+          "items": {"type": "string"},
+          "default": [],
+          "description": "Rule IDs to suppress"
+        },
+        "ghostSecurity.auditMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable full audit mode (slower, more thorough)"
+        }
+      }
+    },
+    "menus": {
+      "editor/context": [
+        {"command": "ghost.scanFile",     "group": "ghost@1", "when": "editorIsOpen"},
+        {"command": "ghost.showFindings", "group": "ghost@2"},
+        {"command": "ghost.runQuickFix",  "group": "ghost@3", "when": "editorHasSelection"}
+      ],
+      "explorer/context": [
+        {"command": "ghost.scanWorkspace", "group": "ghost@1"}
+      ],
+      "editor/title": [
+        {"command": "ghost.scanFile", "group": "navigation", "when": "resourceExtname =~ /\\.(py|js|ts|java|go|php|rb|rs|sol)$/"}
+      ]
+    },
+    "keybindings": [
+      {"command": "ghost.scanFile",      "key": "ctrl+shift+g s", "mac": "cmd+shift+g s"},
+      {"command": "ghost.scanWorkspace", "key": "ctrl+shift+g w", "mac": "cmd+shift+g w"},
+      {"command": "ghost.showFindings",  "key": "ctrl+shift+g f", "mac": "cmd+shift+g f"}
+    ],
+    "views": {
+      "ghost-security": [
+        {
+          "id": "ghostSecurityFindings",
+          "name": "Findings",
+          "icon": "$(shield)"
+        },
+        {
+          "id": "ghost.historyView",
+          "name": "Scan History",
+          "icon": "$(history)"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "ghost-security",
+          "title": "Ghost Security",
+          "icon": "$(shield)"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "node build.js",
+    "compile": "node build.js",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0",
+    "@vscode/vsce": "^2.24.0"
+  }
+}

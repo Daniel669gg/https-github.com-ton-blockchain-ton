@@ -1,0 +1,999 @@
+- id: GHOST-JS-SQL-001
+  name: Node.js SQL injection
+  description: MySQL query with user input
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: query\s*\(["\'][^"\']*\+[^"\']*\+|query\s*\(`[^`]*\$\{
+    confidence: 0.92
+  fix: Use parameterized queries
+  tags:
+  - sql
+  - injection
+- id: GHOST-JS-SQL-002
+  name: Sequelize raw injection
+  description: Sequelize query() with user input
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: sequelize\.query\s*\([^)]*\+[^)]*req\.|sequelize\.query\s*\(`[^`]*\$\{req\.
+    confidence: 0.9
+  fix: Use Sequelize replacements or bind
+  tags:
+  - sql
+  - sequelize
+- id: GHOST-JS-SQL-003
+  name: Knex raw injection
+  description: Knex raw() with user string
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.89
+  patterns:
+  - type: regex
+    pattern: knex\.raw\s*\([^)]*\+[^)]*req\.|knex\.raw\s*\(`[^`]*\$\{
+    confidence: 0.89
+  fix: Use Knex raw bindings
+  tags:
+  - sql
+  - knex
+- id: GHOST-JS-SQL-004
+  name: pg query injection
+  description: node-postgres query with concat
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: client\.query\s*\([^)]*\+[^)]*req\.|pool\.query\s*\([^)]*\+[^)]*req\.
+    confidence: 0.91
+  fix: Use parameterized queries with $1 placeholders
+  tags:
+  - sql
+  - postgres
+- id: GHOST-JS-SQL-005
+  name: MongoDB injection
+  description: MongoDB find() with user object
+  severity: HIGH
+  cwe: CWE-943
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: \.find\s*\(\s*\{[^}]*req\.\w+|\.findOne\s*\(\s*\{[^}]*req\.\w+
+    confidence: 0.88
+  fix: Validate all MongoDB query inputs
+  tags:
+  - nosql
+  - mongodb
+- id: GHOST-JS-SQL-006
+  name: Mongoose injection
+  description: Mongoose query with user where
+  severity: HIGH
+  cwe: CWE-943
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: \.where\s*\([^)]*req\.\w+\s*\)(?!\s*\.\s*equals)
+    confidence: 0.86
+  fix: Use .equals() for equality checks
+  tags:
+  - nosql
+  - mongoose
+- id: GHOST-JS-SQL-007
+  name: Redis injection
+  description: Redis execute with user command
+  severity: HIGH
+  cwe: CWE-943
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: redis\.(?:eval|evalsha|sendCommand)\s*\([^)]*req\.
+    confidence: 0.85
+  fix: Validate Redis commands
+  tags:
+  - redis
+  - injection
+- id: GHOST-JS-CMD-001
+  name: child_process exec injection
+  description: exec() with user input
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: (?:exec|execSync)\s*\([^)]*(?:req\.|params\.|query\.|body\.)
+    confidence: 0.93
+  fix: Use execFile with args array; never exec user input
+  tags:
+  - command
+  - injection
+- id: GHOST-JS-CMD-002
+  name: child_process shell injection
+  description: spawn with shell:true
+  severity: HIGH
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: spawn\s*\([^)]*shell\s*:\s*true
+    confidence: 0.91
+  fix: Use spawn without shell option
+  tags:
+  - command
+  - injection
+- id: GHOST-JS-CMD-003
+  name: execFile user arg
+  description: execFile with user-controlled args
+  severity: HIGH
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: execFile\s*\([^)]*req\.\w+\s*\)
+    confidence: 0.87
+  fix: Validate and whitelist arguments
+  tags:
+  - command
+  - injection
+- id: GHOST-JS-CMD-004
+  name: eval() Node.js
+  description: eval with user-controlled code
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: \beval\s*\([^)]*(?:req\.|body\.|params\.)
+    confidence: 0.93
+  fix: Never eval user-controlled code
+  tags:
+  - eval
+  - injection
+- id: GHOST-JS-CMD-005
+  name: vm.runInNewContext
+  description: vm module with user code
+  severity: HIGH
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: vm\.(?:runInNewContext|runInThisContext|Script)\s*\([^)]*req\.
+    confidence: 0.88
+  fix: Sandboxing via vm is insufficient; use isolated-vm
+  tags:
+  - eval
+  - vm
+- id: GHOST-JS-SSRF-001
+  name: axios SSRF
+  description: axios request with user URL
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: axios\.\w+\s*\([^)]*(?:req\.|params\.|query\.|body\.)
+    confidence: 0.88
+  fix: Validate URL against allowlist before axios call
+  tags:
+  - ssrf
+  - axios
+- id: GHOST-JS-SSRF-002
+  name: fetch SSRF
+  description: fetch() with user URL
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: \bfetch\s*\([^)]*(?:req\.|params\.|query\.|body\.)
+    confidence: 0.87
+  fix: Validate URL against allowlist
+  tags:
+  - ssrf
+  - fetch
+- id: GHOST-JS-SSRF-003
+  name: node-fetch SSRF
+  description: node-fetch with user URL
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: nodeFetch\s*\([^)]*(?:req\.|params\.|query\.)
+    confidence: 0.87
+  fix: Validate URL against allowlist
+  tags:
+  - ssrf
+  - fetch
+- id: GHOST-JS-SSRF-004
+  name: got SSRF
+  description: got() with user URL
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A10:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: \bgot\s*\([^)]*(?:req\.|params\.|query\.|body\.)
+    confidence: 0.86
+  fix: Validate URL against allowlist
+  tags:
+  - ssrf
+  - got
+- id: GHOST-JS-PATH-001
+  name: path traversal readFile
+  description: fs.readFile with user path
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A01:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: fs\.(?:readFile|readFileSync)\s*\([^)]*(?:req\.|params\.|query\.|body\.)
+    confidence: 0.9
+  fix: Validate path against allowed directory
+  tags:
+  - path
+  - traversal
+- id: GHOST-JS-PATH-002
+  name: path traversal writeFile
+  description: fs.writeFile with user path
+  severity: CRITICAL
+  cwe: CWE-22
+  owasp: A01:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: fs\.(?:writeFile|writeFileSync)\s*\([^)]*(?:req\.|params\.|query\.)
+    confidence: 0.91
+  fix: Validate path is within allowed directory
+  tags:
+  - path
+  - traversal
+- id: GHOST-JS-PATH-003
+  name: path traversal unlink
+  description: fs.unlink with user path
+  severity: CRITICAL
+  cwe: CWE-22
+  owasp: A01:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: fs\.(?:unlink|unlinkSync|rmdir|rm)\s*\([^)]*(?:req\.|params\.|query\.)
+    confidence: 0.91
+  fix: Validate path before deletion
+  tags:
+  - path
+  - traversal
+- id: GHOST-JS-PATH-004
+  name: Express static traversal
+  description: serve-static with user path
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A01:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.89
+  patterns:
+  - type: regex
+    pattern: express\.static\s*\([^)]*(?:req\.|params\.)
+    confidence: 0.89
+  fix: Never pass user input to express.static()
+  tags:
+  - path
+  - express
+- id: GHOST-JS-PROTO-001
+  name: Prototype pollution assign
+  description: Object.assign with user object
+  severity: HIGH
+  cwe: CWE-1321
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: Object\.assign\s*\([^,]*(?:req\.|body\.|params\.)|\{\s*\.\.\.[^}]*(?:req\.|body\.)
+    confidence: 0.87
+  fix: Block __proto__ and constructor keys
+  tags:
+  - prototype
+  - pollution
+- id: GHOST-JS-PROTO-002
+  name: Prototype pollution merge
+  description: Deep merge with user object
+  severity: HIGH
+  cwe: CWE-1321
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: (?:merge|deepMerge|lodash\.merge)\s*\([^)]*(?:req\.|body\.|params\.)
+    confidence: 0.86
+  fix: Use Object.create(null) or sanitize keys
+  tags:
+  - prototype
+  - pollution
+- id: GHOST-JS-PROTO-003
+  name: __proto__ assignment
+  description: Direct __proto__ manipulation
+  severity: CRITICAL
+  cwe: CWE-1321
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: __proto__\s*\[|\[.__proto__.\]
+    confidence: 0.93
+  fix: Never allow user-controlled __proto__
+  tags:
+  - prototype
+  - pollution
+- id: GHOST-JS-PROTO-004
+  name: constructor.prototype
+  description: constructor.prototype manipulation
+  severity: CRITICAL
+  cwe: CWE-1321
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: constructor\s*\[\s*["\']prototype["\']|constructor\.prototype\s*=
+    confidence: 0.91
+  fix: Sanitize user objects before merge
+  tags:
+  - prototype
+  - pollution
+- id: GHOST-JS-OPEN-001
+  name: Open redirect Express
+  description: res.redirect with user URL
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A01:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: res\.redirect\s*\([^)]*(?:req\.|params\.|query\.)
+    confidence: 0.88
+  fix: Validate URL against allowlist before redirect
+  tags:
+  - redirect
+- id: GHOST-JS-OPEN-002
+  name: window.location redirect
+  description: window.location from user input
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A01:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: window\.location\s*=\s*[^;]*(?:req\.|params\.|query\.)
+    confidence: 0.87
+  fix: Validate URL before assigning to window.location
+  tags:
+  - redirect
+- id: GHOST-JS-DESER-001
+  name: JSON parse untrusted
+  description: JSON.parse with user string (no schema)
+  severity: MEDIUM
+  cwe: CWE-502
+  owasp: A08:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: JSON\.parse\s*\([^)]*(?:req\.|body\.|params\.)(?!.*schema|.*validate|.*joi|.*zod)
+    confidence: 0.8
+  fix: Validate parsed JSON schema with joi/zod
+  tags:
+  - deserialization
+  - json
+- id: GHOST-JS-DESER-002
+  name: node-serialize
+  description: node-serialize deserialize injection
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A08:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.94
+  patterns:
+  - type: regex
+    pattern: serialize\.unserialize\s*\(
+    confidence: 0.94
+  fix: Never use node-serialize; switch to JSON
+  tags:
+  - deserialization
+- id: GHOST-JS-DESER-003
+  name: YAML unsafe load JS
+  description: js-yaml safeLoad deprecated
+  severity: HIGH
+  cwe: CWE-502
+  owasp: A08:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.89
+  patterns:
+  - type: regex
+    pattern: yaml\.load\s*\([^)]*(?:req\.|body\.)(?!.*schema)
+    confidence: 0.89
+  fix: Use yaml.safeLoad() with DEFAULT_SAFE_SCHEMA
+  tags:
+  - deserialization
+  - yaml
+- id: GHOST-JS-REGEX-001
+  name: ReDoS user pattern
+  description: new RegExp() with user input
+  severity: HIGH
+  cwe: CWE-730
+  owasp: A06:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: new\s+RegExp\s*\([^)]*(?:req\.|params\.|query\.|body\.)
+    confidence: 0.88
+  fix: Never compile user-supplied regex patterns
+  tags:
+  - redos
+  - regex
+- id: GHOST-JS-CORS-001
+  name: CORS wildcard origin
+  description: 'Access-Control-Allow-Origin: *'
+  severity: MEDIUM
+  cwe: CWE-942
+  owasp: A05:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: Access-Control-Allow-Origin.*\*|cors\s*\(\s*\)
+    confidence: 0.87
+  fix: Restrict CORS origins to known domains
+  tags:
+  - cors
+- id: GHOST-JS-CORS-002
+  name: CORS reflect origin
+  description: Reflecting request Origin header
+  severity: HIGH
+  cwe: CWE-942
+  owasp: A05:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.89
+  patterns:
+  - type: regex
+    pattern: res\.setHeader\s*\(["\']Access-Control-Allow-Origin["\'],\s*req\.headers\.origin
+    confidence: 0.89
+  fix: Validate origin against allowlist
+  tags:
+  - cors
+- id: GHOST-JS-UPLOAD-001
+  name: Multer no type check
+  description: Multer upload without mimetype check
+  severity: HIGH
+  cwe: CWE-434
+  owasp: A04:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: multer\s*\(\s*\{(?!.*fileFilter|.*limits)
+    confidence: 0.86
+  fix: Add fileFilter and limits to multer config
+  tags:
+  - upload
+  - multer
+- id: GHOST-JS-UPLOAD-002
+  name: busboy no size limit
+  description: busboy without file size limit
+  severity: HIGH
+  cwe: CWE-434
+  owasp: A04:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: busboy\s*\(\s*\{(?!.*limits)
+    confidence: 0.85
+  fix: Set limits.fileSize in busboy config
+  tags:
+  - upload
+  - busboy
+- id: GHOST-JS-RATE-001
+  name: No rate limiting on login
+  description: Express login route without rate limit
+  severity: HIGH
+  cwe: CWE-307
+  owasp: A07:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: router\.post\s*\(["\']\/(?:login|signin|auth)["\'][^)]*\)(?!.*rateLimit|.*throttle|.*limiter)
+    confidence: 0.78
+  fix: Add express-rate-limit to auth routes
+  tags:
+  - auth
+  - bruteforce
+- id: GHOST-JS-CSRF-001
+  name: No CSRF on state change
+  description: POST route without CSRF middleware
+  severity: HIGH
+  cwe: CWE-352
+  owasp: A01:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.76
+  patterns:
+  - type: regex
+    pattern: router\.post\s*\([^)]+\)(?!.*csrf|.*csurf)
+    confidence: 0.76
+  fix: Add csurf or custom CSRF protection
+  tags:
+  - csrf
+- id: GHOST-JS-HELMET-001
+  name: Helmet not used
+  description: Express app without helmet
+  severity: MEDIUM
+  cwe: CWE-693
+  owasp: A05:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: express\s*\(\s*\)(?!.*helmet)
+    confidence: 0.78
+  fix: Add helmet() middleware to Express apps
+  tags:
+  - headers
+  - express
+- id: GHOST-JS-TIMING-001
+  name: Timing attack comparison
+  description: String equality for token/hash
+  severity: HIGH
+  cwe: CWE-208
+  owasp: A07:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: (?:token|hash|secret|hmac)\s*===?\s*(?:req\.|expected|stored)
+    confidence: 0.85
+  fix: Use crypto.timingSafeEqual() for secret comparison
+  tags:
+  - timing
+  - crypto
+- id: GHOST-JS-JWT-001
+  name: JWT decode without verify
+  description: jsonwebtoken decode not verify
+  severity: CRITICAL
+  cwe: CWE-347
+  owasp: A02:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: jwt\.decode\s*\([^)]*\)(?!.*jwt\.verify)
+    confidence: 0.92
+  fix: Use jwt.verify() with secret/public key
+  tags:
+  - jwt
+  - auth
+- id: GHOST-JS-JWT-002
+  name: JWT none algorithm
+  description: JWT accepting none algorithm
+  severity: CRITICAL
+  cwe: CWE-347
+  owasp: A02:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: algorithms\s*:\s*\[[^\]]*["\']none["\']
+    confidence: 0.93
+  fix: Explicitly reject none algorithm
+  tags:
+  - jwt
+  - auth
+- id: GHOST-JS-COOKIE-001
+  name: Cookie without HttpOnly
+  description: Cookie set without httpOnly
+  severity: MEDIUM
+  cwe: CWE-1004
+  owasp: A05:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: res\.cookie\s*\([^)]*\)(?!.*httpOnly|.*httponly)
+    confidence: 0.83
+  fix: 'Set httpOnly: true on session cookies'
+  tags:
+  - cookie
+- id: GHOST-JS-COOKIE-002
+  name: Cookie without Secure
+  description: Cookie without secure flag
+  severity: MEDIUM
+  cwe: CWE-614
+  owasp: A05:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: res\.cookie\s*\([^)]*\)(?!.*secure\s*:\s*true)
+    confidence: 0.82
+  fix: 'Set secure: true on production cookies'
+  tags:
+  - cookie
+- id: GHOST-JS-COOKIE-003
+  name: Cookie without SameSite
+  description: Cookie without SameSite
+  severity: MEDIUM
+  cwe: CWE-352
+  owasp: A01:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.81
+  patterns:
+  - type: regex
+    pattern: res\.cookie\s*\([^)]*\)(?!.*sameSite|.*samesite)
+    confidence: 0.81
+  fix: 'Set sameSite: "strict" on auth cookies'
+  tags:
+  - cookie
+  - csrf
+- id: GHOST-JS-HASH-001
+  name: MD5 in Node.js
+  description: crypto.createHash md5
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A02:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: createHash\s*\(["\']md5["\']
+    confidence: 0.91
+  fix: Use SHA-256 or SHA-3
+  tags:
+  - crypto
+  - md5
+- id: GHOST-JS-HASH-002
+  name: SHA1 in Node.js
+  description: crypto.createHash sha1
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A02:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: createHash\s*\(["\']sha1["\']
+    confidence: 0.91
+  fix: Use SHA-256 or SHA-3
+  tags:
+  - crypto
+  - sha1
+- id: GHOST-JS-RAND-001
+  name: Math.random for secrets
+  description: Math.random() for token/secret
+  severity: HIGH
+  cwe: CWE-338
+  owasp: A02:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: Math\.random\s*\(\s*\)(?=.*(?:token|secret|key|password|nonce))
+    confidence: 0.88
+  fix: Use crypto.randomBytes() or crypto.randomUUID()
+  tags:
+  - crypto
+  - random
+- id: GHOST-JS-ENV-001
+  name: Hardcoded AWS key JS
+  description: AWS credentials in JS
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: AKIA[0-9A-Z]{16}
+    confidence: 0.95
+  fix: Use environment variables or IAM roles
+  tags:
+  - hardcoded
+  - aws
+- id: GHOST-JS-ENV-002
+  name: Hardcoded private key JS
+  description: Private key literal in JS
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A02:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.96
+  patterns:
+  - type: regex
+    pattern: '-----BEGIN (?:RSA |EC )?PRIVATE KEY-----'
+    confidence: 0.96
+  fix: Store keys in secrets manager
+  tags:
+  - hardcoded
+  - key
+- id: GHOST-JS-ENV-003
+  name: process.env in client bundle
+  description: process.env in browser bundle
+  severity: HIGH
+  cwe: CWE-312
+  owasp: A02:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: process\.env\.\w+(?!.*NEXT_PUBLIC|.*REACT_APP)(?=.*export|.*window\.)
+    confidence: 0.8
+  fix: Never expose server env vars to client bundle
+  tags:
+  - hardcoded
+  - env
+- id: GHOST-JS-NOSQL-001
+  name: GraphQL injection
+  description: GraphQL query string concat
+  severity: HIGH
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: gql`[^`]*\$\{[^}]*req\.|gql\s*\([^)]*\+[^)]*req\.
+    confidence: 0.88
+  fix: Use GraphQL variables, not string interpolation
+  tags:
+  - graphql
+  - injection
+- id: GHOST-JS-LOG-001
+  name: Console log credentials
+  description: console.log with password/token
+  severity: HIGH
+  cwe: CWE-312
+  owasp: A09:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: console\.(?:log|info|debug)\s*\([^)]*(?:password|token|secret|key)
+    confidence: 0.87
+  fix: Remove credential logging
+  tags:
+  - logging
+  - credentials
+- id: GHOST-JS-DOS-001
+  name: Regex catastrophic
+  description: Catastrophic regex backtracking
+  severity: HIGH
+  cwe: CWE-730
+  owasp: A06:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.79
+  patterns:
+  - type: regex
+    pattern: \/(?:[^\/]*\+){2,}[^\/]*\/|\/(?:[^\/]*\*){2,}
+    confidence: 0.79
+  fix: Review regex for catastrophic backtracking
+  tags:
+  - redos
+- id: GHOST-JS-ZIP-001
+  name: Zip slip
+  description: Extract archive with user-supplied filename
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A01:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: (?:extract|unzip)\s*\([^)]*(?:req\.|params\.|body\.)
+    confidence: 0.86
+  fix: Validate archive entry paths against extraction directory
+  tags:
+  - path
+  - zip
+- id: GHOST-JS-XML-001
+  name: XXE via xml2js
+  description: xml2js with external entity
+  severity: MEDIUM
+  cwe: CWE-611
+  owasp: A05:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: xml2js\.parseString\s*\([^)]*req\.
+    confidence: 0.85
+  fix: Disable external entity processing
+  tags:
+  - xxe
+  - xml
+- id: GHOST-JS-XML-002
+  name: libxmljs XXE
+  description: libxmljs without noent
+  severity: HIGH
+  cwe: CWE-611
+  owasp: A05:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: libxml\.parseXmlString\s*\([^,)]+\)
+    confidence: 0.85
+  fix: Use noent:false option
+  tags:
+  - xxe
+  - xml
+- id: GHOST-JS-MISC-001
+  name: Insecure randomUUID
+  description: uuid v1 for security token
+  severity: MEDIUM
+  cwe: CWE-330
+  owasp: A02:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: uuid\.v1\s*\(\s*\)(?=.*(?:token|secret|session))
+    confidence: 0.83
+  fix: Use crypto.randomUUID() for security tokens
+  tags:
+  - crypto
+  - uuid

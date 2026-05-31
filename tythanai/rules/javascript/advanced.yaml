@@ -1,0 +1,179 @@
+- id: GHOST-JS-ADV-001
+  name: Prototype Pollution
+  description: __proto__ or constructor.prototype manipulation
+  severity: CRITICAL
+  cwe: CWE-1321
+  owasp: A01:2021
+  languages:
+  - javascript
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: __proto__|constructor\.prototype
+    confidence: 0.92
+  fix: Use Object.create(null) or validate keys
+  tags:
+  - javascript
+  - prototype-pollution
+- id: GHOST-JS-ADV-002
+  name: ReDoS Vulnerability
+  description: Regular expression vulnerable to backtracking
+  severity: HIGH
+  cwe: CWE-1333
+  owasp: A01:2021
+  languages:
+  - javascript
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: \(\.\+\)\+|\(\w\+\)\+
+    confidence: 0.85
+  fix: Use linear-time regex or input length limits
+  tags:
+  - javascript
+  - redos
+  - regex
+- id: GHOST-JS-ADV-003
+  name: Insecure postMessage
+  description: postMessage without origin check
+  severity: HIGH
+  cwe: CWE-346
+  owasp: A01:2021
+  languages:
+  - javascript
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: addEventListener\s*\(\s*['\"]message['\"](?!.*origin)
+    confidence: 0.88
+  fix: Validate event.origin in message handlers
+  tags:
+  - javascript
+  - postmessage
+  - origin
+- id: GHOST-JS-ADV-004
+  name: localStorage Sensitive Data
+  description: Sensitive data stored in localStorage
+  severity: HIGH
+  cwe: CWE-312
+  owasp: A01:2021
+  languages:
+  - javascript
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: localStorage\.setItem\s*\(.*(?:token|password|secret|key)
+    confidence: 0.85
+  fix: Use sessionStorage or secure httpOnly cookies
+  tags:
+  - javascript
+  - localstorage
+  - sensitive-data
+- id: GHOST-JS-ADV-005
+  name: Dangerous innerHTML
+  description: innerHTML with user data enables XSS
+  severity: CRITICAL
+  cwe: CWE-79
+  owasp: A01:2021
+  languages:
+  - javascript
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: innerHTML\s*=\s*\w+(?!.*DOMPurify|.*sanitize)
+    confidence: 0.95
+  fix: Use DOMPurify.sanitize() before innerHTML
+  tags:
+  - javascript
+  - xss
+  - innerhtml
+- id: GHOST-JS-ADV-006
+  name: eval with Dynamic String
+  description: eval() with concatenated string
+  severity: CRITICAL
+  cwe: CWE-95
+  owasp: A01:2021
+  languages:
+  - javascript
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: eval\s*\(\s*\w+\s*\+
+    confidence: 0.95
+  fix: Never eval dynamic strings
+  tags:
+  - javascript
+  - eval
+  - injection
+- id: GHOST-JS-ADV-007
+  name: Disabled CSP
+  description: Content Security Policy disabled
+  severity: HIGH
+  cwe: CWE-693
+  owasp: A01:2021
+  languages:
+  - javascript
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: Content-Security-Policy.*unsafe-inline.*unsafe-eval
+    confidence: 0.85
+  fix: Remove unsafe-inline and unsafe-eval from CSP
+  tags:
+  - javascript
+  - csp
+  - security-headers
+- id: GHOST-JS-ADV-008
+  name: CORS Wildcard
+  description: CORS allows all origins
+  severity: HIGH
+  cwe: CWE-942
+  owasp: A01:2021
+  languages:
+  - javascript
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: Access-Control-Allow-Origin.*\*
+    confidence: 0.88
+  fix: Restrict CORS to known origins
+  tags:
+  - javascript
+  - cors
+  - wildcard
+- id: GHOST-JS-ADV-009
+  name: SQL Injection via Template Literal
+  description: SQL built with template literal
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A01:2021
+  languages:
+  - javascript
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: SELECT.*\$\{|INSERT.*\$\{|UPDATE.*\$\{
+    confidence: 0.95
+  fix: Use parameterized queries
+  tags:
+  - javascript
+  - sql-injection
+  - template-literal
+- id: GHOST-JS-ADV-010
+  name: Path Traversal in fs
+  description: fs.readFile with user-supplied path
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A01:2021
+  languages:
+  - javascript
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: fs\.readFile\s*\(\s*(?:req\.|request\.)
+    confidence: 0.9
+  fix: Sanitize and validate file paths
+  tags:
+  - javascript
+  - path-traversal
+  - nodejs

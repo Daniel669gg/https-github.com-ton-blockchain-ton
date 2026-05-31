@@ -1,0 +1,340 @@
+- id: GHOST-DK-ROOT-001
+  name: Container as root
+  description: Running as root in Dockerfile
+  severity: HIGH
+  cwe: CWE-250
+  owasp: A05:2021
+  languages:
+  - dockerfile
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: ^USER\s+root
+    confidence: 0.92
+  fix: Add non-root USER instruction
+  tags:
+  - docker
+  - root
+- id: GHOST-DK-ROOT-002
+  name: No USER instruction
+  description: No USER specified
+  severity: HIGH
+  cwe: CWE-250
+  owasp: A05:2021
+  languages:
+  - dockerfile
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: ^FROM\s+[^\n]+(?![\s\S]*^USER\s+(?!root))
+    confidence: 0.8
+  fix: Add USER non-root-user before CMD/ENTRYPOINT
+  tags:
+  - docker
+  - root
+- id: GHOST-DK-LATEST-001
+  name: FROM :latest
+  description: Using latest image tag
+  severity: HIGH
+  cwe: CWE-1104
+  owasp: A05:2021
+  languages:
+  - dockerfile
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: ^FROM\s+[^\s:]+:latest\b|^FROM\s+[^\s:]+(?!:)\s*$
+    confidence: 0.9
+  fix: Pin image to specific version tag or digest
+  tags:
+  - docker
+  - image
+- id: GHOST-DK-LATEST-002
+  name: FROM no tag
+  description: FROM without version
+  severity: HIGH
+  cwe: CWE-1104
+  owasp: A05:2021
+  languages:
+  - dockerfile
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: ^FROM\s+(?!scratch)[^\s:@\n]+\s*$
+    confidence: 0.88
+  fix: Specify exact image version
+  tags:
+  - docker
+  - image
+- id: GHOST-DK-SECRETS-001
+  name: Secret in ENV
+  description: Secret in ENV instruction
+  severity: CRITICAL
+  cwe: CWE-312
+  owasp: A05:2021
+  languages:
+  - dockerfile
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: ^ENV\s+[A-Z_]*(?:PASSWORD|SECRET|TOKEN|KEY|CREDENTIAL)[A-Z_]*\s*=
+    confidence: 0.93
+  fix: Use Docker secrets or build args
+  tags:
+  - docker
+  - secret
+- id: GHOST-DK-SECRETS-002
+  name: Secret in ARG
+  description: Secret in ARG instruction
+  severity: HIGH
+  cwe: CWE-312
+  owasp: A05:2021
+  languages:
+  - dockerfile
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: ^ARG\s+(?:PASSWORD|SECRET|TOKEN|API_KEY|PRIVATE_KEY)
+    confidence: 0.91
+  fix: Use Docker secrets; ARG values appear in image layers
+  tags:
+  - docker
+  - secret
+- id: GHOST-DK-SECRETS-003
+  name: Hardcoded creds COPY
+  description: Credentials file copied in
+  severity: HIGH
+  cwe: CWE-312
+  owasp: A05:2021
+  languages:
+  - dockerfile
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: ^COPY\s+.*(?:\.env|credentials|\.pem|\.key|id_rsa)\s
+    confidence: 0.9
+  fix: Never copy secret files into images
+  tags:
+  - docker
+  - secret
+- id: GHOST-DK-HEALTH-001
+  name: No HEALTHCHECK
+  description: Dockerfile without HEALTHCHECK
+  severity: LOW
+  cwe: CWE-400
+  owasp: A05:2021
+  languages:
+  - dockerfile
+  confidence: 0.72
+  patterns:
+  - type: regex
+    pattern: ^FROM\s+[^\n]+(?![\s\S]*^HEALTHCHECK\s)
+    confidence: 0.72
+  fix: Add HEALTHCHECK instruction
+  tags:
+  - docker
+  - reliability
+- id: GHOST-DK-PORT-001
+  name: Privileged port
+  description: Exposing privileged port < 1024
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - dockerfile
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: ^EXPOSE\s+(?:[1-9]\d{0,2})\b
+    confidence: 0.85
+  fix: Use port >= 1024; map with -p in docker run
+  tags:
+  - docker
+  - port
+- id: GHOST-DK-PORT-002
+  name: All ports exposed
+  description: EXPOSE with wide range
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - dockerfile
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: ^EXPOSE\s+0\.0\.0\.0|EXPOSE\s+\d+-\d+
+    confidence: 0.83
+  fix: Expose only required ports
+  tags:
+  - docker
+  - port
+- id: GHOST-DK-TRUST-001
+  name: ADD from URL
+  description: ADD with HTTP URL
+  severity: HIGH
+  cwe: CWE-494
+  owasp: A05:2021
+  languages:
+  - dockerfile
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: ^ADD\s+https?://
+    confidence: 0.9
+  fix: Use COPY + RUN curl with checksum verification
+  tags:
+  - docker
+  - integrity
+- id: GHOST-DK-TRUST-002
+  name: ADD instead of COPY
+  description: ADD for local files
+  severity: MEDIUM
+  cwe: CWE-1104
+  owasp: A05:2021
+  languages:
+  - dockerfile
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: ^ADD\s+(?!https?://)\S+\s+
+    confidence: 0.82
+  fix: Prefer COPY over ADD for local files
+  tags:
+  - docker
+  - bestpractice
+- id: GHOST-DK-CACHE-001
+  name: apt-get no clean
+  description: apt-get without cache clean
+  severity: MEDIUM
+  cwe: CWE-400
+  owasp: A05:2021
+  languages:
+  - dockerfile
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: apt-get\s+install(?![\s\S]{0,500}rm\s+-rf\s+/var/lib/apt)
+    confidence: 0.83
+  fix: Add rm -rf /var/lib/apt/lists/* after apt-get
+  tags:
+  - docker
+  - image_size
+- id: GHOST-DK-CACHE-002
+  name: pip no cache-dir
+  description: pip install with cache
+  severity: LOW
+  cwe: CWE-400
+  owasp: A05:2021
+  languages:
+  - dockerfile
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: pip\s+install(?!.*--no-cache-dir)
+    confidence: 0.8
+  fix: Add --no-cache-dir to pip install
+  tags:
+  - docker
+  - image_size
+- id: GHOST-DK-SH-001
+  name: Shell form RUN
+  description: RUN with shell form (CMD injection risk)
+  severity: MEDIUM
+  cwe: CWE-78
+  owasp: A05:2021
+  languages:
+  - dockerfile
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: ^RUN\s+(?:sh\s+-c\s+|/bin/sh\s+-c\s+)
+    confidence: 0.82
+  fix: 'Use exec form: RUN ["executable", "arg"]'
+  tags:
+  - docker
+  - injection
+- id: GHOST-DK-LAYER-001
+  name: Secrets in layer
+  description: Secret set then deleted (still in layer)
+  severity: CRITICAL
+  cwe: CWE-312
+  owasp: A05:2021
+  languages:
+  - dockerfile
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: (?:ENV|ARG).*(?:PASSWORD|SECRET|TOKEN|KEY)[\s\S]{0,200}^RUN.*rm.*\k
+    confidence: 0.85
+  fix: Use multi-stage builds; secrets persist in layers
+  tags:
+  - docker
+  - secret
+- id: GHOST-DK-SIGN-001
+  name: No image verification
+  description: No image signature verification
+  severity: MEDIUM
+  cwe: CWE-494
+  owasp: A05:2021
+  languages:
+  - dockerfile
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: ^FROM\s+(?![\w.]+/[\w.-]+@sha256)
+    confidence: 0.78
+  fix: Use @sha256 digest or Docker Content Trust
+  tags:
+  - docker
+  - integrity
+- id: GHOST-DK-SUDO-001
+  name: sudo in container
+  description: Installing sudo
+  severity: MEDIUM
+  cwe: CWE-250
+  owasp: A05:2021
+  languages:
+  - dockerfile
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: apt-get\s+install.*\bsudo\b|yum\s+install.*\bsudo\b
+    confidence: 0.87
+  fix: Avoid sudo in containers; run as appropriate user
+  tags:
+  - docker
+  - privilege
+- id: GHOST-DK-SETUID-001
+  name: setuid binary
+  description: chmod +s or setuid in Dockerfile
+  severity: HIGH
+  cwe: CWE-250
+  owasp: A05:2021
+  languages:
+  - dockerfile
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: chmod\s+[0-9]*[4-7][0-9][0-9][0-9]\s|chmod\s+u\+s\s
+    confidence: 0.88
+  fix: Remove setuid bits from container binaries
+  tags:
+  - docker
+  - privilege
+- id: GHOST-DK-CURL-001
+  name: curl pipe bash
+  description: Piping curl to bash
+  severity: CRITICAL
+  cwe: CWE-494
+  owasp: A05:2021
+  languages:
+  - dockerfile
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: curl\s+[^|]+\|\s*(?:bash|sh)|wget\s+[^|]+\|\s*(?:bash|sh)
+    confidence: 0.93
+  fix: Verify checksums before executing downloaded scripts
+  tags:
+  - docker
+  - supply_chain

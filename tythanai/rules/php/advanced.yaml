@@ -1,0 +1,176 @@
+- id: GHOST-PHP-001
+  name: SQL Injection
+  description: Query with $_GET/$_POST
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A01:2021
+  languages:
+  - php
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: mysql_query\s*\(.*\$_(?:GET|POST)|mysqli_query\s*\(.*\$_(?:GET|POST)
+    confidence: 0.95
+  fix: Use PDO with prepared statements
+  tags:
+  - php
+  - sql-injection
+- id: GHOST-PHP-002
+  name: XSS
+  description: echo with user input
+  severity: CRITICAL
+  cwe: CWE-79
+  owasp: A01:2021
+  languages:
+  - php
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: echo\s+\$_(?:GET|POST|REQUEST|COOKIE)
+    confidence: 0.95
+  fix: Use htmlspecialchars() to escape output
+  tags:
+  - php
+  - xss
+  - echo
+- id: GHOST-PHP-003
+  name: File Inclusion
+  description: include/require with user input
+  severity: CRITICAL
+  cwe: CWE-98
+  owasp: A01:2021
+  languages:
+  - php
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: (?:include|require)(?:_once)?\s*\(\s*\$_(?:GET|POST)
+    confidence: 0.95
+  fix: Never include files based on user input
+  tags:
+  - php
+  - file-inclusion
+  - lfi
+- id: GHOST-PHP-004
+  name: Command Injection
+  description: system/exec with user input
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A01:2021
+  languages:
+  - php
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: (?:system|exec|shell_exec|passthru)\s*\(\s*\$_(?:GET|POST)
+    confidence: 0.95
+  fix: Use escapeshellarg() and validate input
+  tags:
+  - php
+  - command-injection
+- id: GHOST-PHP-005
+  name: Unvalidated Redirect
+  description: header Location with user URL
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A01:2021
+  languages:
+  - php
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: header\s*\(\s*['\"]Location:.*\$_(?:GET|POST)
+    confidence: 0.88
+  fix: Validate redirect URLs
+  tags:
+  - php
+  - open-redirect
+- id: GHOST-PHP-006
+  name: Hardcoded DB Password
+  description: Database password hardcoded
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A01:2021
+  languages:
+  - php
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: \$(?:password|passwd|dbpass)\s*=\s*['\"][^'\"]{4,}['\"]
+    confidence: 0.9
+  fix: Use environment variables for credentials
+  tags:
+  - php
+  - hardcoded-password
+- id: GHOST-PHP-007
+  name: eval with User Input
+  description: eval() with user-controlled data
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A01:2021
+  languages:
+  - php
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: eval\s*\(\s*\$_(?:GET|POST|REQUEST)
+    confidence: 0.95
+  fix: Never eval user input
+  tags:
+  - php
+  - code-injection
+  - eval
+- id: GHOST-PHP-008
+  name: Insecure File Upload
+  description: File upload without type validation
+  severity: HIGH
+  cwe: CWE-434
+  owasp: A01:2021
+  languages:
+  - php
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: move_uploaded_file\b(?!.*mime|.*finfo)
+    confidence: 0.88
+  fix: Validate file type and content before uploading
+  tags:
+  - php
+  - file-upload
+  - unrestricted
+- id: GHOST-PHP-009
+  name: Weak Hashing MD5
+  description: MD5 for password hashing
+  severity: CRITICAL
+  cwe: CWE-916
+  owasp: A01:2021
+  languages:
+  - php
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: md5\s*\(\s*\$password|md5\s*\(\s*\$_POST\[.password
+    confidence: 0.95
+  fix: Use password_hash() with PASSWORD_BCRYPT
+  tags:
+  - php
+  - password-hashing
+  - md5
+- id: GHOST-PHP-010
+  name: Missing CSRF Token
+  description: Form without CSRF token
+  severity: HIGH
+  cwe: CWE-352
+  owasp: A01:2021
+  languages:
+  - php
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: <form.*method=['\"]post['\"](?!.*csrf_token|.*_token)
+    confidence: 0.82
+  fix: Add CSRF token to all forms
+  tags:
+  - php
+  - csrf
+  - form

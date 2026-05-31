@@ -1,0 +1,170 @@
+- id: GHOST-PHP2-001
+  name: PHP open_basedir bypass
+  description: open_basedir not set
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: open_basedir\s*=\s*(?!\/)
+    confidence: 0.87
+  fix: Set open_basedir to restrict file access
+  tags:
+  - php
+  - config
+- id: GHOST-PHP2-002
+  name: PHP file inclusion RFI
+  description: Remote file include via URL
+  severity: CRITICAL
+  cwe: CWE-98
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: include\s*\(?["\']https?://
+    confidence: 0.87
+  fix: Disable allow_url_include; whitelist includes
+  tags:
+  - php
+  - rfi
+- id: GHOST-PHP2-003
+  name: PHP allow_url_fopen on
+  description: allow_url_fopen enabled
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: allow_url_fopen\s*=\s*(?:On|1)
+    confidence: 0.87
+  fix: Disable allow_url_fopen when not needed
+  tags:
+  - php
+  - config
+- id: GHOST-PHP2-004
+  name: PHP mail header inject
+  description: mail() with user headers
+  severity: HIGH
+  cwe: CWE-93
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: mail\s*\([^,]+,[^,]+,[^,]+,[^)]*\$_(?:GET|POST|REQUEST)
+    confidence: 0.87
+  fix: Validate email headers; strip CRLF
+  tags:
+  - php
+  - email
+- id: GHOST-PHP2-005
+  name: PHP ob_start XSS
+  description: ob_start with user callback
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: ob_start\s*\([^)]*\$_(?:GET|POST|REQUEST)
+    confidence: 0.87
+  fix: Never pass user input as ob_start callback
+  tags:
+  - php
+  - eval
+- id: GHOST-PHP2-006
+  name: PHP move_uploaded_file no ext
+  description: File upload without extension whitelist
+  severity: HIGH
+  cwe: CWE-434
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: move_uploaded_file\s*\([^,]+,\s*[^)]*\$_FILES[^)]*\[.\w*name.\]
+    confidence: 0.87
+  fix: Whitelist allowed file extensions
+  tags:
+  - php
+  - upload
+- id: GHOST-PHP2-007
+  name: PHP session hijack
+  description: Session cookie without secure flag
+  severity: HIGH
+  cwe: CWE-614
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: session_set_cookie_params\s*\([^)]*\)(?![\s\S]{0,100}secure\s*=\s*true|[\s\S]{0,100},\s*true)
+    confidence: 0.87
+  fix: Set secure and httponly flags
+  tags:
+  - php
+  - session
+- id: GHOST-PHP2-008
+  name: PHP password_verify misuse
+  description: password_verify return not strict
+  severity: HIGH
+  cwe: CWE-697
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: password_verify\s*\([^)]+\)\s*==(?!=)
+    confidence: 0.87
+  fix: Use === for password_verify result
+  tags:
+  - php
+  - auth
+- id: GHOST-PHP2-009
+  name: PHP base64 not encryption
+  description: base64_encode used for security
+  severity: HIGH
+  cwe: CWE-311
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: base64_encode\s*\([^)]*(?:password|secret|key)
+    confidence: 0.87
+  fix: Use openssl_encrypt for encryption
+  tags:
+  - php
+  - crypto
+- id: GHOST-PHP2-010
+  name: PHP XXE via simplexml
+  description: simplexml_load with entities
+  severity: HIGH
+  cwe: CWE-611
+  owasp: A03:2021
+  languages:
+  - php
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: simplexml_load_(?:string|file)\s*\([^)]*LIBXML_NOENT
+    confidence: 0.87
+  fix: Remove LIBXML_NOENT flag
+  tags:
+  - php
+  - xxe

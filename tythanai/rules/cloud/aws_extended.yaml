@@ -1,0 +1,272 @@
+- id: GHOST-AWS2-001
+  name: IAM over-permissive trust
+  description: IAM trust policy with *
+  severity: CRITICAL
+  cwe: CWE-285
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: '"Principal"\s*:\s*"\*"'
+    confidence: 0.85
+  fix: Restrict principal to specific account/role
+  tags:
+  - aws
+  - iam
+- id: GHOST-AWS2-002
+  name: S3 cors allow all
+  description: S3 CORS AllowedOrigins *
+  severity: HIGH
+  cwe: CWE-942
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: AllowedOrigins:\s*\n\s*-\s*\*
+    confidence: 0.85
+  fix: Restrict S3 CORS origins
+  tags:
+  - aws
+  - s3
+  - cors
+- id: GHOST-AWS2-003
+  name: CloudFront no WAF
+  description: CloudFront without WAF ACL
+  severity: HIGH
+  cwe: CWE-693
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: resource\s+"aws_cloudfront_distribution"[^{]+\{(?![\s\S]{0,800}web_acl_id)
+    confidence: 0.85
+  fix: Attach WAF ACL to CloudFront
+  tags:
+  - aws
+  - cloudfront
+  - waf
+- id: GHOST-AWS2-004
+  name: Route53 no DNSSEC
+  description: Route53 zone without DNSSEC
+  severity: MEDIUM
+  cwe: CWE-345
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: resource\s+"aws_route53_zone"[^{]+\{(?![\s\S]{0,500}signing_status)
+    confidence: 0.85
+  fix: Enable DNSSEC on Route53 zones
+  tags:
+  - aws
+  - dns
+- id: GHOST-AWS2-005
+  name: SNS no encryption
+  description: SNS topic without KMS encryption
+  severity: HIGH
+  cwe: CWE-311
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: resource\s+"aws_sns_topic"[^{]+\{(?![\s\S]{0,300}kms_master_key_id)
+    confidence: 0.85
+  fix: Enable KMS encryption for SNS
+  tags:
+  - aws
+  - sns
+- id: GHOST-AWS2-006
+  name: SQS no encryption
+  description: SQS without SSE
+  severity: HIGH
+  cwe: CWE-311
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: resource\s+"aws_sqs_queue"[^{]+\{(?![\s\S]{0,300}kms_master_key_id)
+    confidence: 0.85
+  fix: Enable SSE for SQS
+  tags:
+  - aws
+  - sqs
+- id: GHOST-AWS2-007
+  name: Lambda no VPC
+  description: Lambda function not in VPC
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: resource\s+"aws_lambda_function"[^{]+\{(?![\s\S]{0,500}vpc_config)
+    confidence: 0.85
+  fix: Deploy Lambda inside VPC
+  tags:
+  - aws
+  - lambda
+- id: GHOST-AWS2-008
+  name: ECS privilege container
+  description: ECS task with privileged mode
+  severity: CRITICAL
+  cwe: CWE-250
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: privileged\s*=\s*true(?=[\s\S]{0,100}aws_ecs_task)
+    confidence: 0.85
+  fix: Remove privileged mode from ECS tasks
+  tags:
+  - aws
+  - ecs
+- id: GHOST-AWS2-009
+  name: ECS no Fargate
+  description: ECS with EC2 instead of Fargate
+  severity: LOW
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: launch_type\s*=\s*"EC2"(?=[\s\S]{0,200}aws_ecs_service)
+    confidence: 0.85
+  fix: Prefer FARGATE for isolation
+  tags:
+  - aws
+  - ecs
+- id: GHOST-AWS2-010
+  name: ALB HTTP listener
+  description: ALB listener on port 80
+  severity: HIGH
+  cwe: CWE-319
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: resource\s+"aws_lb_listener"[^{]+\{[^}]*port\s*=\s*(?:80|8080)(?![\s\S]{0,100}redirect)
+    confidence: 0.85
+  fix: Redirect HTTP to HTTPS
+  tags:
+  - aws
+  - alb
+- id: GHOST-AWS2-011
+  name: RDS no multi-AZ
+  description: RDS without Multi-AZ
+  severity: MEDIUM
+  cwe: CWE-693
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: multi_az\s*=\s*false(?=[\s\S]{0,100}aws_db_instance)
+    confidence: 0.85
+  fix: Enable Multi-AZ for production RDS
+  tags:
+  - aws
+  - rds
+- id: GHOST-AWS2-012
+  name: RDS enhanced monitoring off
+  description: RDS without enhanced monitoring
+  severity: LOW
+  cwe: CWE-778
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: resource\s+"aws_db_instance"[^{]+\{(?![\s\S]{0,500}monitoring_interval\s*=\s*[1-9])
+    confidence: 0.85
+  fix: Set monitoring_interval > 0
+  tags:
+  - aws
+  - rds
+- id: GHOST-AWS2-013
+  name: IAM access key long-lived
+  description: IAM access key without rotation
+  severity: HIGH
+  cwe: CWE-324
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: resource\s+"aws_iam_access_key"[^{]+\{(?![\s\S]{0,300}lifecycle)
+    confidence: 0.85
+  fix: Rotate IAM access keys regularly
+  tags:
+  - aws
+  - iam
+- id: GHOST-AWS2-014
+  name: CloudTrail no validation
+  description: CloudTrail without log validation
+  severity: HIGH
+  cwe: CWE-345
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: resource\s+"aws_cloudtrail"[^{]+\{(?![\s\S]{0,500}enable_log_file_validation\s*=\s*true)
+    confidence: 0.85
+  fix: Enable log file validation
+  tags:
+  - aws
+  - cloudtrail
+- id: GHOST-AWS2-015
+  name: GuardDuty disabled
+  description: No GuardDuty resource
+  severity: HIGH
+  cwe: CWE-778
+  owasp: A05:2021
+  languages:
+  - terraform
+  - hcl
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: region\s*=\s*["\'][^"\']+["\'](?![\s\S]{0,2000}aws_guardduty_detector)
+    confidence: 0.85
+  fix: Enable GuardDuty in all regions
+  tags:
+  - aws
+  - guardduty

@@ -1,0 +1,219 @@
+# TythanAI Platform — GitHub Actions CI/CD Integration
+# Place this file at: .github/workflows/ghost-security.yml
+#
+# Features:
+# - Runs on every push/PR to main/develop
+# - Uploads SARIF to GitHub Security tab automatically
+# - Posts PR review comments for new findings
+# - Fails build on CRITICAL/HIGH findings
+# - Caches scan results for speed
+
+name: TythanAI Scan
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+  schedule:
+    - cron: '0 2 * * 1'   # Weekly Monday 02:00 UTC
+
+permissions:
+  contents:      read
+  security-events: write   # required for SARIF upload
+  pull-requests: write     # required for PR comments
+
+env:
+  GHOST_VERSION: "2.2"
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  ghost-scan:
+    name: TythanAI Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history for git analysis
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install TythanAI Platform
+        run: |
+          pip install --upgrade pip
+          pip install fastapi uvicorn openai python-dotenv bandit requests pyyaml
+          pip install semgrep || echo "semgrep optional — continuing"
+
+      - name: Cache scan results
+        uses: actions/cache@v4
+        with:
+          path: .ghost-cache
+          key: ghost-${{ runner.os }}-${{ hashFiles('**/*.py','**/*.fc','**/*.tact') }}
+          restore-keys: ghost-${{ runner.os }}-
+
+      # ── Secrets scan ───────────────────────────────────────────────────────
+      - name: Run secret detection scan
+        run: |
+          python3 ghost_cli.py scan . --mode secrets -o ghost-secrets.json
+        continue-on-error: true
+
+      # ── AST + code scan ────────────────────────────────────────────────────
+      - name: Run AST security scan
+        run: |
+          python3 ghost_cli.py scan . --mode ast -o ghost-ast.json
+        continue-on-error: true
+
+      # ── Dependency CVE scan ────────────────────────────────────────────────
+      - name: Run dependency vulnerability scan
+        run: |
+          python3 ghost_cli.py deps . -o ghost-deps.json
+        continue-on-error: true
+
+      # ── TON smart contract scan (runs only if .fc/.tact files exist) ───────
+      - name: Detect TON contracts
+        id: detect_ton
+        run: |
+          if find . -name "*.fc" -o -name "*.tact" -o -name "*.fift" | grep -q .; then
+            echo "has_ton=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_ton=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run TON smart contract audit
+        if: steps.detect_ton.outputs.has_ton == 'true'
+        run: |
+          python3 ghost_cli.py ton . -o ghost-ton.json
+        continue-on-error: true
+
+      # ── Merge all findings into one report ─────────────────────────────────
+      - name: Merge findings and generate SARIF
+        run: |
+          python3 - << 'PYEOF'
+          import json, glob, sys, os
+          all_findings = []
+          for report_file in glob.glob("ghost-*.json"):
+              try:
+                  data = json.loads(open(report_file).read())
+                  findings = data.get("findings", [])
+                  all_findings.extend(findings)
+                  print(f"  {report_file}: {len(findings)} findings")
+              except Exception as e:
+                  print(f"  {report_file}: error — {e}")
+
+          # Compute risk score
+          sev_score = {"CRITICAL":100,"HIGH":60,"MEDIUM":30,"LOW":10,"INFO":1}
+          severity_counts = {}
+          for f in all_findings:
+              sev = f.get("severity","INFO")
+              severity_counts[sev] = severity_counts.get(sev, 0) + 1
+          risk_score = min(sum(sev_score.get(s,1)*c for s,c in severity_counts.items()) // max(len(all_findings),1), 100)
+
+          report = {
+              "target": os.environ.get("GITHUB_REPOSITORY", "."),
+              "timestamp": __import__("time").strftime("%Y-%m-%dT%H:%M:%SZ"),
+              "risk_score": risk_score,
+              "risk_level": "CRITICAL" if risk_score>=75 else "HIGH" if risk_score>=50 else "MEDIUM" if risk_score>=25 else "LOW",
+              "executive_summary": f"CI scan found {len(all_findings)} findings: {severity_counts}",
+              "severity_counts": severity_counts,
+              "total_findings": len(all_findings),
+              "findings": all_findings,
+              "recommendations": [],
+          }
+          open("ghost-full-report.json","w").write(json.dumps(report, indent=2))
+
+          sys.path.insert(0, ".")
+          from reports.sarif_exporter import SARIFExporter
+          SARIFExporter().export_to_file(report, "ghost-results.sarif")
+          print(f"\nTotal findings: {len(all_findings)}")
+          print(f"Risk score: {risk_score}")
+          PYEOF
+
+      # ── Upload SARIF to GitHub Security tab ───────────────────────────────
+      - name: Upload SARIF to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ghost-results.sarif
+          category: ghost-security
+        if: always()
+
+      # ── Post PR comment with findings summary ──────────────────────────────
+      - name: Post PR findings summary
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let report = {};
+            try { report = JSON.parse(fs.readFileSync('ghost-full-report.json')); } catch(e) { return; }
+
+            const counts = report.severity_counts || {};
+            const total  = report.total_findings || 0;
+            const risk   = report.risk_level || 'UNKNOWN';
+
+            const icon = {CRITICAL:'🔴',HIGH:'🟠',MEDIUM:'🟡',LOW:'🔵',INFO:'⚪'};
+            const riskIcon = {CRITICAL:'🚨',HIGH:'⚠️',MEDIUM:'🔶',LOW:'ℹ️'}[risk] || '✅';
+
+            const body = [
+              `## ${riskIcon} TythanAI Scan — ${risk} Risk`,
+              `**${total} findings** detected in this PR`,
+              '',
+              '| Severity | Count |',
+              '|---|---|',
+              ...['CRITICAL','HIGH','MEDIUM','LOW','INFO'].map(s =>
+                `| ${icon[s]||''} ${s} | ${counts[s]||0} |`
+              ),
+              '',
+              total === 0
+                ? '✅ No security issues found!'
+                : `> View detailed results in the [Security tab](${context.payload.repository.html_url}/security/code-scanning)`,
+              '',
+              `*Scanned by [TythanAI Platform](https://github.com/ghost-security) v2.2*`,
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });
+
+      # ── Fail build on critical/high (configurable) ─────────────────────────
+      - name: Check security gates
+        run: |
+          python3 - << 'PYEOF'
+          import json, sys
+          try:
+              report = json.loads(open("ghost-full-report.json").read())
+          except:
+              sys.exit(0)
+          counts = report.get("severity_counts", {})
+          crits  = counts.get("CRITICAL", 0)
+          highs  = counts.get("HIGH", 0)
+          # Configurable thresholds — set to 0 to block on any critical/high
+          MAX_CRITICAL = int("${{ vars.GHOST_MAX_CRITICAL || '0' }}")
+          MAX_HIGH     = int("${{ vars.GHOST_MAX_HIGH || '5' }}")
+          if crits > MAX_CRITICAL:
+              print(f"❌ CRITICAL findings ({crits}) exceed threshold ({MAX_CRITICAL})")
+              sys.exit(1)
+          if highs > MAX_HIGH:
+              print(f"❌ HIGH findings ({highs}) exceed threshold ({MAX_HIGH})")
+              sys.exit(1)
+          print(f"✅ Security gates passed (CRITICAL={crits}, HIGH={highs})")
+          PYEOF
+
+      # ── Upload all reports as artifacts ───────────────────────────────────
+      - name: Upload scan artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ghost-security-reports
+          path: |
+            ghost-*.json
+            ghost-*.sarif
+          retention-days: 30

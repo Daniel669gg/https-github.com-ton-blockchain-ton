@@ -1,0 +1,1031 @@
+- id: GHOST-SOL-REENT-001
+  name: Reentrancy via call.value
+  description: External call before state update
+  severity: CRITICAL
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: '\.call\{value:'
+    confidence: 0.91
+  fix: Update state before external calls (CEI pattern)
+  tags:
+  - reentrancy
+  - call
+- id: GHOST-SOL-REENT-002
+  name: Reentrancy send()
+  description: send() before state update
+  severity: HIGH
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: \.send\s*\(
+    confidence: 0.88
+  fix: Update balances before .send()
+  tags:
+  - reentrancy
+  - send
+- id: GHOST-SOL-REENT-003
+  name: Reentrancy transfer()
+  description: transfer() reentrancy risk
+  severity: MEDIUM
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: \.transfer\s*\(
+    confidence: 0.85
+  fix: Prefer pull-over-push payment pattern
+  tags:
+  - reentrancy
+  - transfer
+- id: GHOST-SOL-REENT-004
+  name: Cross-function reentrancy
+  description: State shared across functions
+  severity: HIGH
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: nonReentrant|ReentrancyGuard(?! is)
+    confidence: 0.82
+  fix: Use OpenZeppelin ReentrancyGuard
+  tags:
+  - reentrancy
+- id: GHOST-SOL-REENT-005
+  name: Read-only reentrancy
+  description: View function reentrancy manipulation
+  severity: HIGH
+  cwe: CWE-841
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: (?:view|pure).*\.call\s*\(
+    confidence: 0.82
+  fix: Be aware of read-only reentrancy in view functions
+  tags:
+  - reentrancy
+  - view
+- id: GHOST-SOL-ACCESS-001
+  name: Missing onlyOwner
+  description: Admin function without access control
+  severity: CRITICAL
+  cwe: CWE-285
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: function\s+(?:withdraw|setOwner|pause|upgrade|mint|burn)\s*\([^)]*\)\s*(?:external|public)(?!\s+(?:onlyOwner|onlyRole|onlyAdmin|whenNotPaused))
+    confidence: 0.87
+  fix: Add onlyOwner or role-based access control
+  tags:
+  - access_control
+- id: GHOST-SOL-ACCESS-002
+  name: tx.origin auth
+  description: Authentication via tx.origin
+  severity: CRITICAL
+  cwe: CWE-287
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: \btx\.origin\b
+    confidence: 0.93
+  fix: Use msg.sender for authentication
+  tags:
+  - access_control
+  - txorigin
+- id: GHOST-SOL-ACCESS-003
+  name: Unrestricted selfdestruct
+  description: selfdestruct without access control
+  severity: CRITICAL
+  cwe: CWE-285
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: selfdestruct\s*\((?!.*onlyOwner|.*require\s*\(msg\.sender)
+    confidence: 0.92
+  fix: Restrict selfdestruct to owner
+  tags:
+  - access_control
+  - selfdestruct
+- id: GHOST-SOL-ACCESS-004
+  name: Unrestricted delegatecall
+  description: delegatecall without validation
+  severity: CRITICAL
+  cwe: CWE-285
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: \.delegatecall\s*\(
+    confidence: 0.91
+  fix: Validate delegatecall target address
+  tags:
+  - access_control
+  - delegatecall
+- id: GHOST-SOL-ACCESS-005
+  name: Missing zero address check
+  description: Transfer to address(0)
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: require\s*\([^)]*!=\s*address\s*\(\s*0\s*\)
+    confidence: 0.87
+  fix: Add require(addr != address(0)) checks
+  tags:
+  - validation
+  - zeroaddress
+- id: GHOST-SOL-ARITH-001
+  name: Integer overflow pre-0.8
+  description: Arithmetic without SafeMath
+  severity: HIGH
+  cwe: CWE-190
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: pragma solidity\s+\^?0\.[0-7]\.\d+
+    confidence: 0.9
+  fix: Use SafeMath or upgrade to Solidity 0.8+
+  tags:
+  - arithmetic
+  - overflow
+- id: GHOST-SOL-ARITH-002
+  name: Unchecked block risk
+  description: Unchecked arithmetic block
+  severity: HIGH
+  cwe: CWE-190
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: \bunchecked\s*\{
+    confidence: 0.87
+  fix: Review unchecked blocks for overflow safety
+  tags:
+  - arithmetic
+  - unchecked
+- id: GHOST-SOL-ARITH-003
+  name: Division before multiply
+  description: 'Precision loss: divide then multiply'
+  severity: MEDIUM
+  cwe: CWE-682
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: \/\s*\d+\s*\*\s*\d+
+    confidence: 0.83
+  fix: Multiply before dividing to preserve precision
+  tags:
+  - arithmetic
+  - precision
+- id: GHOST-SOL-ARITH-004
+  name: Timestamp manipulation
+  description: Block.timestamp for randomness
+  severity: HIGH
+  cwe: CWE-330
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: block\.timestamp\s*%|block\.timestamp\s*==
+    confidence: 0.88
+  fix: Never use block.timestamp for randomness
+  tags:
+  - randomness
+  - timestamp
+- id: GHOST-SOL-ARITH-005
+  name: Block number timing
+  description: block.number for time-sensitive logic
+  severity: MEDIUM
+  cwe: CWE-682
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: block\.number\s*[><=]+
+    confidence: 0.82
+  fix: Block times vary; use block.timestamp carefully
+  tags:
+  - timing
+  - blocknumber
+- id: GHOST-SOL-RAND-001
+  name: Weak randomness blockhash
+  description: blockhash for randomness
+  severity: CRITICAL
+  cwe: CWE-330
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: blockhash\s*\(block\.number|blockhash\s*\(block\.number\s*-\s*1
+    confidence: 0.92
+  fix: Use Chainlink VRF for randomness
+  tags:
+  - randomness
+- id: GHOST-SOL-RAND-002
+  name: Weak randomness block vars
+  description: block.difficulty for randomness
+  severity: CRITICAL
+  cwe: CWE-330
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: block\.(?:difficulty|prevrandao|coinbase)\s*%
+    confidence: 0.91
+  fix: Use Chainlink VRF for unpredictable randomness
+  tags:
+  - randomness
+- id: GHOST-SOL-RAND-003
+  name: Predictable seed
+  description: keccak256(abi.encode(block.*)) as seed
+  severity: HIGH
+  cwe: CWE-330
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: keccak256\s*\(\s*abi\.encode\s*\(\s*block\.
+    confidence: 0.88
+  fix: Use Chainlink VRF; on-chain data is predictable
+  tags:
+  - randomness
+- id: GHOST-SOL-FLASH-001
+  name: Flash loan price manipulation
+  description: Price from DEX spot without TWAP
+  severity: HIGH
+  cwe: CWE-682
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: getAmountsOut\s*\(|getReserves\s*\((?!.*twap|.*TWAP)
+    confidence: 0.85
+  fix: Use TWAP oracle, not spot price
+  tags:
+  - flashloan
+  - oracle
+- id: GHOST-SOL-FLASH-002
+  name: Single-block oracle
+  description: Token price from single block
+  severity: HIGH
+  cwe: CWE-682
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: (?:IUniswapV2Pair|IUniswapV3Pool).*price0CumulativeLast(?!.*average)
+    confidence: 0.84
+  fix: Use time-weighted average price (TWAP)
+  tags:
+  - flashloan
+  - price
+- id: GHOST-SOL-FLASH-003
+  name: Balancecheck manipulation
+  description: Using address(this).balance for logic
+  severity: HIGH
+  cwe: CWE-682
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: address\s*\(\s*this\s*\)\.balance
+    confidence: 0.86
+  fix: Balance can be manipulated via selfdestruct
+  tags:
+  - flashloan
+  - balance
+- id: GHOST-SOL-ORACLE-001
+  name: Chainlink no freshness
+  description: Chainlink answer without staleness check
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: latestRoundData\s*\(\s*\)(?!.*updatedAt|.*answeredInRound)
+    confidence: 0.87
+  fix: Check updatedAt and answeredInRound
+  tags:
+  - oracle
+  - chainlink
+- id: GHOST-SOL-ORACLE-002
+  name: Chainlink no negative price
+  description: Chainlink answer not checked positive
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: latestRoundData\s*\(\s*\)(?!.*require.*answer.*>\s*0)
+    confidence: 0.86
+  fix: Require answer > 0 from Chainlink
+  tags:
+  - oracle
+  - chainlink
+- id: GHOST-SOL-FRONT-001
+  name: Sandwich attack risk
+  description: Approve then transferFrom pattern
+  severity: HIGH
+  cwe: CWE-362
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: approve\s*\([^,]+,\s*\w+\s*\)\s*;\s*\n.*transferFrom
+    confidence: 0.85
+  fix: Use increaseAllowance/decreaseAllowance
+  tags:
+  - frontrunning
+  - approve
+- id: GHOST-SOL-FRONT-002
+  name: MEV slippage missing
+  description: Swap without slippage protection
+  severity: HIGH
+  cwe: CWE-362
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: swapExactTokensForTokens\s*\([^,]+,\s*0\s*,
+    confidence: 0.88
+  fix: Set non-zero amountOutMin to prevent MEV
+  tags:
+  - frontrunning
+  - mev
+- id: GHOST-SOL-FRONT-003
+  name: No deadline in swap
+  description: Swap transaction without deadline
+  severity: MEDIUM
+  cwe: CWE-362
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: swapExactTokensForTokens\s*\([^)]*block\.timestamp\s*\+\s*\d+(?!.*deadline)
+    confidence: 0.83
+  fix: Set a reasonable swap deadline
+  tags:
+  - frontrunning
+  - deadline
+- id: GHOST-SOL-SIG-001
+  name: Signature replay
+  description: ECDSA recover without nonce
+  severity: HIGH
+  cwe: CWE-294
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: ecrecover\s*\([^)]*\)(?!.*nonce|.*used)
+    confidence: 0.87
+  fix: Include nonce in signed data to prevent replay
+  tags:
+  - signature
+  - replay
+- id: GHOST-SOL-SIG-002
+  name: Missing EIP-712
+  description: Structured data without EIP-712
+  severity: MEDIUM
+  cwe: CWE-347
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: keccak256\s*\(\s*abi\.encodePacked\s*\([^)]*\)\s*\)(?!.*DOMAIN_SEPARATOR)
+    confidence: 0.83
+  fix: Use EIP-712 for structured signing
+  tags:
+  - signature
+  - eip712
+- id: GHOST-SOL-SIG-003
+  name: Signature malleability
+  description: ECDSA without checking s value
+  severity: HIGH
+  cwe: CWE-347
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: ecrecover\s*\([^)]*\)(?!.*s\s*<=)
+    confidence: 0.86
+  fix: Use OpenZeppelin ECDSA.recover()
+  tags:
+  - signature
+  - malleability
+- id: GHOST-SOL-PRIV-001
+  name: Private variable visibility
+  description: Sensitive data marked private
+  severity: MEDIUM
+  cwe: CWE-312
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: (?:uint|address|bytes32)\s+private\s+(?:key|secret|seed|password)
+    confidence: 0.85
+  fix: Private storage is visible on-chain
+  tags:
+  - privacy
+  - storage
+- id: GHOST-SOL-PRIV-002
+  name: Storage slot collision
+  description: Unstructured storage proxy pattern
+  severity: HIGH
+  cwe: CWE-693
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: sstore\s*\(|assembly.*slot\.sload
+    confidence: 0.82
+  fix: Use EIP-1967 standardized storage slots
+  tags:
+  - proxy
+  - storage
+- id: GHOST-SOL-GAS-001
+  name: Unbounded loop
+  description: For loop over dynamic array
+  severity: HIGH
+  cwe: CWE-400
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: for\s*\([^;]*;\s*[^;]*\.length\s*;
+    confidence: 0.87
+  fix: Limit loop iterations to prevent DoS
+  tags:
+  - gas
+  - dos
+- id: GHOST-SOL-GAS-002
+  name: Gas griefing send
+  description: Sending ETH to many addresses
+  severity: HIGH
+  cwe: CWE-400
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: for\s*\([^)]+\)\s*\{[^}]*\.transfer\s*\(
+    confidence: 0.85
+  fix: Use pull-over-push for ETH distribution
+  tags:
+  - gas
+  - dos
+- id: GHOST-SOL-GAS-003
+  name: Expensive storage in loop
+  description: Writing storage in a loop
+  severity: HIGH
+  cwe: CWE-400
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: for\s*\([^)]+\)\s*\{[^}]*\w+\[
+    confidence: 0.83
+  fix: Cache storage reads in memory variables
+  tags:
+  - gas
+  - storage
+- id: GHOST-SOL-INIT-001
+  name: Uninitialized proxy
+  description: Proxy implementation not initialized
+  severity: CRITICAL
+  cwe: CWE-665
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.89
+  patterns:
+  - type: regex
+    pattern: function\s+initialize\s*\([^)]*\)(?!.*initializer)
+    confidence: 0.89
+  fix: Use OpenZeppelin Initializable modifier
+  tags:
+  - proxy
+  - initialization
+- id: GHOST-SOL-INIT-002
+  name: Constructor in proxy
+  description: Logic in constructor of upgradeable
+  severity: HIGH
+  cwe: CWE-665
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: constructor\s*\([^)]*\)\s*(?:public|internal)(?!.*initializer)
+    confidence: 0.87
+  fix: Use initialize() pattern for upgradeable contracts
+  tags:
+  - proxy
+  - constructor
+- id: GHOST-SOL-CALL-001
+  name: Low-level call return ignored
+  description: Return value of .call() ignored
+  severity: HIGH
+  cwe: CWE-252
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.89
+  patterns:
+  - type: regex
+    pattern: \.call\{[^}]*\}\s*\([^)]*\)\s*;
+    confidence: 0.89
+  fix: Check bool return value of .call()
+  tags:
+  - lowlevel
+  - call
+- id: GHOST-SOL-CALL-002
+  name: send() return ignored
+  description: Return value of .send() ignored
+  severity: HIGH
+  cwe: CWE-252
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: \.send\s*\([^)]*\)\s*;
+    confidence: 0.88
+  fix: Check bool return value of .send()
+  tags:
+  - lowlevel
+  - send
+- id: GHOST-SOL-ERC20-001
+  name: ERC20 approve race
+  description: ERC20 approve without zero first
+  severity: MEDIUM
+  cwe: CWE-362
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: function\s+approve\s*\([^)]*\)\s*(?:external|public)(?!.*_allowances\[.*\]==\s*0)
+    confidence: 0.84
+  fix: Use safeIncreaseAllowance() pattern
+  tags:
+  - erc20
+  - race
+- id: GHOST-SOL-ERC20-002
+  name: Transfer return unchecked
+  description: ERC20 transfer return not checked
+  severity: HIGH
+  cwe: CWE-252
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: IERC20\([^)]+\)\.transfer\s*\([^)]+\)\s*;
+    confidence: 0.88
+  fix: Use SafeERC20.safeTransfer()
+  tags:
+  - erc20
+  - return
+- id: GHOST-SOL-ERC20-003
+  name: TransferFrom return unchecked
+  description: ERC20 transferFrom unchecked
+  severity: HIGH
+  cwe: CWE-252
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: IERC20\([^)]+\)\.transferFrom\s*\([^)]+\)\s*;
+    confidence: 0.88
+  fix: Use SafeERC20.safeTransferFrom()
+  tags:
+  - erc20
+  - return
+- id: GHOST-SOL-ERC20-004
+  name: Fee-on-transfer ignored
+  description: ERC20 token with transfer fee
+  severity: MEDIUM
+  cwe: CWE-682
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: transferFrom.*amount.*transfer.*amount
+    confidence: 0.82
+  fix: Account for fee-on-transfer tokens
+  tags:
+  - erc20
+  - fee
+- id: GHOST-SOL-UPGR-001
+  name: Missing storage gap
+  description: Upgradeable without __gap
+  severity: HIGH
+  cwe: CWE-693
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: contract\s+\w+\s+is\s+\w+Upgradeable(?!.*__gap)
+    confidence: 0.85
+  fix: Add uint256[50] private __gap for upgrade safety
+  tags:
+  - upgradeable
+  - storage
+- id: GHOST-SOL-UPGR-002
+  name: Unsafe delegatecall target
+  description: delegatecall to user-controlled address
+  severity: CRITICAL
+  cwe: CWE-285
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: \.delegatecall\s*\([^)]*(?:msg\.sender|_target|target_)
+    confidence: 0.91
+  fix: Never delegatecall to user-controlled address
+  tags:
+  - upgradeable
+  - delegatecall
+- id: GHOST-SOL-DOS-001
+  name: Denial of service transfer
+  description: Revert on failed transfer in loop
+  severity: HIGH
+  cwe: CWE-400
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: for\s*\([^)]+\)\s*\{[^}]*\.transfer\s*\([^)]+\)\s*;
+    confidence: 0.86
+  fix: Use pull pattern; avoid reverting on failed transfers
+  tags:
+  - dos
+  - gas
+- id: GHOST-SOL-DOS-002
+  name: Array push unbounded
+  description: Unbounded array push
+  severity: MEDIUM
+  cwe: CWE-400
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.81
+  patterns:
+  - type: regex
+    pattern: \.push\s*\([^)]+\)\s*;(?!.*delete|.*pop)
+    confidence: 0.81
+  fix: Limit array size to prevent gas DoS
+  tags:
+  - dos
+  - array
+- id: GHOST-SOL-PHISH-001
+  name: Spoofing via address
+  description: Address type confusion
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: address\s*\(\s*\w+\s*\)\s*==\s*msg\.sender
+    confidence: 0.83
+  fix: Use proper type-safe comparisons
+  tags:
+  - phishing
+  - address
+- id: GHOST-SOL-EMIT-001
+  name: Missing event on state change
+  description: Critical state change without event
+  severity: MEDIUM
+  cwe: CWE-778
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: function\s+(?:setOwner|setAdmin|pause|unpause|upgrade)\s*\([^)]*\)[^{]*\{(?!.*emit)
+    confidence: 0.82
+  fix: Emit events for all critical state changes
+  tags:
+  - events
+  - transparency
+- id: GHOST-SOL-LOCK-001
+  name: Locked ETH
+  description: Contract accepts ETH but no withdraw
+  severity: HIGH
+  cwe: CWE-400
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: receive\s*\(\s*\)\s*external\s*payable(?!.*withdraw|.*transfer)
+    confidence: 0.85
+  fix: Add withdrawal function or reject ETH
+  tags:
+  - locked
+  - ether
+- id: GHOST-SOL-SAFEMATH-001
+  name: Unchecked user amount
+  description: User-supplied amount without bounds
+  severity: HIGH
+  cwe: CWE-190
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: function.*\(.*uint\d*\s+amount[^)]*\).*unchecked
+    confidence: 0.84
+  fix: Validate amount bounds before unchecked block
+  tags:
+  - arithmetic
+  - input
+- id: GHOST-SOL-PRICE-001
+  name: AMM spot price
+  description: Using AMM reserves for price
+  severity: HIGH
+  cwe: CWE-682
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: getReserves\s*\(\s*\)(?!.*blockTimestampLast|.*TWAP)
+    confidence: 0.86
+  fix: Use TWAP to prevent flash loan price manipulation
+  tags:
+  - price
+  - amm
+- id: GHOST-SOL-GOV-001
+  name: Flash loan governance
+  description: Governance vote with flash loan risk
+  severity: HIGH
+  cwe: CWE-362
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: function\s+vote\s*\([^)]*\)(?!.*snapshot|.*block\.number)
+    confidence: 0.83
+  fix: Use token snapshots or time-locks for governance
+  tags:
+  - governance
+  - flashloan
+- id: GHOST-SOL-GOV-002
+  name: No timelock on admin
+  description: Admin action without timelock
+  severity: HIGH
+  cwe: CWE-362
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: function\s+setProtocolFee\s*\([^)]*\).*onlyOwner(?!.*timelock|.*TimeLock)
+    confidence: 0.82
+  fix: Add TimelockController to admin actions
+  tags:
+  - governance
+  - timelock
+- id: GHOST-SOL-TOKEN-001
+  name: Unlimited mint
+  description: Mint without supply cap
+  severity: HIGH
+  cwe: CWE-285
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: function\s+mint\s*\([^)]*\)\s*(?:external|public)(?!.*maxSupply|.*totalSupply.*<)
+    confidence: 0.85
+  fix: Add supply cap check to mint function
+  tags:
+  - token
+  - mint
+- id: GHOST-SOL-PERM-001
+  name: Permit signature griefing
+  description: ERC-2612 permit front-run
+  severity: MEDIUM
+  cwe: CWE-362
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: function\s+permit\s*\([^)]*\)(?!.*deadline)
+    confidence: 0.83
+  fix: Include deadline in permit signature
+  tags:
+  - permit
+  - signature
+- id: GHOST-SOL-META-001
+  name: Missing EIP-165
+  description: Contract without supportsInterface
+  severity: LOW
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: contract\s+\w+\s+is\s+IERC(?!.*supportsInterface)
+    confidence: 0.78
+  fix: Implement EIP-165 supportsInterface
+  tags:
+  - interface
+  - erc165
+- id: GHOST-SOL-CALLDATA-001
+  name: Calldata not used
+  description: Memory instead of calldata for external
+  severity: LOW
+  cwe: CWE-400
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.79
+  patterns:
+  - type: regex
+    pattern: function\s+\w+\s*\([^)]*memory\s+\w+[^)]*\)\s*external
+    confidence: 0.79
+  fix: Use calldata for external function params
+  tags:
+  - gas
+  - calldata
+- id: GHOST-SOL-VIEW-001
+  name: State change in view
+  description: State modification in view/pure
+  severity: MEDIUM
+  cwe: CWE-664
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: function\s+\w+[^{]*\bview\b[^{]*\{[^}]*(?:sstore|storage\s+\w+\s*=)
+    confidence: 0.87
+  fix: Remove state changes from view functions
+  tags:
+  - state
+  - view
+- id: GHOST-SOL-NULL-001
+  name: Zero address recipient
+  description: Transfer to hardcoded zero
+  severity: CRITICAL
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: \.transfer\s*\(\s*address\s*\(\s*0\s*\)\s*\)
+    confidence: 0.93
+  fix: Never transfer to address(0)
+  tags:
+  - zeroaddress
+- id: GHOST-SOL-ABI-001
+  name: ABI encode packed collision
+  description: abi.encodePacked with dynamic types
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: keccak256\s*\(\s*abi\.encodePacked\s*\([^)]*string[^)]*,
+    confidence: 0.88
+  fix: Use abi.encode() to avoid hash collision
+  tags:
+  - abi
+  - collision
+- id: GHOST-SOL-INIT-003
+  name: Double initialization
+  description: initialize() can be called twice
+  severity: CRITICAL
+  cwe: CWE-665
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: function\s+initialize\s*\([^)]*\)(?!.*initializer|.*_initialized)
+    confidence: 0.9
+  fix: Add initializer modifier from OpenZeppelin
+  tags:
+  - initialization
+  - proxy

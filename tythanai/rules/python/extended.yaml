@@ -1,0 +1,1264 @@
+- id: GHOST-PY-EXT-001
+  name: Python asyncio sleep busy
+  description: Busy wait in asyncio
+  severity: LOW
+  cwe: CWE-400
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: while\s+True\s*:[\s\S]{0,200}time\.sleep\s*\(0\)
+    confidence: 0.84
+  fix: Use asyncio.sleep()
+  tags:
+  - asyncio
+  - performance
+- id: GHOST-PY-EXT-002
+  name: Python tarfile traversal
+  description: tarfile extract with path
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: tarfile\.\w+\s*\([^)]+\)[\s\S]{0,200}\.extractall\s*\(
+    confidence: 0.84
+  fix: Validate member paths before extract
+  tags:
+  - path
+  - tar
+- id: GHOST-PY-EXT-003
+  name: Python zipfile traversal
+  description: zipfile extractall with path
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: zipfile\.ZipFile\s*\([^)]+\)[\s\S]{0,200}\.extractall\s*\(
+    confidence: 0.84
+  fix: Check member names before extractall
+  tags:
+  - path
+  - zip
+- id: GHOST-PY-EXT-004
+  name: Python os.remove user
+  description: os.remove with user path
+  severity: CRITICAL
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: os\.remove\s*\([^)]*request\.\w+
+    confidence: 0.84
+  fix: Validate path before deletion
+  tags:
+  - path
+  - deletion
+- id: GHOST-PY-EXT-005
+  name: Python shutil.rmtree user
+  description: shutil.rmtree with user path
+  severity: CRITICAL
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: shutil\.rmtree\s*\([^)]*request\.\w+
+    confidence: 0.84
+  fix: Never delete paths from user input
+  tags:
+  - path
+  - deletion
+- id: GHOST-PY-EXT-006
+  name: Python subprocess list shell
+  description: subprocess list with shell=True
+  severity: HIGH
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: subprocess\.\w+\s*\(\s*\[[^\]]*\]\s*,[^)]*shell\s*=\s*True
+    confidence: 0.84
+  fix: Use shell=False with list
+  tags:
+  - command
+  - shell
+- id: GHOST-PY-EXT-007
+  name: Python importlib user
+  description: importlib.import_module with user string
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: importlib\.import_module\s*\([^)]*request\.\w+
+    confidence: 0.84
+  fix: Never import user-supplied module names
+  tags:
+  - injection
+  - import
+- id: GHOST-PY-EXT-008
+  name: Python getattr injection
+  description: getattr with user attribute
+  severity: HIGH
+  cwe: CWE-470
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: getattr\s*\([^,]+,\s*request\.\w+
+    confidence: 0.84
+  fix: Whitelist allowed attribute names
+  tags:
+  - reflection
+  - injection
+- id: GHOST-PY-EXT-009
+  name: Python setattr injection
+  description: setattr with user attribute
+  severity: HIGH
+  cwe: CWE-470
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: setattr\s*\([^,]+,\s*request\.\w+
+    confidence: 0.84
+  fix: Whitelist allowed attribute names
+  tags:
+  - reflection
+  - injection
+- id: GHOST-PY-EXT-010
+  name: Python __import__ injection
+  description: __import__ with user string
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: __import__\s*\([^)]*request\.\w+
+    confidence: 0.84
+  fix: Never import user-supplied modules
+  tags:
+  - injection
+  - import
+- id: GHOST-PY-EXT-011
+  name: Python weakref circular
+  description: weakref used as cache without expiry
+  severity: LOW
+  cwe: CWE-400
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: weakref\.WeakValueDictionary\s*\(\s*\)(?![\s\S]{0,200}maxsize)
+    confidence: 0.84
+  fix: Use bounded LRU cache instead
+  tags:
+  - memory
+  - cache
+- id: GHOST-PY-EXT-012
+  name: Python subprocess timeout missing
+  description: subprocess without timeout
+  severity: MEDIUM
+  cwe: CWE-400
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: subprocess\.(?:run|call|check_output)\s*\([^)]*\)(?!.*timeout)
+    confidence: 0.84
+  fix: Set timeout on all subprocess calls
+  tags:
+  - dos
+  - subprocess
+- id: GHOST-PY-EXT-013
+  name: Python open write user path
+  description: open for writing with user path
+  severity: CRITICAL
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: open\s*\([^,]*request\.\w+[^,]*,\s*["\']w
+    confidence: 0.84
+  fix: Validate path before writing
+  tags:
+  - path
+  - write
+- id: GHOST-PY-EXT-014
+  name: Python cryptography CBC
+  description: Cipher AES-CBC without MAC
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: Cipher\s*\([^)]*CBC[^)]*\)(?![\s\S]{0,200}HMAC)
+    confidence: 0.84
+  fix: Use AES-GCM for authenticated encryption
+  tags:
+  - crypto
+  - cbc
+- id: GHOST-PY-EXT-015
+  name: Python Fernet raw key
+  description: Fernet with raw key bytes
+  severity: HIGH
+  cwe: CWE-321
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: Fernet\s*\(\s*b["\'][^"\']+["\']
+    confidence: 0.84
+  fix: Use Fernet.generate_key()
+  tags:
+  - crypto
+  - fernet
+- id: GHOST-PY-EXT-016
+  name: Python hmac weak algo
+  description: hmac with MD5
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: hmac\.new\s*\([^,]+,\s*[^,]+,\s*hashlib\.md5
+    confidence: 0.84
+  fix: Use hmac with SHA-256 minimum
+  tags:
+  - crypto
+  - hmac
+- id: GHOST-PY-EXT-017
+  name: Python XML lxml entities
+  description: lxml etree with resolve_entities
+  severity: HIGH
+  cwe: CWE-611
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: etree\.XMLParser\s*\([^)]*resolve_entities\s*=\s*True
+    confidence: 0.84
+  fix: Set resolve_entities=False
+  tags:
+  - xxe
+  - lxml
+- id: GHOST-PY-EXT-018
+  name: Python smtplib no tls
+  description: smtplib SMTP without TLS
+  severity: HIGH
+  cwe: CWE-319
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: smtplib\.SMTP\s*\([^)]+\)(?![\s\S]{0,200}starttls|[\s\S]{0,200}SMTP_SSL)
+    confidence: 0.84
+  fix: Use SMTP_SSL or call starttls()
+  tags:
+  - tls
+  - email
+- id: GHOST-PY-EXT-019
+  name: Python ftplib no tls
+  description: ftplib FTP without TLS
+  severity: HIGH
+  cwe: CWE-319
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: ftplib\.FTP\s*\([^)]+\)(?![\s\S]{0,200}FTP_TLS)
+    confidence: 0.84
+  fix: Use FTP_TLS for encrypted transfers
+  tags:
+  - tls
+  - ftp
+- id: GHOST-PY-EXT-020
+  name: Python ldap3 no tls
+  description: ldap3 without TLS
+  severity: HIGH
+  cwe: CWE-319
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: Server\s*\([^)]+\)(?![\s\S]{0,200}use_ssl\s*=\s*True|[\s\S]{0,200}Tls)
+    confidence: 0.84
+  fix: Use TLS for LDAP connections
+  tags:
+  - tls
+  - ldap
+- id: GHOST-PY-EXT-021
+  name: Python django Q injection
+  description: Django Q objects with user filter
+  severity: HIGH
+  cwe: CWE-943
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: Q\s*\([^)]*\*\*(?:request|req)\.\w+
+    confidence: 0.84
+  fix: Whitelist filter fields in Q objects
+  tags:
+  - nosql
+  - django
+- id: GHOST-PY-EXT-022
+  name: Python requests no timeout
+  description: requests without timeout
+  severity: MEDIUM
+  cwe: CWE-400
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: requests\.\w+\s*\([^)]*\)(?!.*timeout)
+    confidence: 0.84
+  fix: Set timeout on all requests calls
+  tags:
+  - dos
+  - requests
+- id: GHOST-PY-EXT-023
+  name: Python pickle cache
+  description: pickle used in caching layer
+  severity: HIGH
+  cwe: CWE-502
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: (?:cache|redis|memcache).*pickle\.dumps\s*\(
+    confidence: 0.84
+  fix: Use JSON serialization for cache
+  tags:
+  - deserialization
+  - cache
+- id: GHOST-PY-EXT-024
+  name: Python xml.etree comments
+  description: XML comment injection via ElementTree
+  severity: MEDIUM
+  cwe: CWE-91
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: ET\.SubElement\s*\([^,]+,\s*[^,]+,\s*[^)]*request\.\w+
+    confidence: 0.84
+  fix: Sanitize XML element attributes
+  tags:
+  - xml
+  - injection
+- id: GHOST-PY-EXT-025
+  name: Python jinja2 sandbox escape
+  description: Jinja2 Sandbox bypass attempt
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: (?:__class__|__mro__|__subclasses__)\s*\(\s*\)(?=[\s\S]{0,100}jinja)
+    confidence: 0.84
+  fix: Validate Jinja2 sandbox restrictions
+  tags:
+  - ssti
+  - jinja2
+- id: GHOST-PY-AUTO-001
+  name: Path check with user input
+  description: Path check with user input detected
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: os\.path\.exists\s*\([^)]*request\.
+    confidence: 0.83
+  fix: Use safe path handling
+  tags:
+  - path
+- id: GHOST-PY-AUTO-002
+  name: Glob with user pattern
+  description: Glob with user pattern detected
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: glob\.glob\s*\([^)]*request\.
+    confidence: 0.83
+  fix: Validate glob pattern
+  tags:
+  - path
+- id: GHOST-PY-AUTO-003
+  name: io.open with user path
+  description: io.open with user path detected
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: io\.open\s*\([^)]*request\.
+    confidence: 0.83
+  fix: Validate file path
+  tags:
+  - path
+- id: GHOST-PY-AUTO-004
+  name: codecs.open with user path
+  description: codecs.open with user path detected
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: codecs\.open\s*\([^)]*request\.
+    confidence: 0.83
+  fix: Validate file path
+  tags:
+  - path
+- id: GHOST-PY-AUTO-005
+  name: linecache with user path
+  description: linecache with user path detected
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: linecache\.getline\s*\([^)]*request\.
+    confidence: 0.83
+  fix: Validate file path
+  tags:
+  - path
+- id: GHOST-PY-AUTO-006
+  name: ConfigParser read user file
+  description: ConfigParser read user file detected
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: configparser\.ConfigParser\s*\(\s*\)[\s\S]{0,200}\.read\s*\([^)]*request\.
+    confidence: 0.83
+  fix: Whitelist config files
+  tags:
+  - path
+  - config
+- id: GHOST-PY-AUTO-007
+  name: spec_from_file user path
+  description: spec_from_file user path detected
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: importlib\.util\.spec_from_file_location\s*\([^,]+,[^)]*request\.
+    confidence: 0.83
+  fix: Never load user-specified modules
+  tags:
+  - injection
+  - import
+- id: GHOST-PY-AUTO-008
+  name: ruamel.yaml.load unsafe
+  description: ruamel.yaml.load unsafe detected
+  severity: HIGH
+  cwe: CWE-502
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: ruamel\.yaml\.load\s*\([^,]+\)(?!.*Loader=)
+    confidence: 0.83
+  fix: Use safe_load
+  tags:
+  - deserialization
+  - yaml
+- id: GHOST-PY-AUTO-009
+  name: TOML load user data
+  description: TOML load user data detected
+  severity: MEDIUM
+  cwe: CWE-20
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: toml\.loads?\s*\([^)]*request\.
+    confidence: 0.83
+  fix: Validate TOML input
+  tags:
+  - deserialization
+- id: GHOST-PY-AUTO-010
+  name: ast.literal_eval user input
+  description: ast.literal_eval user input detected
+  severity: MEDIUM
+  cwe: CWE-400
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: ast\.literal_eval\s*\([^)]*request\.
+    confidence: 0.83
+  fix: Even literal_eval can be slow on huge input
+  tags:
+  - dos
+  - ast
+- id: GHOST-PY-AUTO-011
+  name: Decimal with user string
+  description: Decimal with user string detected
+  severity: MEDIUM
+  cwe: CWE-20
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: Decimal\s*\([^)]*request\.
+    confidence: 0.83
+  fix: Validate before Decimal conversion
+  tags:
+  - input_validation
+- id: GHOST-PY-AUTO-012
+  name: Type cast user input
+  description: Type cast user input detected
+  severity: MEDIUM
+  cwe: CWE-20
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: (?:int|float|complex)\s*\([^)]*request\.
+    confidence: 0.83
+  fix: Wrap in try/except; validate type
+  tags:
+  - input_validation
+- id: GHOST-PY-AUTO-013
+  name: base64 decode user input
+  description: base64 decode user input detected
+  severity: MEDIUM
+  cwe: CWE-20
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: base64\.b64decode\s*\([^)]*request\.
+    confidence: 0.83
+  fix: Validate decoded content
+  tags:
+  - encoding
+- id: GHOST-PY-AUTO-014
+  name: URL decode user input
+  description: URL decode user input detected
+  severity: MEDIUM
+  cwe: CWE-20
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: urllib\.parse\.unquote\s*\([^)]*request\.
+    confidence: 0.83
+  fix: Validate after URL decoding
+  tags:
+  - encoding
+- id: GHOST-PY-AUTO-015
+  name: HTML unescape user input
+  description: HTML unescape user input detected
+  severity: MEDIUM
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: html\.unescape\s*\([^)]*request\.
+    confidence: 0.83
+  fix: Validate after HTML unescaping
+  tags:
+  - xss
+  - encoding
+- id: GHOST-PY-AUTO-016
+  name: Socket connect user host
+  description: Socket connect user host detected
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: socket\.connect\s*\([^)]*request\.
+    confidence: 0.83
+  fix: Validate host against allowlist
+  tags:
+  - ssrf
+  - socket
+- id: GHOST-PY-AUTO-017
+  name: DNS lookup user host
+  description: DNS lookup user host detected
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: socket\.gethostbyname\s*\([^)]*request\.
+    confidence: 0.83
+  fix: Validate DNS lookup input
+  tags:
+  - ssrf
+  - dns
+- id: GHOST-PY-AUTO-018
+  name: Paramiko SSH user host
+  description: Paramiko SSH user host detected
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: paramiko\.SSHClient\s*\(\s*\)[\s\S]{0,200}\.connect\s*\([^)]*request\.
+    confidence: 0.83
+  fix: Validate SSH host before connecting
+  tags:
+  - ssrf
+  - ssh
+- id: GHOST-PY-AUTO-019
+  name: FTP connect user host
+  description: FTP connect user host detected
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: ftplib\.FTP\s*\([^)]*request\.
+    confidence: 0.83
+  fix: Validate FTP host
+  tags:
+  - ssrf
+  - ftp
+- id: GHOST-PY-AUTO-020
+  name: XML-RPC user endpoint
+  description: XML-RPC user endpoint detected
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: xmlrpc\.client\.ServerProxy\s*\([^)]*request\.
+    confidence: 0.83
+  fix: Validate XML-RPC endpoint
+  tags:
+  - ssrf
+  - xmlrpc
+- id: GHOST-PY-AUTO-021
+  name: JSON-RPC user endpoint
+  description: JSON-RPC user endpoint detected
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: jsonrpclib\.ServerProxy\s*\([^)]*request\.
+    confidence: 0.83
+  fix: Validate JSON-RPC endpoint
+  tags:
+  - ssrf
+  - jsonrpc
+- id: GHOST-PY-AUTO-022
+  name: SUDS SOAP user URL
+  description: SUDS SOAP user URL detected
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: suds\.client\.Client\s*\([^)]*request\.
+    confidence: 0.83
+  fix: Validate SOAP endpoint
+  tags:
+  - ssrf
+  - soap
+- id: GHOST-PY-AUTO-023
+  name: JWT from_jwk user key
+  description: JWT from_jwk user key detected
+  severity: CRITICAL
+  cwe: CWE-347
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: jwt\.algorithms\.RSAAlgorithm\.from_jwk\s*\([^)]*request\.
+    confidence: 0.83
+  fix: Never accept user-provided JWK
+  tags:
+  - jwt
+  - auth
+- id: GHOST-PY-AUTO-024
+  name: JWT extremely long expiry
+  description: JWT extremely long expiry detected
+  severity: MEDIUM
+  cwe: CWE-613
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: flask_jwt_extended\.create_access_token\s*\([^)]*timedelta\s*\(\s*days\s*=\s*(?:[4-9]\d|\d{3,})\s*\)
+    confidence: 0.83
+  fix: Limit JWT expiry to hours, not days
+  tags:
+  - jwt
+  - auth
+- id: GHOST-PY-AUTO-025
+  name: Timed serializer with user secret
+  description: Timed serializer with user secret detected
+  severity: CRITICAL
+  cwe: CWE-321
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: itsdangerous\.URLSafeTimedSerializer\s*\([^)]*request\.
+    confidence: 0.83
+  fix: Never use user input as serializer secret
+  tags:
+  - auth
+  - secret
+- id: GHOST-PY-AUTO-026
+  name: Subprocess with password arg
+  description: Subprocess with password arg detected
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: subprocess\.Popen\s*\([^)]*password
+    confidence: 0.82
+  fix: Never pass passwords to subprocess
+  tags:
+  - command
+  - password
+- id: GHOST-PY-AUTO-027
+  name: Debug logging in production
+  description: Debug logging in production detected
+  severity: LOW
+  cwe: CWE-532
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: logging\.basicConfig\s*\([^)]*level\s*=\s*logging\.DEBUG
+    confidence: 0.82
+  fix: Set log level to INFO or WARNING
+  tags:
+  - logging
+- id: GHOST-PY-AUTO-028
+  name: Print sensitive data
+  description: Print sensitive data detected
+  severity: CRITICAL
+  cwe: CWE-312
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: print\s*\([^)]*(?:password|token|secret|key)\b
+    confidence: 0.82
+  fix: Remove print statements with secrets
+  tags:
+  - logging
+  - password
+- id: GHOST-PY-AUTO-029
+  name: Setting secret in os.environ
+  description: Setting secret in os.environ detected
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: os\.environ\[["\'](?:PASSWORD|SECRET|KEY|TOKEN)["\']]\s*=
+    confidence: 0.82
+  fix: Load from secret vault, not code
+  tags:
+  - hardcoded
+  - env
+- id: GHOST-PY-AUTO-030
+  name: Decode credential bytes
+  description: Decode credential bytes detected
+  severity: HIGH
+  cwe: CWE-312
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: \.decode\s*\(["\']utf-8["\']\)(?=.*password|.*secret)
+    confidence: 0.82
+  fix: Use secrets manager
+  tags:
+  - encoding
+  - credential
+- id: GHOST-PY-AUTO-031
+  name: input() for password
+  description: input() for password detected
+  severity: MEDIUM
+  cwe: CWE-522
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: input\s*\([^)]*\)(?=[\s\S]{0,200}(?:password|token|secret))
+    confidence: 0.82
+  fix: Use getpass.getpass()
+  tags:
+  - auth
+  - password
+- id: GHOST-PY-AUTO-032
+  name: Logging getpass result
+  description: Logging getpass result detected
+  severity: CRITICAL
+  cwe: CWE-312
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: getpass\.getpass\s*\([^)]*\)(?=[\s\S]{0,200}log)
+    confidence: 0.82
+  fix: Never log passwords
+  tags:
+  - logging
+  - password
+- id: GHOST-PY-AUTO-033
+  name: cPickle.loads() unsafe
+  description: cPickle.loads() unsafe detected
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: cPickle\.loads?\s*\(
+    confidence: 0.82
+  fix: Use json instead
+  tags:
+  - deserialization
+  - cpickle
+- id: GHOST-PY-AUTO-034
+  name: marshal.loads() unsafe
+  description: marshal.loads() unsafe detected
+  severity: HIGH
+  cwe: CWE-502
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: marshal\.loads\s*\(
+    confidence: 0.82
+  fix: Never unmarshal untrusted data
+  tags:
+  - deserialization
+  - marshal
+- id: GHOST-PY-AUTO-035
+  name: struct.unpack user data
+  description: struct.unpack user data detected
+  severity: MEDIUM
+  cwe: CWE-119
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: struct\.unpack\s*\([^,]+,[^)]*request\.
+    confidence: 0.82
+  fix: Validate data length before struct.unpack
+  tags:
+  - binary
+  - parsing
+- id: GHOST-PY-AUTO-036
+  name: array.array user data
+  description: array.array user data detected
+  severity: MEDIUM
+  cwe: CWE-119
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: array\.array\s*\([^,]+,[^)]*request\.
+    confidence: 0.82
+  fix: Validate array data type and size
+  tags:
+  - binary
+  - parsing
+- id: GHOST-PY-AUTO-037
+  name: ctypes unsafe operation
+  description: ctypes unsafe operation detected
+  severity: HIGH
+  cwe: CWE-119
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: ctypes\.(?:cast|from_buffer|memmove)\s*\(
+    confidence: 0.82
+  fix: Audit all ctypes usage carefully
+  tags:
+  - ctypes
+  - unsafe
+- id: GHOST-PY-AUTO-038
+  name: CFFI unsafe cast
+  description: CFFI unsafe cast detected
+  severity: HIGH
+  cwe: CWE-119
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: cffi\.FFI\(\)\.cast\s*\(
+    confidence: 0.82
+  fix: Validate pointers in CFFI operations
+  tags:
+  - cffi
+  - unsafe
+- id: GHOST-PY-AUTO-039
+  name: numpy.frombuffer user data
+  description: numpy.frombuffer user data detected
+  severity: MEDIUM
+  cwe: CWE-119
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: numpy\.frombuffer\s*\([^)]*request\.
+    confidence: 0.82
+  fix: Validate buffer data before numpy parsing
+  tags:
+  - numpy
+  - binary
+- id: GHOST-PY-AUTO-040
+  name: pandas read_csv user file
+  description: pandas read_csv user file detected
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: pandas\.read_csv\s*\([^)]*request\.
+    confidence: 0.82
+  fix: Validate file path before read_csv
+  tags:
+  - path
+  - pandas
+- id: GHOST-PY-AUTO-041
+  name: pandas read_sql injection
+  description: pandas read_sql injection detected
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: pandas\.read_sql\s*\([^,]+,[^)]*request\.
+    confidence: 0.82
+  fix: Use parameterized read_sql
+  tags:
+  - sql
+  - pandas
+- id: GHOST-PY-AUTO-042
+  name: pandas read_pickle unsafe
+  description: pandas read_pickle unsafe detected
+  severity: HIGH
+  cwe: CWE-502
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: pandas\.read_pickle\s*\(
+    confidence: 0.82
+  fix: Use read_csv or read_parquet instead
+  tags:
+  - deserialization
+  - pandas
+- id: GHOST-PY-AUTO-043
+  name: FastAPI HTMLResponse user input
+  description: FastAPI HTMLResponse user input detected
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: fastapi\.responses\.HTMLResponse\s*\([^)]*(?:request\.|user_)
+    confidence: 0.82
+  fix: Escape HTML before HTMLResponse
+  tags:
+  - xss
+  - fastapi
+- id: GHOST-PY-AUTO-044
+  name: Starlette HTMLResponse XSS
+  description: Starlette HTMLResponse XSS detected
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: starlette\.responses\.HTMLResponse\s*\([^)]*(?:request\.|user_)
+    confidence: 0.82
+  fix: Sanitize content before HTMLResponse
+  tags:
+  - xss
+  - starlette
+- id: GHOST-PY-AUTO-045
+  name: Tornado write user argument
+  description: Tornado write user argument detected
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: tornado\.web\.RequestHandler[\s\S]{0,200}\.write\s*\([^)]*self\.get_argument
+    confidence: 0.82
+  fix: Use self.finish(json.dumps())
+  tags:
+  - xss
+  - tornado
+- id: GHOST-PY-AUTO-046
+  name: Bottle.py user input unchecked
+  description: Bottle.py user input unchecked detected
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: bottle\.request\.(?:GET|POST|json)\[
+    confidence: 0.82
+  fix: Validate all bottle request data
+  tags:
+  - validation
+  - bottle
+- id: GHOST-PY-AUTO-047
+  name: CherryPy request body unchecked
+  description: CherryPy request body unchecked detected
+  severity: MEDIUM
+  cwe: CWE-20
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: cherrypy\.request\.(?:json|body)
+    confidence: 0.82
+  fix: Validate CherryPy request data
+  tags:
+  - validation
+  - cherrypy
+- id: GHOST-PY-AUTO-048
+  name: Pyramid request data unchecked
+  description: Pyramid request data unchecked detected
+  severity: MEDIUM
+  cwe: CWE-20
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: pyramid\.request\.(?:GET|POST|matchdict)\[
+    confidence: 0.82
+  fix: Validate Pyramid request inputs
+  tags:
+  - validation
+  - pyramid
+- id: GHOST-PY-AUTO-049
+  name: Falcon request param unchecked
+  description: Falcon request param unchecked detected
+  severity: MEDIUM
+  cwe: CWE-20
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: falcon\.(?:Request|req)\.get_param\s*\(
+    confidence: 0.82
+  fix: Validate Falcon request parameters
+  tags:
+  - validation
+  - falcon
+- id: GHOST-PY-AUTO-050
+  name: aiohttp query param unchecked
+  description: aiohttp query param unchecked detected
+  severity: MEDIUM
+  cwe: CWE-20
+  owasp: A03:2021
+  languages:
+  - python
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: aiohttp\.web\.Request[\s\S]{0,200}\.rel_url\.query\[
+    confidence: 0.82
+  fix: Validate aiohttp query parameters
+  tags:
+  - validation
+  - aiohttp

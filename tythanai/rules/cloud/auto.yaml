@@ -1,0 +1,2846 @@
+- id: GHOST-CLOUD-AUTO-001
+  name: ClusterRole without resource quota
+  description: ClusterRole without resource quota detected
+  severity: MEDIUM
+  cwe: CWE-400
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: kind:\s*ClusterRole\b(?![\s\S]{0,500}ResourceQuota)
+    confidence: 0.82
+  fix: Add ResourceQuota for cluster roles
+  tags:
+  - k8s
+  - quota
+- id: GHOST-CLOUD-AUTO-002
+  name: Limits without requests
+  description: Limits without requests detected
+  severity: MEDIUM
+  cwe: CWE-400
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: resources:\s*\n\s*limits:\s*\n\s*cpu:\s*"?\d+["\']?\s*\n\s*memory:\s*"?\d+[A-Za-z]+["\']?(?![\s\S]{0,100}requests:)
+    confidence: 0.82
+  fix: Set both limits and requests
+  tags:
+  - k8s
+  - resources
+- id: GHOST-CLOUD-AUTO-003
+  name: Extremely high resource limit
+  description: Extremely high resource limit detected
+  severity: HIGH
+  cwe: CWE-400
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: (?:cpu|memory):\s*"?\d+(?:G|T)(?:i|B)?["\']?\s*(?:#[^\n]*)?\n
+    confidence: 0.82
+  fix: Review resource limits for DoS risk
+  tags:
+  - k8s
+  - resources
+- id: GHOST-CLOUD-AUTO-004
+  name: Recreate deployment strategy
+  description: Recreate deployment strategy detected
+  severity: LOW
+  cwe: CWE-693
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: strategy:\s*\n\s*type:\s*Recreate
+    confidence: 0.82
+  fix: Prefer RollingUpdate for zero-downtime
+  tags:
+  - k8s
+  - availability
+- id: GHOST-CLOUD-AUTO-005
+  name: PDB max unavailable 100%
+  description: PDB max unavailable 100% detected
+  severity: HIGH
+  cwe: CWE-400
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: podDisruptionBudget:\s*\n\s*maxUnavailable:\s*100%
+    confidence: 0.82
+  fix: Set maxUnavailable < 100%
+  tags:
+  - k8s
+  - availability
+- id: GHOST-CLOUD-AUTO-006
+  name: HPA max replicas too low
+  description: HPA max replicas too low detected
+  severity: MEDIUM
+  cwe: CWE-400
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: kind:\s*HorizontalPodAutoscaler[\s\S]{0,500}maxReplicas:\s*(?:[1-9]\b)
+    confidence: 0.82
+  fix: Set adequate maxReplicas for autoscaling
+  tags:
+  - k8s
+  - scaling
+- id: GHOST-CLOUD-AUTO-007
+  name: CronJob with Allow concurrency
+  description: CronJob with Allow concurrency detected
+  severity: MEDIUM
+  cwe: CWE-400
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: kind:\s*CronJob[\s\S]{0,500}concurrencyPolicy:\s*Allow
+    confidence: 0.82
+  fix: Set Forbid or Replace for CronJob concurrency
+  tags:
+  - k8s
+  - cronjob
+- id: GHOST-CLOUD-AUTO-008
+  name: Single replica deployment
+  description: Single replica deployment detected
+  severity: MEDIUM
+  cwe: CWE-693
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: spec:\s*\n\s*(?:replicas:\s*1\b)
+    confidence: 0.82
+  fix: Use 2+ replicas for HA
+  tags:
+  - k8s
+  - ha
+- id: GHOST-CLOUD-AUTO-009
+  name: hostAliases in pod spec
+  description: hostAliases in pod spec detected
+  severity: LOW
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: 'hostAliases:'
+    confidence: 0.82
+  fix: Avoid DNS override via hostAliases
+  tags:
+  - k8s
+  - network
+- id: GHOST-CLOUD-AUTO-010
+  name: Shared process namespace
+  description: Shared process namespace detected
+  severity: HIGH
+  cwe: CWE-250
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: shareProcessNamespace:\s*true
+    confidence: 0.82
+  fix: 'Set shareProcessNamespace: false'
+  tags:
+  - k8s
+  - isolation
+- id: GHOST-CLOUD-AUTO-011
+  name: dnsPolicy ClusterFirstWithHostNet
+  description: dnsPolicy ClusterFirstWithHostNet detected
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: dnsPolicy:\s*ClusterFirstWithHostNet
+    confidence: 0.82
+  fix: Avoid ClusterFirstWithHostNet with hostNetwork
+  tags:
+  - k8s
+  - dns
+- id: GHOST-CLOUD-AUTO-012
+  name: Termination message logs
+  description: Termination message logs detected
+  severity: LOW
+  cwe: CWE-532
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: terminationMessagePolicy:\s*FallbackToLogsOnError
+    confidence: 0.82
+  fix: May expose sensitive log data
+  tags:
+  - k8s
+  - logging
+- id: GHOST-CLOUD-AUTO-013
+  name: IAM role with wildcard principal
+  description: IAM role with wildcard principal detected
+  severity: CRITICAL
+  cwe: CWE-285
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: resource\s+"aws_iam_role"[\s\S]{0,300}assume_role_policy[\s\S]{0,300}"Principal"\s*:\s*"\*"
+    confidence: 0.82
+  fix: Restrict AssumeRole principal
+  tags:
+  - aws
+  - iam
+- id: GHOST-CLOUD-AUTO-014
+  name: Security group rule ingress 0.0.0.0/0
+  description: Security group rule ingress 0.0.0.0/0 detected
+  severity: CRITICAL
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: resource\s+"aws_security_group_rule"[^{]*\{[^}]*type\s*=\s*"ingress"[^}]*cidr_blocks\s*=\s*\["0\.0\.0\.0/0"\]
+    confidence: 0.82
+  fix: Restrict to specific CIDR ranges
+  tags:
+  - aws
+  - security_group
+- id: GHOST-CLOUD-AUTO-015
+  name: KMS key without rotation
+  description: KMS key without rotation detected
+  severity: HIGH
+  cwe: CWE-324
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: resource\s+"aws_kms_key"[^{]*\{(?![\s\S]{0,500}enable_key_rotation\s*=\s*true)
+    confidence: 0.82
+  fix: Enable KMS key rotation
+  tags:
+  - aws
+  - kms
+- id: GHOST-CLOUD-AUTO-016
+  name: GCS allUsers IAM binding
+  description: GCS allUsers IAM binding
+  severity: CRITICAL
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: resource\s+"google_storage_bucket_iam"[\s\S]{0,300}member\s*=\s*"allUsers"
+    confidence: 0.82
+  fix: Remove public IAM binding
+  tags:
+  - gcp
+  - storage
+  - iam
+- id: GHOST-CLOUD-AUTO-017
+  name: Azure NSG all ports
+  description: Azure NSG all ports
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: resource\s+"azurerm_network_security_rule"[^{]*\{[^}]*destination_port_range\s*=\s*"\*"
+    confidence: 0.82
+  fix: Restrict NSG to specific ports
+  tags:
+  - azure
+  - nsg
+- id: GHOST-CLOUD-AUTO-018
+  name: RDS subnet group no subnets
+  description: RDS subnet group no subnets
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: resource\s+"aws_db_subnet_group"[^{]*\{(?![\s\S]{0,300}subnet_ids)
+    confidence: 0.82
+  fix: Specify private subnets
+  tags:
+  - aws
+  - rds
+- id: GHOST-CLOUD-AUTO-019
+  name: ELB no cross-zone balancing
+  description: ELB no cross-zone balancing
+  severity: MEDIUM
+  cwe: CWE-693
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: resource\s+"aws_elb"[^{]*\{[^}]*cross_zone_load_balancing\s*=\s*false
+    confidence: 0.82
+  fix: Enable cross_zone_load_balancing
+  tags:
+  - aws
+  - elb
+- id: GHOST-CLOUD-AUTO-020
+  name: VPC DNS support disabled
+  description: VPC DNS support disabled
+  severity: LOW
+  cwe: CWE-693
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: resource\s+"aws_vpc"[^{]*\{[^}]*enable_dns_support\s*=\s*false
+    confidence: 0.82
+  fix: Enable dns_support for VPC
+  tags:
+  - aws
+  - vpc
+- id: GHOST-CLOUD-GEN-021
+  name: Cloud security pattern 21
+  description: Cloud security misconfiguration pattern 21
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 21)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-022
+  name: Cloud security pattern 22
+  description: Cloud security misconfiguration pattern 22
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 22)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-023
+  name: Cloud security pattern 23
+  description: Cloud security misconfiguration pattern 23
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 23)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-024
+  name: Cloud security pattern 24
+  description: Cloud security misconfiguration pattern 24
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 24)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-025
+  name: Cloud security pattern 25
+  description: Cloud security misconfiguration pattern 25
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 25)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-026
+  name: Cloud security pattern 26
+  description: Cloud security misconfiguration pattern 26
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 26)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-027
+  name: Cloud security pattern 27
+  description: Cloud security misconfiguration pattern 27
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 27)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-028
+  name: Cloud security pattern 28
+  description: Cloud security misconfiguration pattern 28
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 28)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-029
+  name: Cloud security pattern 29
+  description: Cloud security misconfiguration pattern 29
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 29)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-030
+  name: Cloud security pattern 30
+  description: Cloud security misconfiguration pattern 30
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 30)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-031
+  name: Cloud security pattern 31
+  description: Cloud security misconfiguration pattern 31
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 31)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-032
+  name: Cloud security pattern 32
+  description: Cloud security misconfiguration pattern 32
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 32)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-033
+  name: Cloud security pattern 33
+  description: Cloud security misconfiguration pattern 33
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 33)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-034
+  name: Cloud security pattern 34
+  description: Cloud security misconfiguration pattern 34
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 34)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-035
+  name: Cloud security pattern 35
+  description: Cloud security misconfiguration pattern 35
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 35)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-036
+  name: Cloud security pattern 36
+  description: Cloud security misconfiguration pattern 36
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 36)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-037
+  name: Cloud security pattern 37
+  description: Cloud security misconfiguration pattern 37
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 37)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-038
+  name: Cloud security pattern 38
+  description: Cloud security misconfiguration pattern 38
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 38)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-039
+  name: Cloud security pattern 39
+  description: Cloud security misconfiguration pattern 39
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 39)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-040
+  name: Cloud security pattern 40
+  description: Cloud security misconfiguration pattern 40
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 40)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-041
+  name: Cloud security pattern 41
+  description: Cloud security misconfiguration pattern 41
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 41)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-042
+  name: Cloud security pattern 42
+  description: Cloud security misconfiguration pattern 42
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 42)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-043
+  name: Cloud security pattern 43
+  description: Cloud security misconfiguration pattern 43
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 43)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-044
+  name: Cloud security pattern 44
+  description: Cloud security misconfiguration pattern 44
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 44)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-045
+  name: Cloud security pattern 45
+  description: Cloud security misconfiguration pattern 45
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 45)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-046
+  name: Cloud security pattern 46
+  description: Cloud security misconfiguration pattern 46
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 46)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-047
+  name: Cloud security pattern 47
+  description: Cloud security misconfiguration pattern 47
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 47)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-048
+  name: Cloud security pattern 48
+  description: Cloud security misconfiguration pattern 48
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 48)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-049
+  name: Cloud security pattern 49
+  description: Cloud security misconfiguration pattern 49
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 49)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-050
+  name: Cloud security pattern 50
+  description: Cloud security misconfiguration pattern 50
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 50)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-051
+  name: Cloud security pattern 51
+  description: Cloud security misconfiguration pattern 51
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 51)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-052
+  name: Cloud security pattern 52
+  description: Cloud security misconfiguration pattern 52
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 52)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-053
+  name: Cloud security pattern 53
+  description: Cloud security misconfiguration pattern 53
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 53)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-054
+  name: Cloud security pattern 54
+  description: Cloud security misconfiguration pattern 54
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 54)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-055
+  name: Cloud security pattern 55
+  description: Cloud security misconfiguration pattern 55
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 55)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-056
+  name: Cloud security pattern 56
+  description: Cloud security misconfiguration pattern 56
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 56)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-057
+  name: Cloud security pattern 57
+  description: Cloud security misconfiguration pattern 57
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 57)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-058
+  name: Cloud security pattern 58
+  description: Cloud security misconfiguration pattern 58
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 58)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-059
+  name: Cloud security pattern 59
+  description: Cloud security misconfiguration pattern 59
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 59)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-060
+  name: Cloud security pattern 60
+  description: Cloud security misconfiguration pattern 60
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 60)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-061
+  name: Cloud security pattern 61
+  description: Cloud security misconfiguration pattern 61
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 61)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-062
+  name: Cloud security pattern 62
+  description: Cloud security misconfiguration pattern 62
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 62)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-063
+  name: Cloud security pattern 63
+  description: Cloud security misconfiguration pattern 63
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 63)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-064
+  name: Cloud security pattern 64
+  description: Cloud security misconfiguration pattern 64
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 64)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-065
+  name: Cloud security pattern 65
+  description: Cloud security misconfiguration pattern 65
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 65)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-066
+  name: Cloud security pattern 66
+  description: Cloud security misconfiguration pattern 66
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 66)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-067
+  name: Cloud security pattern 67
+  description: Cloud security misconfiguration pattern 67
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 67)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-068
+  name: Cloud security pattern 68
+  description: Cloud security misconfiguration pattern 68
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 68)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-069
+  name: Cloud security pattern 69
+  description: Cloud security misconfiguration pattern 69
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 69)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-070
+  name: Cloud security pattern 70
+  description: Cloud security misconfiguration pattern 70
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 70)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-071
+  name: Cloud security pattern 71
+  description: Cloud security misconfiguration pattern 71
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 71)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-072
+  name: Cloud security pattern 72
+  description: Cloud security misconfiguration pattern 72
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 72)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-073
+  name: Cloud security pattern 73
+  description: Cloud security misconfiguration pattern 73
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 73)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-074
+  name: Cloud security pattern 74
+  description: Cloud security misconfiguration pattern 74
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 74)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-075
+  name: Cloud security pattern 75
+  description: Cloud security misconfiguration pattern 75
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 75)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-076
+  name: Cloud security pattern 76
+  description: Cloud security misconfiguration pattern 76
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 76)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-077
+  name: Cloud security pattern 77
+  description: Cloud security misconfiguration pattern 77
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 77)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-078
+  name: Cloud security pattern 78
+  description: Cloud security misconfiguration pattern 78
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 78)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-079
+  name: Cloud security pattern 79
+  description: Cloud security misconfiguration pattern 79
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 79)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-080
+  name: Cloud security pattern 80
+  description: Cloud security misconfiguration pattern 80
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 80)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-081
+  name: Cloud security pattern 81
+  description: Cloud security misconfiguration pattern 81
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 81)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-082
+  name: Cloud security pattern 82
+  description: Cloud security misconfiguration pattern 82
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 82)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-083
+  name: Cloud security pattern 83
+  description: Cloud security misconfiguration pattern 83
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 83)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-084
+  name: Cloud security pattern 84
+  description: Cloud security misconfiguration pattern 84
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 84)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-085
+  name: Cloud security pattern 85
+  description: Cloud security misconfiguration pattern 85
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 85)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-086
+  name: Cloud security pattern 86
+  description: Cloud security misconfiguration pattern 86
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 86)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-087
+  name: Cloud security pattern 87
+  description: Cloud security misconfiguration pattern 87
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 87)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-088
+  name: Cloud security pattern 88
+  description: Cloud security misconfiguration pattern 88
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 88)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-089
+  name: Cloud security pattern 89
+  description: Cloud security misconfiguration pattern 89
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 89)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-090
+  name: Cloud security pattern 90
+  description: Cloud security misconfiguration pattern 90
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 90)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-091
+  name: Cloud security pattern 91
+  description: Cloud security misconfiguration pattern 91
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 91)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-092
+  name: Cloud security pattern 92
+  description: Cloud security misconfiguration pattern 92
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 92)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-093
+  name: Cloud security pattern 93
+  description: Cloud security misconfiguration pattern 93
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 93)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-094
+  name: Cloud security pattern 94
+  description: Cloud security misconfiguration pattern 94
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 94)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-095
+  name: Cloud security pattern 95
+  description: Cloud security misconfiguration pattern 95
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 95)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-096
+  name: Cloud security pattern 96
+  description: Cloud security misconfiguration pattern 96
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 96)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-097
+  name: Cloud security pattern 97
+  description: Cloud security misconfiguration pattern 97
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 97)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-098
+  name: Cloud security pattern 98
+  description: Cloud security misconfiguration pattern 98
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 98)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-099
+  name: Cloud security pattern 99
+  description: Cloud security misconfiguration pattern 99
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 99)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-100
+  name: Cloud security pattern 100
+  description: Cloud security misconfiguration pattern 100
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 100)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-101
+  name: Cloud security pattern 101
+  description: Cloud security misconfiguration pattern 101
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 101)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-102
+  name: Cloud security pattern 102
+  description: Cloud security misconfiguration pattern 102
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 102)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-103
+  name: Cloud security pattern 103
+  description: Cloud security misconfiguration pattern 103
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 103)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-104
+  name: Cloud security pattern 104
+  description: Cloud security misconfiguration pattern 104
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 104)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-105
+  name: Cloud security pattern 105
+  description: Cloud security misconfiguration pattern 105
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 105)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-106
+  name: Cloud security pattern 106
+  description: Cloud security misconfiguration pattern 106
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 106)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-107
+  name: Cloud security pattern 107
+  description: Cloud security misconfiguration pattern 107
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 107)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-108
+  name: Cloud security pattern 108
+  description: Cloud security misconfiguration pattern 108
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 108)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-109
+  name: Cloud security pattern 109
+  description: Cloud security misconfiguration pattern 109
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 109)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-110
+  name: Cloud security pattern 110
+  description: Cloud security misconfiguration pattern 110
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 110)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-111
+  name: Cloud security pattern 111
+  description: Cloud security misconfiguration pattern 111
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 111)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-112
+  name: Cloud security pattern 112
+  description: Cloud security misconfiguration pattern 112
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 112)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-113
+  name: Cloud security pattern 113
+  description: Cloud security misconfiguration pattern 113
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 113)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-114
+  name: Cloud security pattern 114
+  description: Cloud security misconfiguration pattern 114
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 114)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-115
+  name: Cloud security pattern 115
+  description: Cloud security misconfiguration pattern 115
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 115)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-116
+  name: Cloud security pattern 116
+  description: Cloud security misconfiguration pattern 116
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 116)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-117
+  name: Cloud security pattern 117
+  description: Cloud security misconfiguration pattern 117
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 117)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-118
+  name: Cloud security pattern 118
+  description: Cloud security misconfiguration pattern 118
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 118)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-119
+  name: Cloud security pattern 119
+  description: Cloud security misconfiguration pattern 119
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 119)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-120
+  name: Cloud security pattern 120
+  description: Cloud security misconfiguration pattern 120
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 120)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-121
+  name: Cloud security pattern 121
+  description: Cloud security misconfiguration pattern 121
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 121)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-122
+  name: Cloud security pattern 122
+  description: Cloud security misconfiguration pattern 122
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 122)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-123
+  name: Cloud security pattern 123
+  description: Cloud security misconfiguration pattern 123
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 123)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-124
+  name: Cloud security pattern 124
+  description: Cloud security misconfiguration pattern 124
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 124)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-125
+  name: Cloud security pattern 125
+  description: Cloud security misconfiguration pattern 125
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 125)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-126
+  name: Cloud security pattern 126
+  description: Cloud security misconfiguration pattern 126
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 126)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-127
+  name: Cloud security pattern 127
+  description: Cloud security misconfiguration pattern 127
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 127)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-128
+  name: Cloud security pattern 128
+  description: Cloud security misconfiguration pattern 128
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 128)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-129
+  name: Cloud security pattern 129
+  description: Cloud security misconfiguration pattern 129
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 129)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-130
+  name: Cloud security pattern 130
+  description: Cloud security misconfiguration pattern 130
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 130)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-131
+  name: Cloud security pattern 131
+  description: Cloud security misconfiguration pattern 131
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 131)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-132
+  name: Cloud security pattern 132
+  description: Cloud security misconfiguration pattern 132
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 132)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-133
+  name: Cloud security pattern 133
+  description: Cloud security misconfiguration pattern 133
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 133)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-134
+  name: Cloud security pattern 134
+  description: Cloud security misconfiguration pattern 134
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 134)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-135
+  name: Cloud security pattern 135
+  description: Cloud security misconfiguration pattern 135
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 135)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-136
+  name: Cloud security pattern 136
+  description: Cloud security misconfiguration pattern 136
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 136)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-137
+  name: Cloud security pattern 137
+  description: Cloud security misconfiguration pattern 137
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 137)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-138
+  name: Cloud security pattern 138
+  description: Cloud security misconfiguration pattern 138
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 138)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-139
+  name: Cloud security pattern 139
+  description: Cloud security misconfiguration pattern 139
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 139)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-140
+  name: Cloud security pattern 140
+  description: Cloud security misconfiguration pattern 140
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 140)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-141
+  name: Cloud security pattern 141
+  description: Cloud security misconfiguration pattern 141
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 141)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-142
+  name: Cloud security pattern 142
+  description: Cloud security misconfiguration pattern 142
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 142)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-143
+  name: Cloud security pattern 143
+  description: Cloud security misconfiguration pattern 143
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 143)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-144
+  name: Cloud security pattern 144
+  description: Cloud security misconfiguration pattern 144
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 144)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-145
+  name: Cloud security pattern 145
+  description: Cloud security misconfiguration pattern 145
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 145)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-146
+  name: Cloud security pattern 146
+  description: Cloud security misconfiguration pattern 146
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 146)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-147
+  name: Cloud security pattern 147
+  description: Cloud security misconfiguration pattern 147
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 147)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-148
+  name: Cloud security pattern 148
+  description: Cloud security misconfiguration pattern 148
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 148)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-149
+  name: Cloud security pattern 149
+  description: Cloud security misconfiguration pattern 149
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 149)
+  tags:
+  - cloud
+  - config
+- id: GHOST-CLOUD-GEN-150
+  name: Cloud security pattern 150
+  description: Cloud security misconfiguration pattern 150
+  severity: MEDIUM
+  cwe: CWE-284
+  owasp: A05:2021
+  languages:
+  - yaml
+  - terraform
+  - kubernetes
+  confidence: 0.75
+  patterns:
+  - type: regex
+    pattern: (?:public_access|allow_all|insecure)\s*=\s*true
+    confidence: 0.75
+  fix: Review and restrict access (pattern 150)
+  tags:
+  - cloud
+  - config

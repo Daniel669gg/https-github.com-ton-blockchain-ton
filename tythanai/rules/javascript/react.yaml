@@ -1,0 +1,270 @@
+- id: GHOST-REACT-001
+  name: dangerouslySetInnerHTML
+  description: React dangerouslySetInnerHTML
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: 'dangerouslySetInnerHTML\s*=\s*\{\{__html:'
+    confidence: 0.87
+  fix: Sanitize with DOMPurify first
+  tags:
+  - react
+  - xss
+- id: GHOST-REACT-002
+  name: React eval in component
+  description: eval() in React component
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: (?:useEffect|useCallback|useMemo)\s*\([^)]*\)\s*=>\s*\{[^}]*\beval\s*\(
+    confidence: 0.87
+  fix: Remove eval from React components
+  tags:
+  - react
+  - eval
+- id: GHOST-REACT-003
+  name: React localStorage token
+  description: JWT stored in localStorage
+  severity: HIGH
+  cwe: CWE-922
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: localStorage\.setItem\s*\(["\'](?:token|jwt|access_token)["\']
+    confidence: 0.87
+  fix: Store tokens in httpOnly cookies
+  tags:
+  - react
+  - auth
+- id: GHOST-REACT-004
+  name: Next.js API no auth
+  description: Next.js API route without auth
+  severity: HIGH
+  cwe: CWE-306
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: export\s+(?:default\s+)?(?:async\s+)?function\s+\w+\s*\([^)]*req[^)]*res[^)]*\)\s*\{(?![\s\S]{0,300}(?:getSession|getToken|verifyToken|auth))
+    confidence: 0.87
+  fix: Add auth check to API routes
+  tags:
+  - nextjs
+  - auth
+- id: GHOST-REACT-005
+  name: Next.js SSRF fetch
+  description: Next.js getServerSideProps with user URL
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: getServerSideProps[\s\S]{0,200}fetch\s*\([^)]*(?:params\.|query\.)
+    confidence: 0.87
+  fix: Validate URL before server-side fetch
+  tags:
+  - nextjs
+  - ssrf
+- id: GHOST-REACT-006
+  name: React hardcoded API key
+  description: API key in React component
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: (?:REACT_APP_|NEXT_PUBLIC_)\w*(?:SECRET|KEY|PASSWORD)\w*\s*=\s*["\'][^"\']{10,}["\']
+    confidence: 0.87
+  fix: Use server-side proxy for sensitive API calls
+  tags:
+  - react
+  - hardcoded
+- id: GHOST-REACT-007
+  name: Next.js SQL injection
+  description: Next.js API route SQL injection
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: await\s+(?:sql|db|prisma)\s*`[^`]*\$\{req\.(?:query|body)
+    confidence: 0.87
+  fix: Use parameterized queries
+  tags:
+  - nextjs
+  - sql
+- id: GHOST-REACT-008
+  name: React open redirect
+  description: useRouter.push with user URL
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: router\.push\s*\([^)]*(?:req\.query|searchParams\.get)
+    confidence: 0.87
+  fix: Validate URL before push
+  tags:
+  - react
+  - redirect
+- id: GHOST-REACT-009
+  name: React isMounted anti-pattern
+  description: Deprecated isMounted usage
+  severity: LOW
+  cwe: CWE-362
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: \.isMounted\s*\(\s*\)
+    confidence: 0.87
+  fix: Use cleanup in useEffect
+  tags:
+  - react
+  - deprecated
+- id: GHOST-REACT-010
+  name: React version exposed
+  description: React version in public meta
+  severity: LOW
+  cwe: CWE-200
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: <meta\s+name=["\']generator["\'][^>]*React
+    confidence: 0.87
+  fix: Remove framework version from meta tags
+  tags:
+  - react
+  - disclosure
+- id: GHOST-REACT-011
+  name: Next.js env client bundle
+  description: Server secret in NEXT_PUBLIC
+  severity: CRITICAL
+  cwe: CWE-312
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: NEXT_PUBLIC_\w*(?:SECRET|PRIVATE|KEY|PASSWORD)\w*
+    confidence: 0.87
+  fix: Never prefix secrets with NEXT_PUBLIC_
+  tags:
+  - nextjs
+  - env
+- id: GHOST-REACT-012
+  name: React XSS via ref
+  description: ref.current.innerHTML assignment
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: \.current\.innerHTML\s*=\s*[^;]*(?:state\.|props\.|user)
+    confidence: 0.87
+  fix: Use textContent or sanitize with DOMPurify
+  tags:
+  - react
+  - xss
+- id: GHOST-REACT-013
+  name: React key as sensitive id
+  description: Using database ID as key prop
+  severity: LOW
+  cwe: CWE-200
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: key\s*=\s*\{[^}]*\.id\}(?![\s\S]{0,100}aria)
+    confidence: 0.87
+  fix: Use index or non-sensitive ID as key
+  tags:
+  - react
+  - disclosure
+- id: GHOST-REACT-014
+  name: Next.js CORS API
+  description: Next.js API without CORS restriction
+  severity: MEDIUM
+  cwe: CWE-942
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: setHeader\s*\(["\']Access-Control-Allow-Origin["\'],\s*["\'][*]["\']
+    confidence: 0.87
+  fix: Restrict CORS in Next.js API routes
+  tags:
+  - nextjs
+  - cors
+- id: GHOST-REACT-015
+  name: React useEffect missing dep
+  description: useEffect with missing dependencies
+  severity: LOW
+  cwe: CWE-362
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: useEffect\s*\(\s*(?:async\s*)?\(\s*\)\s*=>
+    confidence: 0.87
+  fix: Add proper dependency array
+  tags:
+  - react
+  - hooks

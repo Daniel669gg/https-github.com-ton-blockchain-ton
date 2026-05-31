@@ -1,0 +1,900 @@
+- id: GHOST-JS-EXT-001
+  name: Store password in localStorage
+  description: Store password in localStorage detected
+  severity: CRITICAL
+  cwe: CWE-312
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: localStorage\.setItem\s*\([^,]+,\s*JSON\.stringify\s*\([^)]*password
+    confidence: 0.83
+  fix: Never store passwords in localStorage
+  tags:
+  - auth
+  - storage
+- id: GHOST-JS-EXT-002
+  name: Store password in sessionStorage
+  description: Store password in sessionStorage detected
+  severity: CRITICAL
+  cwe: CWE-312
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: sessionStorage\.setItem\s*\([^,]+,\s*JSON\.stringify\s*\([^)]*password
+    confidence: 0.83
+  fix: Never store passwords in sessionStorage
+  tags:
+  - auth
+  - storage
+- id: GHOST-JS-EXT-003
+  name: Set cookie without flags
+  description: Set cookie without flags detected
+  severity: HIGH
+  cwe: CWE-614
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: document\.cookie\s*=\s*[^;]*(?:token|password|secret)
+    confidence: 0.83
+  fix: Use httpOnly and secure cookie flags
+  tags:
+  - cookie
+  - auth
+- id: GHOST-JS-EXT-004
+  name: postMessage with wildcard origin
+  description: postMessage with wildcard origin detected
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: window\.postMessage\s*\([^,]+,\s*["\'][*]["\']
+    confidence: 0.83
+  fix: Specify exact target origin
+  tags:
+  - postmessage
+  - xss
+- id: GHOST-JS-EXT-005
+  name: setAttribute href/src user value
+  description: setAttribute href/src user value detected
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: \.setAttribute\s*\(["\'](?:href|src|action)["\'],\s*[^)]*(?:location|params|query)
+    confidence: 0.83
+  fix: Validate URL before setAttribute
+  tags:
+  - xss
+  - dom
+- id: GHOST-JS-EXT-006
+  name: document.location user input
+  description: document.location user input detected
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: document\.location\s*=\s*[^;]*(?:location|params|hash)
+    confidence: 0.83
+  fix: Validate URL before assignment
+  tags:
+  - redirect
+  - xss
+- id: GHOST-JS-EXT-007
+  name: pushState with user URL
+  description: pushState with user URL detected
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: history\.pushState\s*\([^,]+,[^,]+,[^)]*(?:req\.|params\.|query\.)
+    confidence: 0.83
+  fix: Validate path before pushState
+  tags:
+  - xss
+  - history
+- id: GHOST-JS-EXT-008
+  name: XHR with user URL
+  description: XHR with user URL detected
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: XMLHttpRequest[\s\S]{0,200}\.open\s*\([^,]+,[^)]*(?:params\.|query\.|user)
+    confidence: 0.83
+  fix: Validate URL before XHR
+  tags:
+  - ssrf
+  - xhr
+- id: GHOST-JS-EXT-009
+  name: sendBeacon user URL
+  description: sendBeacon user URL detected
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: navigator\.sendBeacon\s*\([^)]*(?:user|params|input)
+    confidence: 0.83
+  fix: Validate URL before sendBeacon
+  tags:
+  - ssrf
+  - beacon
+- id: GHOST-JS-EXT-010
+  name: WebSocket with user URL
+  description: WebSocket with user URL detected
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: new\s+WebSocket\s*\([^)]*(?:user|params|location)
+    confidence: 0.83
+  fix: Validate WebSocket URL
+  tags:
+  - ssrf
+  - websocket
+- id: GHOST-JS-EXT-011
+  name: Web Worker with user URL
+  description: Web Worker with user URL detected
+  severity: HIGH
+  cwe: CWE-829
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: new\s+Worker\s*\([^)]*(?:user|params|input)
+    confidence: 0.83
+  fix: Validate worker URL
+  tags:
+  - injection
+  - worker
+- id: GHOST-JS-EXT-012
+  name: importScripts user URL
+  description: importScripts user URL detected
+  severity: CRITICAL
+  cwe: CWE-829
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: importScripts\s*\([^)]*(?:user|params|input)
+    confidence: 0.83
+  fix: Validate script URLs
+  tags:
+  - injection
+  - worker
+- id: GHOST-JS-EXT-013
+  name: src/href from URL hash/search
+  description: src/href from URL hash/search detected
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: (?:\.src|\.href)\s*=\s*[^;]*(?:location\.hash|location\.search)
+    confidence: 0.83
+  fix: Validate location params
+  tags:
+  - xss
+  - dom
+- id: GHOST-JS-EXT-014
+  name: createObjectURL user blob
+  description: createObjectURL user blob detected
+  severity: MEDIUM
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: \.createObjectURL\s*\([^)]*(?:file|blob|user)
+    confidence: 0.83
+  fix: Validate blob type before URL creation
+  tags:
+  - xss
+  - blob
+- id: GHOST-JS-EXT-015
+  name: execCommand insertHTML deprecated
+  description: execCommand insertHTML deprecated detected
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: \.execCommand\s*\(["\']insertHTML["\']
+    confidence: 0.83
+  fix: Use document.createElement
+  tags:
+  - xss
+  - dom
+- id: GHOST-JS-EXT-016
+  name: Buffer.from user data
+  description: Buffer.from user data detected
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: (?:Buffer|buffer)\.from\s*\([^)]*(?:req\.|request\.|params\.)
+    confidence: 0.83
+  fix: Validate input before Buffer.from()
+  tags:
+  - buffer
+  - node
+- id: GHOST-JS-EXT-017
+  name: process.binding deprecated API
+  description: process.binding deprecated API detected
+  severity: HIGH
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: process\.binding\s*\(
+    confidence: 0.83
+  fix: Use official Node.js APIs
+  tags:
+  - node
+  - unsafe
+- id: GHOST-JS-EXT-018
+  name: require with path traversal
+  description: require with path traversal detected
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: require\s*\([^)]*\.\.\/
+    confidence: 0.83
+  fix: Use absolute imports or path validation
+  tags:
+  - path
+  - require
+- id: GHOST-JS-EXT-019
+  name: createReadStream user path
+  description: createReadStream user path detected
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: fs\.createReadStream\s*\([^)]*(?:req\.|params\.|query\.)
+    confidence: 0.83
+  fix: Validate path before streaming
+  tags:
+  - path
+  - stream
+- id: GHOST-JS-EXT-020
+  name: createWriteStream user path
+  description: createWriteStream user path detected
+  severity: CRITICAL
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: fs\.createWriteStream\s*\([^)]*(?:req\.|params\.|query\.)
+    confidence: 0.83
+  fix: Validate path before writing
+  tags:
+  - path
+  - stream
+- id: GHOST-JS-EXT-021
+  name: Response pipe without content-type
+  description: Response pipe without content-type detected
+  severity: MEDIUM
+  cwe: CWE-116
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: \.pipe\s*\(\s*res\s*\)(?![\s\S]{0,100}(?:set|header|Content-Type))
+    confidence: 0.83
+  fix: Set Content-Type before piping
+  tags:
+  - headers
+  - pipe
+- id: GHOST-JS-EXT-022
+  name: setHeader user value
+  description: setHeader user value detected
+  severity: HIGH
+  cwe: CWE-113
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: res\.setHeader\s*\([^,]+,[^)]*(?:req\.|params\.|query\.)
+    confidence: 0.83
+  fix: Sanitize values before setting headers
+  tags:
+  - header
+  - injection
+- id: GHOST-JS-EXT-023
+  name: writeHead user headers
+  description: writeHead user headers detected
+  severity: HIGH
+  cwe: CWE-113
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: \.writeHead\s*\(\d+,\s*\{[^}]*(?:req\.|params\.)
+    confidence: 0.83
+  fix: Sanitize header values
+  tags:
+  - header
+  - injection
+- id: GHOST-JS-EXT-024
+  name: fork with user module path
+  description: fork with user module path detected
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: child_process\.fork\s*\([^)]*(?:req\.|params\.|query\.)
+    confidence: 0.83
+  fix: Validate module path before fork
+  tags:
+  - injection
+  - fork
+- id: GHOST-JS-EXT-025
+  name: vm.createContext user sandbox
+  description: vm.createContext user sandbox detected
+  severity: HIGH
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: vm\.createContext\s*\([^)]*(?:req\.|params\.|query\.)
+    confidence: 0.83
+  fix: User-provided context is dangerous
+  tags:
+  - eval
+  - vm
+- id: GHOST-JS-EXT-026
+  name: monk MongoDB get with user id
+  description: monk MongoDB get with user id detected
+  severity: HIGH
+  cwe: CWE-943
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: monk\.get\s*\([^)]*(?:req\.|params\.)
+    confidence: 0.82
+  fix: Validate MongoDB ID input
+  tags:
+  - nosql
+  - monk
+- id: GHOST-JS-EXT-027
+  name: CouchDB get with user id
+  description: CouchDB get with user id detected
+  severity: HIGH
+  cwe: CWE-943
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: couchdb\.get\s*\([^)]*(?:req\.|params\.)
+    confidence: 0.82
+  fix: Validate document ID
+  tags:
+  - nosql
+  - couchdb
+- id: GHOST-JS-EXT-028
+  name: LevelDB get user key
+  description: LevelDB get user key detected
+  severity: MEDIUM
+  cwe: CWE-20
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: leveldb\.get\s*\([^)]*(?:req\.|params\.)
+    confidence: 0.82
+  fix: Validate key before LevelDB get
+  tags:
+  - nosql
+  - leveldb
+- id: GHOST-JS-EXT-029
+  name: ioredis eval user script
+  description: ioredis eval user script detected
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: ioredis\.eval\s*\([^)]*(?:req\.|params\.)
+    confidence: 0.82
+  fix: Never eval user Redis scripts
+  tags:
+  - redis
+  - eval
+- id: GHOST-JS-EXT-030
+  name: Redis evalsha user input
+  description: Redis evalsha user input detected
+  severity: HIGH
+  cwe: CWE-943
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: node_redis\.evalsha\s*\([^)]*(?:req\.|params\.)
+    confidence: 0.82
+  fix: Validate Redis script inputs
+  tags:
+  - redis
+  - eval
+- id: GHOST-JS-EXT-031
+  name: NeDB find user query
+  description: NeDB find user query detected
+  severity: HIGH
+  cwe: CWE-943
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: nedb\.find\s*\(\s*\{[^}]*:\s*(?:req\.|params\.)
+    confidence: 0.82
+  fix: Validate NeDB query inputs
+  tags:
+  - nosql
+  - nedb
+- id: GHOST-JS-EXT-032
+  name: lowdb get user path
+  description: lowdb get user path detected
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: lowdb\.get\s*\([^)]*(?:req\.|params\.)
+    confidence: 0.82
+  fix: Validate path before lowdb access
+  tags:
+  - nosql
+  - lowdb
+- id: GHOST-JS-EXT-033
+  name: JWT signed with weak secret
+  description: JWT signed with weak secret detected
+  severity: HIGH
+  cwe: CWE-347
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: jsonwebtoken\.sign\s*\([^,]+,\s*["\'][^"\']{1,15}["\']
+    confidence: 0.82
+  fix: Use secret >= 256 bits
+  tags:
+  - jwt
+  - weak
+- id: GHOST-JS-EXT-034
+  name: JWT verify with none alg
+  description: JWT verify with none alg detected
+  severity: CRITICAL
+  cwe: CWE-347
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: \.verify\s*\([^,]+,\s*["\']none["\']
+    confidence: 0.82
+  fix: Reject none algorithm
+  tags:
+  - jwt
+  - auth
+- id: GHOST-JS-EXT-035
+  name: XSS protection disabled
+  description: XSS protection disabled detected
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: xss\s*=\s*false|sanitize\s*=\s*false
+    confidence: 0.82
+  fix: Enable XSS sanitization
+  tags:
+  - xss
+  - config
+- id: GHOST-JS-EXT-036
+  name: HTML escaping disabled
+  description: HTML escaping disabled detected
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: escapeHTML\s*=\s*false
+    confidence: 0.82
+  fix: Enable HTML escaping
+  tags:
+  - xss
+  - config
+- id: GHOST-JS-EXT-037
+  name: Handlebars noEscape option
+  description: Handlebars noEscape option detected
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: noEscape\s*:\s*true
+    confidence: 0.82
+  fix: Remove noEscape option
+  tags:
+  - xss
+  - handlebars
+- id: GHOST-JS-EXT-038
+  name: CSP wildcard default-src
+  description: CSP wildcard default-src detected
+  severity: MEDIUM
+  cwe: CWE-693
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: helmet\.contentSecurityPolicy\s*\(\s*\{[^}]*default-src.*["\'][*]["\']
+    confidence: 0.82
+  fix: Use specific CSP directives
+  tags:
+  - csp
+  - headers
+- id: GHOST-JS-EXT-039
+  name: CSP with unsafe-eval
+  description: CSP with unsafe-eval detected
+  severity: HIGH
+  cwe: CWE-693
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: Content-Security-Policy[^:]*:[^;]*unsafe-eval
+    confidence: 0.82
+  fix: Remove unsafe-eval from CSP
+  tags:
+  - csp
+  - headers
+- id: GHOST-JS-EXT-040
+  name: CSP with unsafe-inline
+  description: CSP with unsafe-inline detected
+  severity: HIGH
+  cwe: CWE-693
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: Content-Security-Policy[^:]*:[^;]*unsafe-inline
+    confidence: 0.82
+  fix: Remove unsafe-inline from CSP
+  tags:
+  - csp
+  - headers
+- id: GHOST-JS-EXT-041
+  name: X-Powered-By exposed
+  description: X-Powered-By exposed detected
+  severity: LOW
+  cwe: CWE-200
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: x-powered-by:\s*Express
+    confidence: 0.82
+  fix: Use helmet.hidePoweredBy()
+  tags:
+  - headers
+  - disclosure
+- id: GHOST-JS-EXT-042
+  name: Nginx version in header
+  description: Nginx version in header detected
+  severity: LOW
+  cwe: CWE-200
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: server:\s*nginx\/[\d.]+
+    confidence: 0.82
+  fix: Disable server_tokens in nginx
+  tags:
+  - headers
+  - disclosure
+- id: GHOST-JS-EXT-043
+  name: XSS protection disabled
+  description: XSS protection disabled detected
+  severity: MEDIUM
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: X-XSS-Protection:\s*0
+    confidence: 0.82
+  fix: 'Set X-XSS-Protection: 1; mode=block'
+  tags:
+  - headers
+  - xss
+- id: GHOST-JS-EXT-044
+  name: HSTS max-age zero
+  description: HSTS max-age zero detected
+  severity: HIGH
+  cwe: CWE-319
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: Strict-Transport-Security[^:]*max-age=0
+    confidence: 0.82
+  fix: Set max-age >= 31536000
+  tags:
+  - hsts
+  - tls
+- id: GHOST-JS-EXT-045
+  name: P3P header present
+  description: P3P header present detected
+  severity: LOW
+  cwe: CWE-200
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: P3P:\s*CP="
+    confidence: 0.82
+  fix: P3P is deprecated; remove this header
+  tags:
+  - headers
+  - privacy
+- id: GHOST-JS-EXT-046
+  name: Cookie without httpOnly
+  description: Cookie without httpOnly detected
+  severity: MEDIUM
+  cwe: CWE-1004
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: \.cookie\s*\([^,]+,\s*[^,]+,\s*\{(?!.*httpOnly\s*:\s*true)
+    confidence: 0.82
+  fix: 'Set httpOnly: true'
+  tags:
+  - cookie
+  - auth
+- id: GHOST-JS-EXT-047
+  name: Passport local without session
+  description: Passport local without session detected
+  severity: MEDIUM
+  cwe: CWE-384
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: passport\.authenticate\s*\(["\']local["\'](?![\s\S]{0,100}session:)
+    confidence: 0.82
+  fix: Configure session handling for passport
+  tags:
+  - auth
+  - passport
+- id: GHOST-JS-EXT-048
+  name: Passport LocalStrategy
+  description: Passport LocalStrategy detected
+  severity: LOW
+  cwe: CWE-306
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: passport\.use\s*\(\s*new\s+LocalStrategy\s*\([^)]*\)(?![\s\S]{0,500}passReqToCallback)
+    confidence: 0.82
+  fix: Consider passReqToCallback for request access
+  tags:
+  - auth
+  - passport
+- id: GHOST-JS-EXT-049
+  name: bcrypt.compare with null hash
+  description: bcrypt.compare with null hash detected
+  severity: HIGH
+  cwe: CWE-287
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: bcrypt\.compare\s*\([^,]+,[^)]*null\s*\)
+    confidence: 0.82
+  fix: Check hash for null before bcrypt.compare
+  tags:
+  - auth
+  - bcrypt
+- id: GHOST-JS-EXT-050
+  name: argon2.verify with null hash
+  description: argon2.verify with null hash detected
+  severity: HIGH
+  cwe: CWE-287
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: argon2\.verify\s*\([^,]+,[^)]*null\s*\)
+    confidence: 0.82
+  fix: Check hash for null before argon2.verify
+  tags:
+  - auth
+  - argon2

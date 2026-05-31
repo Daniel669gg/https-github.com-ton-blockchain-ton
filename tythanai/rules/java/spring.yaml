@@ -1,0 +1,255 @@
+- id: GHOST-SB-001
+  name: Spring actuator exposed
+  description: All actuators exposed in production
+  severity: HIGH
+  cwe: CWE-200
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: management\.endpoints\.web\.exposure\.include\s*=\s*\*
+    confidence: 0.87
+  fix: Expose only required actuators
+  tags:
+  - spring
+  - actuator
+- id: GHOST-SB-002
+  name: Spring security disabled
+  description: CSRF disabled in Spring Security
+  severity: HIGH
+  cwe: CWE-352
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: \.csrf\s*\(\s*\)\.disable\s*\(\s*\)
+    confidence: 0.87
+  fix: Do not disable CSRF for browser clients
+  tags:
+  - spring
+  - csrf
+- id: GHOST-SB-003
+  name: Spring XSS no escaping
+  description: Thymeleaf unsafe output
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: th:utext\s*=
+    confidence: 0.87
+  fix: Use th:text for escaped output
+  tags:
+  - spring
+  - xss
+- id: GHOST-SB-004
+  name: Spring SQL injection
+  description: '@Query with JPQL injection'
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: '@Query\s*\(["\''][^"\'']*\+\s*\#\{|nativeQuery\s*=\s*true[^"\'']*\+'
+    confidence: 0.87
+  fix: Use named parameters
+  tags:
+  - spring
+  - sql
+- id: GHOST-SB-005
+  name: Spring SSRF RestTemplate
+  description: RestTemplate with user URL
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: restTemplate\.(?:getForObject|postForObject|exchange)\s*\([^,]*(?:request\.|req\.)
+    confidence: 0.87
+  fix: Validate URL against allowlist
+  tags:
+  - spring
+  - ssrf
+- id: GHOST-SB-006
+  name: Spring mass assignment
+  description: '@RequestBody to entity directly'
+  severity: HIGH
+  cwe: CWE-915
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: '@PostMapping[\s\S]{0,100}@RequestBody\s+\w+Entity'
+    confidence: 0.87
+  fix: Use DTOs with explicit field mapping
+  tags:
+  - spring
+  - mass_assignment
+- id: GHOST-SB-007
+  name: Spring security permit all
+  description: permitAll() on sensitive path
+  severity: CRITICAL
+  cwe: CWE-285
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: antMatchers\s*\([^)]*(?:admin|management|api)\s*\)\s*\.permitAll\s*\(\s*\)
+    confidence: 0.87
+  fix: Restrict admin paths to authorized users
+  tags:
+  - spring
+  - auth
+- id: GHOST-SB-008
+  name: Spring open redirect
+  description: RedirectView with request param
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: RedirectView\s*\([^)]*(?:request\.|req\.)
+    confidence: 0.87
+  fix: Validate redirect URL
+  tags:
+  - spring
+  - redirect
+- id: GHOST-SB-009
+  name: Spring password plaintext
+  description: PasswordEncoder as NoOpPasswordEncoder
+  severity: CRITICAL
+  cwe: CWE-916
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: NoOpPasswordEncoder\.getInstance\s*\(\s*\)
+    confidence: 0.87
+  fix: Use BCryptPasswordEncoder
+  tags:
+  - spring
+  - crypto
+- id: GHOST-SB-010
+  name: Spring h2-console exposed
+  description: H2 Console enabled in production
+  severity: HIGH
+  cwe: CWE-200
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: spring\.h2\.console\.enabled\s*=\s*true
+    confidence: 0.87
+  fix: Disable H2 console in production
+  tags:
+  - spring
+  - database
+- id: GHOST-SB-011
+  name: Spring SpEL injection
+  description: SpEL expression from user input
+  severity: CRITICAL
+  cwe: CWE-94
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: ExpressionParser[\s\S]{0,200}\.parseExpression\s*\([^)]*(?:request\.|req\.)
+    confidence: 0.87
+  fix: Never parse user input as SpEL
+  tags:
+  - spring
+  - spel
+- id: GHOST-SB-012
+  name: Spring LDAP injection
+  description: Spring LDAP with user filter
+  severity: HIGH
+  cwe: CWE-90
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: ldapTemplate\.(?:search|authenticate)\s*\([^,]+,[^)]*\+[^)]*(?:request\.|req\.)
+    confidence: 0.87
+  fix: Escape LDAP filter characters
+  tags:
+  - spring
+  - ldap
+- id: GHOST-SB-013
+  name: Spring XmlBeans XXE
+  description: XmlObject.Factory.parse
+  severity: HIGH
+  cwe: CWE-611
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: XmlObject\.Factory\.parse\s*\(
+    confidence: 0.87
+  fix: Use FEATURE_SECURE_PROCESSING
+  tags:
+  - spring
+  - xxe
+- id: GHOST-SB-014
+  name: Spring hardcoded secret
+  description: Hardcoded JWT secret in properties
+  severity: CRITICAL
+  cwe: CWE-321
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: jwt\.secret\s*=\s*[A-Za-z0-9+/=]{20,}
+    confidence: 0.87
+  fix: Load JWT secret from vault
+  tags:
+  - spring
+  - jwt
+- id: GHOST-SB-015
+  name: Spring request logging
+  description: HttpServletRequest logged fully
+  severity: MEDIUM
+  cwe: CWE-312
+  owasp: A03:2021
+  languages:
+  - java
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: log\.(?:info|debug)\s*\([^)]*HttpServletRequest
+    confidence: 0.87
+  fix: Sanitize request data before logging
+  tags:
+  - spring
+  - logging

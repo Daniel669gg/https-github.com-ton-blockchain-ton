@@ -1,0 +1,90 @@
+- id: GHOST-SOL-DEFI-001
+  name: AMM Pool Imbalance
+  description: Pool reserves not validated after swap
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: swap_tokens\b(?!.*invariant|.*k_value)
+    confidence: 0.85
+  fix: Verify constant product invariant after swap
+  tags:
+  - solana
+  - amm
+  - pool
+- id: GHOST-SOL-DEFI-002
+  name: Staking Reward Calculation
+  description: Reward calculation uses stale slot
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: reward\s*=.*last_update_slot\b
+    confidence: 0.85
+  fix: Use current slot for reward calculation
+  tags:
+  - solana
+  - staking
+  - reward
+- id: GHOST-SOL-DEFI-003
+  name: Oracle Price Not Validated
+  description: Pyth price not checked for confidence
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: Price::get_current_price\b(?!.*confidence|.*expo)
+    confidence: 0.88
+  fix: Check Pyth price confidence interval
+  tags:
+  - solana
+  - oracle
+  - pyth
+- id: GHOST-SOL-DEFI-004
+  name: Missing Vault Authority
+  description: Token vault authority not validated
+  severity: CRITICAL
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: vault\.authority\b(?!.*==)
+    confidence: 0.92
+  fix: Validate vault authority equals expected PDA
+  tags:
+  - solana
+  - vault
+  - authority
+- id: GHOST-SOL-DEFI-005
+  name: Unchecked Token Mint
+  description: Token mint not validated before transfer
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - rust
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: token_mint\b(?!.*==|.*key\(\))
+    confidence: 0.88
+  fix: Validate token mint address
+  tags:
+  - solana
+  - token
+  - mint

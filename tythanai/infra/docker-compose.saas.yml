@@ -1,0 +1,225 @@
+version: "3.9"
+
+# TythanAI Platform — Production SaaS Docker Compose
+# Usage: docker compose -f infra/docker-compose.saas.yml up -d
+# Requires: .env file with secrets (copy from .env.example)
+
+x-restart: &restart
+  restart: unless-stopped
+
+x-logging: &logging
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "50m"
+      max-file: "5"
+
+networks:
+  ghost-net:
+    driver: bridge
+
+volumes:
+  ghost-data:
+  postgres-data:
+  redis-data:
+  prometheus-data:
+  grafana-data:
+  nginx-ssl:
+
+services:
+  # ── Ghost API (FastAPI) ────────────────────────────────────────────────────
+  ghost-api:
+    image: ghost-security:${GHOST_VERSION:-latest}
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    <<: [*restart, *logging]
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql://ghost:${POSTGRES_PASSWORD}@postgres:5432/ghost}
+      - REDIS_URL=${REDIS_URL:-redis://:${REDIS_PASSWORD}@redis:6379/0}
+      - SECRET_KEY=${SECRET_KEY}
+      - GHOST_ENV=${GHOST_ENV:-production}
+      - WORKERS=${API_WORKERS:-2}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    volumes:
+      - ghost-data:/app/data
+    networks:
+      - ghost-net
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ── Ghost Worker (async scan queue) ────────────────────────────────────────
+  ghost-worker:
+    image: ghost-security:${GHOST_VERSION:-latest}
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    <<: [*restart, *logging]
+    command: ["python3", "-m", "workers.scan_worker"]
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql://ghost:${POSTGRES_PASSWORD}@postgres:5432/ghost}
+      - REDIS_URL=${REDIS_URL:-redis://:${REDIS_PASSWORD}@redis:6379/0}
+      - SECRET_KEY=${SECRET_KEY}
+      - GHOST_ENV=${GHOST_ENV:-production}
+      - WORKER_CONCURRENCY=${WORKER_CONCURRENCY:-4}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    volumes:
+      - ghost-data:/app/data
+    networks:
+      - ghost-net
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import redis, os; r=redis.from_url(os.environ['REDIS_URL']); r.ping()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ── NGINX (reverse proxy + SSL termination) ────────────────────────────────
+  nginx:
+    image: nginx:1.25-alpine
+    <<: [*restart, *logging]
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - nginx-ssl:/etc/nginx/ssl:ro
+      - ghost-data:/app/static:ro
+    networks:
+      - ghost-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      ghost-api:
+        condition: service_healthy
+
+  # ── Redis (queue backend) ──────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    <<: [*restart, *logging]
+    command: >
+      sh -c '
+        if [ -n "$$REDIS_PASSWORD" ]; then
+          redis-server --requirepass "$$REDIS_PASSWORD" --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru;
+        else
+          redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru;
+        fi
+      '
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+    volumes:
+      - redis-data:/data
+    networks:
+      - ghost-net
+    expose:
+      - "6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ── PostgreSQL (findings persistence) ─────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    <<: [*restart, *logging]
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-ghost}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB:-ghost}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - ghost-net
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ghost} -d ${POSTGRES_DB:-ghost}"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ── Prometheus (metrics scraping) ─────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    <<: [*restart, *logging]
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
+      - "--web.enable-lifecycle"
+    volumes:
+      - ./prometheus.saas.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - ghost-net
+    expose:
+      - "9090"
+    ports:
+      - "127.0.0.1:9090:9090"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    depends_on:
+      ghost-api:
+        condition: service_healthy
+
+  # ── Grafana (dashboard) ────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:10.4.0
+    <<: [*restart, *logging]
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_SERVER_ROOT_URL=${GRAFANA_ROOT_URL:-http://localhost:3001}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_ANALYTICS_REPORTING_ENABLED=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/ghost-security:/var/lib/grafana/dashboards:ro
+    networks:
+      - ghost-net
+    ports:
+      - "127.0.0.1:3001:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    depends_on:
+      prometheus:
+        condition: service_healthy

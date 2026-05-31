@@ -1,0 +1,720 @@
+- id: GHOST-JS-XSS-001
+  name: innerHTML with user data
+  description: innerHTML assignment from user input
+  severity: CRITICAL
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: \.innerHTML\s*=\s*(?![\'"]\s*[\'"])[^;]+(?:req\.|request\.|params\.|query\.|body\.|input\.|user\.)
+    confidence: 0.92
+  fix: Use textContent or DOMPurify.sanitize()
+  tags:
+  - xss
+  - dom
+- id: GHOST-JS-XSS-002
+  name: outerHTML injection
+  description: outerHTML with user input
+  severity: CRITICAL
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: \.outerHTML\s*=\s*[^;]+(?:req\.|params\.|body\.)
+    confidence: 0.91
+  fix: Use safe DOM manipulation
+  tags:
+  - xss
+  - dom
+- id: GHOST-JS-XSS-003
+  name: document.write XSS
+  description: document.write with user input
+  severity: CRITICAL
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: document\.write\s*\([^)]*(?:location|query|param|user|input)
+    confidence: 0.93
+  fix: Never use document.write()
+  tags:
+  - xss
+  - dom
+- id: GHOST-JS-XSS-004
+  name: eval XSS
+  description: eval() with user-controlled string
+  severity: CRITICAL
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: \beval\s*\([^)]*(?:req\.|request\.|params\.|query\.)
+    confidence: 0.93
+  fix: Never eval user input
+  tags:
+  - xss
+  - eval
+- id: GHOST-JS-XSS-005
+  name: setTimeout string eval
+  description: setTimeout with string arg
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: setTimeout\s*\(\s*["\'][^"\']+["\']
+    confidence: 0.88
+  fix: Pass function reference, not string
+  tags:
+  - xss
+  - eval
+- id: GHOST-JS-XSS-006
+  name: setInterval string eval
+  description: setInterval with string arg
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: setInterval\s*\(\s*["\'][^"\']+["\']
+    confidence: 0.88
+  fix: Pass function reference, not string
+  tags:
+  - xss
+  - eval
+- id: GHOST-JS-XSS-007
+  name: Function constructor injection
+  description: new Function() with user input
+  severity: CRITICAL
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: new\s+Function\s*\([^)]*(?:req\.|params\.|query\.|body\.)
+    confidence: 0.92
+  fix: Never construct functions from user input
+  tags:
+  - xss
+  - eval
+- id: GHOST-JS-XSS-008
+  name: insertAdjacentHTML
+  description: insertAdjacentHTML with user input
+  severity: CRITICAL
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: insertAdjacentHTML\s*\([^)]*(?:req\.|params\.|query\.|user\.)
+    confidence: 0.91
+  fix: Use insertAdjacentText or sanitize input
+  tags:
+  - xss
+  - dom
+- id: GHOST-JS-XSS-009
+  name: dangerouslySetInnerHTML React
+  description: React dangerouslySetInnerHTML
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: dangerouslySetInnerHTML\s*=\s*\{
+    confidence: 0.9
+  fix: Sanitize with DOMPurify before dangerouslySetInnerHTML
+  tags:
+  - xss
+  - react
+- id: GHOST-JS-XSS-010
+  name: jQuery html() XSS
+  description: jQuery .html() with user input
+  severity: CRITICAL
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: \$\([^)]+\)\.html\s*\([^)]*(?:req\.|params\.|data\.|response\.)
+    confidence: 0.91
+  fix: Use .text() or sanitize with DOMPurify
+  tags:
+  - xss
+  - jquery
+- id: GHOST-JS-XSS-011
+  name: jQuery append XSS
+  description: jQuery .append() with HTML string
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: \$\([^)]+\)\.append\s*\([^)]*(?:req\.|params\.|data\.)
+    confidence: 0.88
+  fix: Use .text() or sanitize HTML before appending
+  tags:
+  - xss
+  - jquery
+- id: GHOST-JS-XSS-012
+  name: Handlebars triple stache
+  description: '{{{ }}} in Handlebars template'
+  severity: CRITICAL
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: \{\{\{[^}]+\}\}\}
+    confidence: 0.92
+  fix: Use {{ }} with HTML encoding; avoid triple stache
+  tags:
+  - xss
+  - handlebars
+- id: GHOST-JS-XSS-013
+  name: Mustache unescape
+  description: Mustache unescaped triple brace
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.89
+  patterns:
+  - type: regex
+    pattern: \{&\s*[^}]+\}|\{\{\{\s*[^}]+\}\}\}
+    confidence: 0.89
+  fix: Use escaped {{ }} in Mustache templates
+  tags:
+  - xss
+  - mustache
+- id: GHOST-JS-XSS-014
+  name: Angular bypassSecurityTrust
+  description: Angular bypass security
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: bypassSecurityTrust(?:Html|Script|Style|Url|ResourceUrl)\s*\(
+    confidence: 0.9
+  fix: Only bypass Angular security on fully sanitized content
+  tags:
+  - xss
+  - angular
+- id: GHOST-JS-XSS-015
+  name: Vue v-html directive
+  description: Vue v-html with user data
+  severity: CRITICAL
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: v-html\s*=\s*["\'](?![\'"]\s*[\'"])[^"\']+["\']
+    confidence: 0.9
+  fix: Sanitize with DOMPurify before v-html
+  tags:
+  - xss
+  - vue
+- id: GHOST-JS-XSS-016
+  name: Express res.send XSS
+  description: Express res.send with user input
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.89
+  patterns:
+  - type: regex
+    pattern: res\.send\s*\([^)]*(?:req\.params\.|req\.query\.|req\.body\.)
+    confidence: 0.89
+  fix: 'Escape output or set Content-Type: application/json'
+  tags:
+  - xss
+  - express
+- id: GHOST-JS-XSS-017
+  name: template literal HTML
+  description: Template literal in innerHTML
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: \.innerHTML\s*=\s*`[^`]*\$\{
+    confidence: 0.9
+  fix: Sanitize before inserting template literals as HTML
+  tags:
+  - xss
+  - template
+- id: GHOST-JS-XSS-018
+  name: location.href assignment
+  description: Location set from user input
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: location\.href\s*=\s*[^;]*(?:req\.|params\.|query\.)
+    confidence: 0.87
+  fix: Validate URL before assigning to location
+  tags:
+  - xss
+  - redirect
+- id: GHOST-JS-XSS-019
+  name: location.replace injection
+  description: location.replace with user input
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: location\.replace\s*\([^)]*(?:req\.|params\.|query\.)
+    confidence: 0.87
+  fix: Validate URL against allowlist
+  tags:
+  - xss
+  - redirect
+- id: GHOST-JS-XSS-020
+  name: script src injection
+  description: Dynamic script src from user input
+  severity: CRITICAL
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: \.src\s*=\s*[^;]*(?:req\.|params\.|query\.|user\.)
+    confidence: 0.92
+  fix: Never set script.src from user input
+  tags:
+  - xss
+  - dom
+- id: GHOST-JS-XSS-021
+  name: createContextualFragment
+  description: createContextualFragment XSS
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: createContextualFragment\s*\(
+    confidence: 0.87
+  fix: Sanitize HTML before createContextualFragment
+  tags:
+  - xss
+  - dom
+- id: GHOST-JS-XSS-022
+  name: postMessage no origin check
+  description: postMessage listener without origin
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.84
+  patterns:
+  - type: regex
+    pattern: addEventListener\s*\(["\']message["\'][^)]*\)(?!.*\.origin)
+    confidence: 0.84
+  fix: Always verify event.origin in message handlers
+  tags:
+  - xss
+  - postmessage
+- id: GHOST-JS-XSS-023
+  name: jQuery prepend XSS
+  description: jQuery .prepend() with HTML
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: \$\([^)]+\)\.prepend\s*\([^)]*(?:data\.|response\.|params\.)
+    confidence: 0.87
+  fix: Sanitize before prepending HTML
+  tags:
+  - xss
+  - jquery
+- id: GHOST-JS-XSS-024
+  name: after/before jQuery XSS
+  description: jQuery .after/.before with HTML
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.86
+  patterns:
+  - type: regex
+    pattern: \$\([^)]+\)\.(after|before)\s*\([^)]*(?:data\.|params\.)
+    confidence: 0.86
+  fix: Use text manipulation instead
+  tags:
+  - xss
+  - jquery
+- id: GHOST-JS-XSS-025
+  name: Ejs unescaped tag
+  description: EJS <%- unescaped output
+  severity: CRITICAL
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: <%-\s*[^%>]+(?:req\.|params\.|query\.|user\.)
+    confidence: 0.92
+  fix: Use <%= for HTML-escaped output
+  tags:
+  - xss
+  - ejs
+- id: GHOST-JS-XSS-026
+  name: Pug unescaped output
+  description: Pug != unescaped interpolation
+  severity: CRITICAL
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: '!=\s*(?:req\.|params\.|query\.|user\.)'
+    confidence: 0.91
+  fix: Use = for escaped output in Pug
+  tags:
+  - xss
+  - pug
+- id: GHOST-JS-XSS-027
+  name: Nunjucks safe filter
+  description: Nunjucks | safe filter
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: \|\s*safe(?:\s|%})
+    confidence: 0.88
+  fix: Sanitize before marking content as safe
+  tags:
+  - xss
+  - nunjucks
+- id: GHOST-JS-XSS-028
+  name: iframe srcdoc injection
+  description: iframe srcdoc with user input
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.89
+  patterns:
+  - type: regex
+    pattern: \.srcdoc\s*=\s*[^;]*(?:req\.|params\.|query\.)
+    confidence: 0.89
+  fix: Sanitize HTML in iframe srcdoc
+  tags:
+  - xss
+  - iframe
+- id: GHOST-JS-XSS-029
+  name: DOM clobbering
+  description: Attribute named id clobbering globals
+  severity: MEDIUM
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.77
+  patterns:
+  - type: regex
+    pattern: getElementById\s*\([^)]*\)(?!.*null check)
+    confidence: 0.77
+  fix: Validate element references before use
+  tags:
+  - xss
+  - dom
+- id: GHOST-JS-XSS-030
+  name: CSS injection
+  description: Style property set from user input
+  severity: MEDIUM
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: \.style\.\w+\s*=\s*[^;]*(?:req\.|params\.|query\.)
+    confidence: 0.85
+  fix: Sanitize CSS values; avoid user-controlled styles
+  tags:
+  - xss
+  - css
+- id: GHOST-JS-XSS-031
+  name: SVG injection
+  description: SVG content from user input
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: <svg[^>]*>[^<]*\$\{|innerHTML.*<svg
+    confidence: 0.88
+  fix: Sanitize SVG with DOMPurify
+  tags:
+  - xss
+  - svg
+- id: GHOST-JS-XSS-032
+  name: Angular interpolation injection
+  description: '{{ }} binding with unsafe pipe'
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: \[\(innerHTML\)\]\s*=|innerHTML\]\s*=
+    confidence: 0.87
+  fix: Use Angular DomSanitizer properly
+  tags:
+  - xss
+  - angular
+- id: GHOST-JS-XSS-033
+  name: mXSS mutation
+  description: Mutation XSS via HTML parser difference
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: DOMParser.*parseFromString.*text/html
+    confidence: 0.83
+  fix: Use DOMPurify after parsing
+  tags:
+  - xss
+  - mxss
+- id: GHOST-JS-XSS-034
+  name: jinja2 autoescape off
+  description: Jinja2 autoescaping disabled
+  severity: CRITICAL
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.93
+  patterns:
+  - type: regex
+    pattern: autoescape\s*=\s*False|Environment\([^)]*autoescape=False
+    confidence: 0.93
+  fix: Enable Jinja2 autoescaping
+  tags:
+  - xss
+  - jinja2
+- id: GHOST-JS-XSS-035
+  name: Next.js dangerousHTML
+  description: Next.js dangerouslySetInnerHTML
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: 'dangerouslySetInnerHTML=\{\{__html:'
+    confidence: 0.9
+  fix: Sanitize HTML with DOMPurify first
+  tags:
+  - xss
+  - nextjs
+- id: GHOST-JS-XSS-036
+  name: Object assign DOM
+  description: Object.assign to DOM element props
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: Object\.assign\s*\([^,]+,\s*(?:req\.|params\.|query\.)
+    confidence: 0.85
+  fix: Never assign user objects to DOM elements
+  tags:
+  - xss
+  - dom
+- id: GHOST-JS-XSS-037
+  name: Nuxt $route param XSS
+  description: Nuxt $route.params in template
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.87
+  patterns:
+  - type: regex
+    pattern: v-html.*\$route\.params|v-html.*\$route\.query
+    confidence: 0.87
+  fix: Sanitize route params before v-html
+  tags:
+  - xss
+  - nuxt
+- id: GHOST-JS-XSS-038
+  name: Svelte @html directive
+  description: Svelte @html with user data
+  severity: CRITICAL
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.91
+  patterns:
+  - type: regex
+    pattern: \{@html\s+(?!sanitize)[^}]+\}
+    confidence: 0.91
+  fix: Sanitize with DOMPurify before @html
+  tags:
+  - xss
+  - svelte
+- id: GHOST-JS-XSS-039
+  name: jQuery load() XSS
+  description: jQuery .load() with user URL
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: \$\([^)]+\)\.load\s*\([^)]*(?:req\.|params\.|query\.)
+    confidence: 0.88
+  fix: Validate URL before jQuery load()
+  tags:
+  - xss
+  - jquery
+- id: GHOST-JS-XSS-040
+  name: 'data: URL injection'
+  description: 'data: URL with user content'
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A03:2021
+  languages:
+  - javascript
+  - typescript
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: (?:href|src)\s*=\s*["\']data:[^"\']*\$\{
+    confidence: 0.88
+  fix: 'Validate and sanitize data: URLs'
+  tags:
+  - xss
+  - url

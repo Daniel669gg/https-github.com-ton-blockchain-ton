@@ -1,0 +1,263 @@
+- id: GHOST-GO-001
+  name: SQL Injection in Go
+  description: fmt.Sprintf used to build SQL query
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A01:2021
+  languages:
+  - go
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: fmt\.Sprintf\s*\(\s*".*SELECT|fmt\.Sprintf\s*\(\s*".*INSERT
+    confidence: 0.92
+  fix: Use database/sql parameterized queries
+  tags:
+  - go
+  - sql-injection
+- id: GHOST-GO-002
+  name: Command Injection
+  description: exec.Command with user input
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A01:2021
+  languages:
+  - go
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: exec\.Command\s*\(\s*\w+\s*,\s*\w+
+    confidence: 0.92
+  fix: Validate and sanitize command arguments
+  tags:
+  - go
+  - command-injection
+- id: GHOST-GO-003
+  name: Path Traversal
+  description: filepath.Join with user input
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A01:2021
+  languages:
+  - go
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: filepath\.Join\s*\(.*r\.URL\.|filepath\.Join\s*\(.*r\.Form
+    confidence: 0.88
+  fix: Use filepath.Clean and validate against base dir
+  tags:
+  - go
+  - path-traversal
+- id: GHOST-GO-004
+  name: Weak Random
+  description: math/rand for security tokens
+  severity: HIGH
+  cwe: CWE-338
+  owasp: A01:2021
+  languages:
+  - go
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: rand\.Int\(\)|rand\.Float64\(|rand\.Intn\(
+    confidence: 0.9
+  fix: Use crypto/rand for security tokens
+  tags:
+  - go
+  - randomness
+  - crypto
+- id: GHOST-GO-005
+  name: Hardcoded Credentials
+  description: Credentials hardcoded in Go
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A01:2021
+  languages:
+  - go
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: (?:password|secret|apiKey)\s*:?=\s*"[^"]{4,}"
+    confidence: 0.88
+  fix: Use environment variables for credentials
+  tags:
+  - go
+  - hardcoded-credentials
+- id: GHOST-GO-006
+  name: TLS InsecureSkipVerify
+  description: TLS certificate verification disabled
+  severity: HIGH
+  cwe: CWE-295
+  owasp: A01:2021
+  languages:
+  - go
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: InsecureSkipVerify:\s*true
+    confidence: 0.95
+  fix: Enable TLS certificate verification
+  tags:
+  - go
+  - tls
+  - certificate
+- id: GHOST-GO-007
+  name: SSRF via http.Get
+  description: http.Get with user-controlled URL
+  severity: HIGH
+  cwe: CWE-918
+  owasp: A01:2021
+  languages:
+  - go
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: http\.Get\s*\(\s*\w+\s*\)
+    confidence: 0.88
+  fix: Validate and whitelist request URLs
+  tags:
+  - go
+  - ssrf
+  - http
+- id: GHOST-GO-008
+  name: Missing Error Check
+  description: error return value ignored
+  severity: HIGH
+  cwe: CWE-252
+  owasp: A01:2021
+  languages:
+  - go
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: \w+,\s*_\s*:=\s*\w+\.
+    confidence: 0.85
+  fix: Always check error return values
+  tags:
+  - go
+  - error-handling
+- id: GHOST-GO-009
+  name: Race Condition
+  description: Shared variable without mutex
+  severity: HIGH
+  cwe: CWE-362
+  owasp: A01:2021
+  languages:
+  - go
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: go\s+func\s*\(\s*\).*\n.*\w+\s*=
+    confidence: 0.82
+  fix: Use sync.Mutex for shared state
+  tags:
+  - go
+  - race-condition
+  - concurrency
+- id: GHOST-GO-010
+  name: Goroutine Leak
+  description: goroutine without done channel
+  severity: MEDIUM
+  cwe: CWE-400
+  owasp: A01:2021
+  languages:
+  - go
+  confidence: 0.8
+  patterns:
+  - type: regex
+    pattern: go\s+func\s*\(.*\)\s*\{(?!.*done|.*ctx\.Done)
+    confidence: 0.8
+  fix: Use context cancellation in goroutines
+  tags:
+  - go
+  - goroutine
+  - leak
+- id: GHOST-GO-011
+  name: XXE in Go XML
+  description: XML parsed without restricting entities
+  severity: HIGH
+  cwe: CWE-611
+  owasp: A01:2021
+  languages:
+  - go
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: xml\.Unmarshal\b|xml\.NewDecoder\b(?!.*Entity)
+    confidence: 0.88
+  fix: Use xml.Decoder with Entity nil or restricted
+  tags:
+  - go
+  - xxe
+  - xml
+- id: GHOST-GO-012
+  name: Unvalidated Redirect
+  description: http.Redirect with user URL
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A01:2021
+  languages:
+  - go
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: http\.Redirect\s*\(.*r\.URL\.|http\.Redirect\s*\(.*r\.Form
+    confidence: 0.88
+  fix: Validate redirect URL
+  tags:
+  - go
+  - open-redirect
+- id: GHOST-GO-013
+  name: Missing CSRF Protection
+  description: State-changing handler without CSRF
+  severity: HIGH
+  cwe: CWE-352
+  owasp: A01:2021
+  languages:
+  - go
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: http\.HandleFunc\s*\(.*POST|mux\.Post\(
+    confidence: 0.82
+  fix: Add CSRF middleware to state-changing endpoints
+  tags:
+  - go
+  - csrf
+- id: GHOST-GO-014
+  name: Unsafe Pointer
+  description: unsafe.Pointer used
+  severity: HIGH
+  cwe: CWE-119
+  owasp: A01:2021
+  languages:
+  - go
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: unsafe\.Pointer\(
+    confidence: 0.85
+  fix: Avoid unsafe.Pointer; use safer alternatives
+  tags:
+  - go
+  - unsafe
+  - memory
+- id: GHOST-GO-015
+  name: Panic Without Recovery
+  description: panic without deferred recover
+  severity: MEDIUM
+  cwe: CWE-703
+  owasp: A01:2021
+  languages:
+  - go
+  confidence: 0.78
+  patterns:
+  - type: regex
+    pattern: panic\s*\((?!.*recover\(\))
+    confidence: 0.78
+  fix: Add defer/recover to handle panics
+  tags:
+  - go
+  - panic
+  - recovery

@@ -1,0 +1,262 @@
+- id: GHOST-JAVA-001
+  name: SQL Injection via String concat
+  description: Query built with string concat
+  severity: CRITICAL
+  cwe: CWE-89
+  owasp: A01:2021
+  languages:
+  - java
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: executeQuery\s*\(\s*".*"\s*\+|prepareStatement\s*\(\s*".*"\s*\+
+    confidence: 0.95
+  fix: Use PreparedStatement with ?
+  tags:
+  - java
+  - sql-injection
+- id: GHOST-JAVA-002
+  name: Command Injection Runtime
+  description: Runtime.exec with user input
+  severity: CRITICAL
+  cwe: CWE-78
+  owasp: A01:2021
+  languages:
+  - java
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: Runtime\.getRuntime\(\)\.exec\s*\(
+    confidence: 0.92
+  fix: Use ProcessBuilder with List<String> args
+  tags:
+  - java
+  - command-injection
+- id: GHOST-JAVA-003
+  name: XXE via DocumentBuilder
+  description: XML parsing allows external entities
+  severity: HIGH
+  cwe: CWE-611
+  owasp: A01:2021
+  languages:
+  - java
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: DocumentBuilderFactory\.newInstance\(\)(?!.*FEATURE_SECURE_PROCESSING)
+    confidence: 0.92
+  fix: Disable external entity processing
+  tags:
+  - java
+  - xxe
+  - xml
+- id: GHOST-JAVA-004
+  name: Insecure Deserialization
+  description: ObjectInputStream deserialization
+  severity: CRITICAL
+  cwe: CWE-502
+  owasp: A01:2021
+  languages:
+  - java
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: ObjectInputStream\s*\(
+    confidence: 0.92
+  fix: Use safe deserialization filters
+  tags:
+  - java
+  - deserialization
+  - ois
+- id: GHOST-JAVA-005
+  name: Hard-coded Password
+  description: Password literal in Java code
+  severity: CRITICAL
+  cwe: CWE-798
+  owasp: A01:2021
+  languages:
+  - java
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: (?:password|passwd)\s*=\s*"[^"]{4,}"
+    confidence: 0.88
+  fix: Use environment variables or vault
+  tags:
+  - java
+  - hardcoded-password
+- id: GHOST-JAVA-006
+  name: Weak Cryptography DES
+  description: DES encryption algorithm used
+  severity: HIGH
+  cwe: CWE-327
+  owasp: A01:2021
+  languages:
+  - java
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: Cipher\.getInstance\s*\(\s*"DES
+    confidence: 0.95
+  fix: Use AES-256-GCM instead of DES
+  tags:
+  - java
+  - cryptography
+  - des
+- id: GHOST-JAVA-007
+  name: Path Traversal via getParameter
+  description: File path from request parameter
+  severity: HIGH
+  cwe: CWE-22
+  owasp: A01:2021
+  languages:
+  - java
+  confidence: 0.9
+  patterns:
+  - type: regex
+    pattern: request\.getParameter.*File|new File\s*\(.*getParameter
+    confidence: 0.9
+  fix: Validate and normalize file paths
+  tags:
+  - java
+  - path-traversal
+- id: GHOST-JAVA-008
+  name: XSS via PrintWriter
+  description: User data written to response directly
+  severity: HIGH
+  cwe: CWE-79
+  owasp: A01:2021
+  languages:
+  - java
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: out\.println\s*\(.*getParameter|response\.getWriter.*getParameter
+    confidence: 0.88
+  fix: Encode output with OWASP Java Encoder
+  tags:
+  - java
+  - xss
+  - response
+- id: GHOST-JAVA-009
+  name: CSRF Missing Token
+  description: Form submission without CSRF token
+  severity: HIGH
+  cwe: CWE-352
+  owasp: A01:2021
+  languages:
+  - java
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: '@PostMapping|@RequestMapping.*POST(?!.*@CsrfProtection|.*csrf)'
+    confidence: 0.82
+  fix: Add CSRF token validation
+  tags:
+  - java
+  - csrf
+  - spring
+- id: GHOST-JAVA-010
+  name: Log Injection
+  description: User input logged without sanitization
+  severity: MEDIUM
+  cwe: CWE-117
+  owasp: A01:2021
+  languages:
+  - java
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: log\w*\.\w+\s*\(.*getParameter|log\w*\.\w+\s*\(.*getHeader
+    confidence: 0.85
+  fix: Sanitize log inputs
+  tags:
+  - java
+  - log-injection
+- id: GHOST-JAVA-011
+  name: Open Redirect
+  description: Redirect to user-controlled URL
+  severity: HIGH
+  cwe: CWE-601
+  owasp: A01:2021
+  languages:
+  - java
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: response\.sendRedirect\s*\(.*getParameter
+    confidence: 0.88
+  fix: Validate redirect URLs
+  tags:
+  - java
+  - open-redirect
+- id: GHOST-JAVA-012
+  name: Missing Authorization
+  description: '@PreAuthorize missing on sensitive endpoint'
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - java
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: '@PostMapping|@DeleteMapping(?!.*@PreAuthorize|.*@Secured)'
+    confidence: 0.82
+  fix: Add @PreAuthorize to sensitive endpoints
+  tags:
+  - java
+  - authorization
+  - spring
+- id: GHOST-JAVA-013
+  name: Session Fixation
+  description: Session not invalidated on login
+  severity: HIGH
+  cwe: CWE-384
+  owasp: A01:2021
+  languages:
+  - java
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: request\.getSession\(\)(?!.*invalidate)
+    confidence: 0.85
+  fix: Call session.invalidate() before creating new session
+  tags:
+  - java
+  - session-fixation
+- id: GHOST-JAVA-014
+  name: Insecure Cookie
+  description: Cookie without Secure/HttpOnly flags
+  severity: HIGH
+  cwe: CWE-614
+  owasp: A01:2021
+  languages:
+  - java
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: new Cookie\b(?!.*setSecure|.*setHttpOnly)
+    confidence: 0.88
+  fix: Set Secure and HttpOnly flags on all cookies
+  tags:
+  - java
+  - cookie
+  - secure
+- id: GHOST-JAVA-015
+  name: LDAP Injection
+  description: LDAP filter built with user input
+  severity: HIGH
+  cwe: CWE-90
+  owasp: A01:2021
+  languages:
+  - java
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: search\s*\(.*getParameter|DirContext.*search\s*\(
+    confidence: 0.88
+  fix: Sanitize LDAP filter inputs
+  tags:
+  - java
+  - ldap-injection

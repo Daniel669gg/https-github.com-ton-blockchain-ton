@@ -1,0 +1,1826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ghost Security Platform</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f8fafc;--sidebar:#0d1b2a;--sidebar-hover:#1a2d42;--sidebar-active:#1e3a5f;
+  --card:#ffffff;--card-border:#e2e8f0;--text:#0f172a;--muted:#64748b;
+  --accent:#2563eb;--accent-light:#dbeafe;--accent-dark:#1d4ed8;
+  --crit:#dc2626;--crit-bg:#fef2f2;--crit-border:#fecaca;
+  --high:#ea580c;--high-bg:#fff7ed;--high-border:#fed7aa;
+  --med:#d97706;--med-bg:#fffbeb;--med-border:#fde68a;
+  --low:#16a34a;--low-bg:#f0fdf4;--low-border:#bbf7d0;
+  --info:#6b7280;--info-bg:#f9fafb;--info-border:#e5e7eb;
+  --green:#16a34a;--red:#dc2626;--yellow:#d97706;--blue:#2563eb;
+  --shadow:0 1px 3px rgba(0,0,0,.1),0 1px 2px rgba(0,0,0,.06);
+  --shadow-lg:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -2px rgba(0,0,0,.05);
+  --radius:8px;--radius-lg:12px;
+}
+[data-theme="dark"]{
+  --bg:#0a0f1e;--card:#111827;--card-border:#1f2937;--text:#f1f5f9;--muted:#94a3b8;
+  --accent-light:rgba(37,99,235,.15);--crit-bg:#450a0a;--crit-border:#7f1d1d;
+  --high-bg:#431407;--high-border:#7c2d12;--med-bg:#422006;--med-border:#78350f;
+  --low-bg:#052e16;--low-border:#14532d;--info-bg:#111827;--info-border:#374151;
+  --shadow:0 1px 3px rgba(0,0,0,.4);--shadow-lg:0 10px 15px -3px rgba(0,0,0,.4);
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden;transition:background .2s,color .2s}
+/* ── Sidebar ── */
+#sidebar{width:220px;min-width:220px;background:var(--sidebar);display:flex;flex-direction:column;overflow-y:auto;transition:width .25s;flex-shrink:0;z-index:100}
+#sidebar.collapsed{width:56px;min-width:56px}
+#sidebar.collapsed .nav-label,.#sidebar.collapsed .nav-section,.#sidebar.collapsed .logo-text,.#sidebar.collapsed .sidebar-footer-text{display:none}
+#sidebar.collapsed .logo{justify-content:center;padding:.9rem .5rem}
+#sidebar.collapsed .nav-item{justify-content:center;padding:.7rem .5rem}
+#sidebar.collapsed .nav-badge{display:none}
+.logo{padding:1rem 1.2rem;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:.6rem;cursor:pointer}
+.logo-icon{font-size:1.4rem;flex-shrink:0}
+.logo-text{display:flex;flex-direction:column}
+.logo-name{font-size:1rem;font-weight:800;color:#38bdf8;letter-spacing:-.01em}
+.logo-name span{color:#f43f5e}
+.logo-ver{font-size:.6rem;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.1em;margin-top:.1rem}
+nav{flex:1;padding:.5rem 0;overflow-y:auto}
+.nav-section{font-size:.6rem;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.12em;padding:.9rem 1.2rem .3rem;white-space:nowrap}
+.nav-item{display:flex;align-items:center;gap:.6rem;padding:.55rem 1.2rem;color:rgba(255,255,255,.55);cursor:pointer;transition:all .15s;border-left:3px solid transparent;font-size:.83rem;white-space:nowrap;position:relative}
+.nav-item:hover{color:#fff;background:var(--sidebar-hover)}
+.nav-item.active{color:#38bdf8;background:var(--sidebar-active);border-left-color:#38bdf8}
+.nav-icon{font-size:.95rem;flex-shrink:0;width:18px;text-align:center}
+.nav-label{flex:1}
+.nav-badge{background:#dc2626;color:#fff;font-size:.6rem;font-weight:700;padding:.1rem .35rem;border-radius:9px;min-width:18px;text-align:center;margin-left:auto}
+.sidebar-footer{padding:.75rem 1.2rem;border-top:1px solid rgba(255,255,255,.08);font-size:.75rem}
+.status-row{display:flex;align-items:center;gap:.4rem;color:rgba(255,255,255,.45);margin-bottom:.3rem}
+.status-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dot-ok{background:#22c55e}.dot-warn{background:#d97706}.dot-off{background:#6b7280}
+/* ── Main ── */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+/* ── Topbar ── */
+#topbar{background:var(--card);border-bottom:1px solid var(--card-border);padding:.65rem 1.25rem;display:flex;align-items:center;gap:.75rem;flex-shrink:0;box-shadow:var(--shadow)}
+#sidebar-toggle{background:none;border:none;cursor:pointer;color:var(--muted);font-size:1.1rem;padding:.2rem;flex-shrink:0}
+#sidebar-toggle:hover{color:var(--text)}
+#topbar h1{font-size:.95rem;font-weight:700;flex:1;color:var(--text)}
+.topbar-search{background:var(--bg);border:1px solid var(--card-border);border-radius:6px;padding:.4rem .75rem;color:var(--text);font-size:.83rem;width:280px;outline:none;transition:border-color .15s}
+.topbar-search:focus{border-color:var(--accent)}
+.btn{padding:.4rem .85rem;border-radius:6px;border:1px solid var(--card-border);background:var(--card);color:var(--text);cursor:pointer;font-size:.8rem;transition:all .15s;display:inline-flex;align-items:center;gap:.35rem;font-weight:500;white-space:nowrap}
+.btn:hover{background:var(--accent-light);border-color:var(--accent);color:var(--accent)}
+.btn-accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-accent:hover{background:var(--accent-dark);border-color:var(--accent-dark);color:#fff}
+.btn-ghost{background:transparent;border-color:transparent}
+.btn-ghost:hover{background:var(--accent-light)}
+.btn-sm{padding:.28rem .6rem;font-size:.74rem}
+.btn-danger{background:var(--red);color:#fff;border-color:var(--red)}
+.btn-danger:hover{opacity:.88;color:#fff}
+#theme-toggle{background:none;border:1px solid var(--card-border);border-radius:6px;width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.9rem;color:var(--muted);transition:all .15s;flex-shrink:0}
+#theme-toggle:hover{background:var(--accent-light);color:var(--accent)}
+/* ── Content ── */
+#content{flex:1;overflow-y:auto;padding:1.25rem}
+.page{display:none}.page.active{display:block}
+/* ── Tab bar ── */
+.tab-bar{display:flex;gap:0;border-bottom:2px solid var(--card-border);margin-bottom:1.25rem}
+.tab{padding:.6rem 1.1rem;font-size:.83rem;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-content{display:none}.tab-content.active{display:block}
+/* ── Cards ── */
+.card{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius-lg);padding:1.1rem;margin-bottom:1rem;box-shadow:var(--shadow)}
+.card-title{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.85rem}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem}
+.card-header .card-title{margin-bottom:0}
+/* ── Stats ── */
+.stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.75rem;margin-bottom:1.1rem}
+@media(max-width:1100px){.stats-grid{grid-template-columns:repeat(3,1fr)}}
+.stat-card{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius-lg);padding:1rem 1.1rem;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.stat-crit::before{background:var(--crit)}.stat-high::before{background:var(--high)}
+.stat-med::before{background:var(--med)}.stat-low::before{background:var(--low)}
+.stat-sla::before{background:var(--accent)}
+.stat-num{font-size:2.1rem;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.stat-lbl{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:.25rem}
+.stat-delta{font-size:.7rem;margin-top:.3rem}
+.stat-delta.up{color:var(--crit)}.stat-delta.down{color:var(--green)}.stat-delta.flat{color:var(--muted)}
+/* ── SLA ring ── */
+.sla-ring{position:relative;display:inline-flex;align-items:center;justify-content:center}
+.sla-ring svg{transform:rotate(-90deg)}
+.sla-ring-label{position:absolute;text-align:center}
+.sla-ring-pct{font-size:1.1rem;font-weight:800}
+.sla-ring-txt{font-size:.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+/* ── Search/filter bar ── */
+.filter-bar{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-bottom:.85rem;padding:.75rem;background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius)}
+.filter-search{flex:1;min-width:200px;background:var(--bg);border:1px solid var(--card-border);border-radius:6px;padding:.4rem .75rem;color:var(--text);font-size:.83rem;outline:none;transition:border-color .15s}
+.filter-search:focus{border-color:var(--accent)}
+.filter-select{background:var(--card);border:1px solid var(--card-border);border-radius:6px;padding:.38rem .65rem;color:var(--text);font-size:.8rem;cursor:pointer;outline:none;transition:border-color .15s}
+.filter-select:focus{border-color:var(--accent)}
+.filter-actions{display:flex;gap:.4rem;margin-left:auto;align-items:center}
+/* ── Findings table ── */
+.findings-table{width:100%;border-collapse:collapse}
+.findings-table thead th{text-align:left;padding:.55rem .75rem;font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;border-bottom:2px solid var(--card-border);white-space:nowrap;cursor:pointer;user-select:none;transition:color .15s}
+.findings-table thead th:hover{color:var(--accent)}
+.findings-table thead th.sort-asc::after{content:' ↑';color:var(--accent)}
+.findings-table thead th.sort-desc::after{content:' ↓';color:var(--accent)}
+.findings-table tbody tr{border-bottom:1px solid var(--card-border);transition:background .1s;cursor:pointer}
+.findings-table tbody tr:nth-child(even){background:rgba(0,0,0,.02)}
+[data-theme="dark"] .findings-table tbody tr:nth-child(even){background:rgba(255,255,255,.02)}
+.findings-table tbody tr:hover{background:var(--accent-light)}
+.findings-table td{padding:.55rem .75rem;font-size:.82rem;vertical-align:middle}
+.findings-table td.col-sev{width:90px}
+.findings-table td.col-id{width:130px;font-family:'SF Mono',Consolas,monospace;font-size:.75rem;color:var(--muted)}
+.findings-table td.col-msg{max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.findings-table td.col-file{max-width:200px;font-family:'SF Mono',Consolas,monospace;font-size:.73rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.findings-table td.col-cwe{width:80px;font-size:.75rem}
+.findings-table td.col-actions{width:60px;text-align:right}
+/* ── Severity badge ── */
+.sev-badge{display:inline-flex;align-items:center;gap:.25rem;padding:.2rem .55rem;border-radius:20px;font-size:.68rem;font-weight:700;letter-spacing:.03em;white-space:nowrap}
+.sev-CRITICAL{background:var(--crit-bg);color:var(--crit);border:1px solid var(--crit-border)}
+.sev-HIGH{background:var(--high-bg);color:var(--high);border:1px solid var(--high-border)}
+.sev-MEDIUM{background:var(--med-bg);color:var(--med);border:1px solid var(--med-border)}
+.sev-LOW{background:var(--low-bg);color:var(--low);border:1px solid var(--low-border)}
+.sev-INFO{background:var(--info-bg);color:var(--info);border:1px solid var(--info-border)}
+/* ── Detail modal / slide panel ── */
+#detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:400;opacity:0;pointer-events:none;transition:opacity .25s}
+#detail-overlay.open{opacity:1;pointer-events:all}
+#detail-panel{position:fixed;top:0;right:0;bottom:0;width:520px;max-width:100vw;background:var(--card);border-left:1px solid var(--card-border);box-shadow:-8px 0 24px rgba(0,0,0,.12);z-index:401;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow:hidden}
+#detail-panel.open{transform:translateX(0)}
+#detail-panel-header{padding:1rem 1.25rem;border-bottom:1px solid var(--card-border);display:flex;align-items:flex-start;gap:.75rem;flex-shrink:0}
+#detail-panel-body{flex:1;overflow-y:auto;padding:1.25rem}
+#detail-panel-footer{padding:.75rem 1.25rem;border-top:1px solid var(--card-border);display:flex;gap:.5rem;flex-shrink:0}
+.detail-field{margin-bottom:1rem}
+.detail-field-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.3rem}
+.detail-field-value{font-size:.85rem;line-height:1.5}
+.code-block{background:var(--bg);border:1px solid var(--card-border);border-radius:6px;padding:.75rem;font-family:'SF Mono',Consolas,monospace;font-size:.76rem;color:#0ea5e9;overflow-x:auto;white-space:pre;line-height:1.5;max-height:160px;overflow-y:auto}
+[data-theme="dark"] .code-block{color:#a5f3fc}
+.remediation-block{background:var(--low-bg);border:1px solid var(--low-border);border-radius:6px;padding:.75rem;font-size:.82rem;line-height:1.55}
+.detail-tags{display:flex;flex-wrap:wrap;gap:.35rem}
+.tag{display:inline-block;padding:.18rem .5rem;border-radius:4px;font-size:.7rem;background:var(--accent-light);color:var(--accent);border:1px solid rgba(37,99,235,.2);font-weight:500}
+/* ── Heatmap ── */
+.heatmap-grid{display:grid;grid-template-columns:180px 1fr;gap:0;overflow-x:auto}
+.heatmap-labels{display:flex;flex-direction:column}
+.heatmap-label{height:30px;display:flex;align-items:center;font-size:.73rem;color:var(--muted);padding-right:.75rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.heatmap-cells{display:flex;flex-direction:column;gap:2px}
+.heatmap-row{display:flex;gap:2px;height:28px;align-items:stretch}
+.heatmap-cell{flex:1;border-radius:3px;cursor:pointer;transition:opacity .15s;min-width:28px;position:relative}
+.heatmap-cell:hover{opacity:.75;outline:2px solid var(--accent)}
+.heatmap-legend{display:flex;align-items:center;gap:.5rem;margin-top:.75rem;font-size:.72rem;color:var(--muted)}
+.heatmap-legend-bar{display:flex;height:12px;width:160px;border-radius:3px;overflow:hidden}
+.hm-col-labels{display:flex;margin-bottom:.3rem;padding-left:0}
+.hm-col-label{flex:1;text-align:center;font-size:.65rem;color:var(--muted);min-width:28px}
+/* ── Timeline / History ── */
+.history-list{display:flex;flex-direction:column;gap:.75rem}
+.history-item{display:flex;gap:1rem;align-items:stretch;position:relative}
+.history-item::before{content:'';position:absolute;left:12px;top:28px;bottom:-12px;width:2px;background:var(--card-border)}
+.history-item:last-child::before{display:none}
+.history-dot{width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.7rem;z-index:1;border:2px solid var(--card)}
+.history-content{flex:1;background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius);padding:.75rem;box-shadow:var(--shadow)}
+.history-meta{display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem;flex-wrap:wrap}
+.history-date{font-size:.75rem;color:var(--muted)}
+.history-target{font-size:.8rem;font-weight:600;font-family:monospace}
+.history-bars{display:flex;gap:3px;align-items:flex-end;height:32px;margin-top:.4rem}
+.history-bar{border-radius:2px 2px 0 0;min-width:14px;transition:opacity .15s;cursor:default;position:relative}
+.history-bar:hover{opacity:.8}
+.history-bar-label{font-size:.6rem;color:var(--muted);text-align:center;margin-top:.2rem}
+.trend-arrow{font-size:1rem;font-weight:700}
+.trend-up{color:var(--crit)}.trend-down{color:var(--green)}.trend-flat{color:var(--muted)}
+/* ── Chart bars ── */
+.bar-chart{display:flex;flex-direction:column;gap:.5rem}
+.bar-row{display:flex;align-items:center;gap:.75rem}
+.bar-row-label{width:90px;font-size:.78rem;color:var(--muted);text-align:right;flex-shrink:0}
+.bar-track{flex:1;height:10px;background:var(--bg);border-radius:5px;overflow:hidden}
+.bar-fill{height:100%;border-radius:5px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+.bar-val{width:35px;font-size:.75rem;color:var(--muted);text-align:left;flex-shrink:0}
+/* ── Misc ── */
+.two-col{display:grid;grid-template-columns:1fr 320px;gap:1rem;margin-bottom:1rem}
+@media(max-width:1000px){.two-col{grid-template-columns:1fr}}
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--muted)}
+.empty-state-icon{font-size:2.5rem;margin-bottom:.75rem}
+.empty-state-title{font-size:.95rem;font-weight:600;margin-bottom:.3rem}
+.empty-state-sub{font-size:.82rem}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--card-border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-overlay{display:none;position:fixed;inset:0;background:rgba(10,15,30,.65);z-index:500;align-items:center;justify-content:center;flex-direction:column;gap:1rem;backdrop-filter:blur(2px)}
+.loading-overlay.active{display:flex}
+#toast-container{position:fixed;bottom:1.25rem;right:1.25rem;z-index:600;display:flex;flex-direction:column;gap:.5rem;pointer-events:none}
+.toast{background:var(--card);border:1px solid var(--card-border);border-radius:8px;padding:.65rem 1rem;font-size:.83rem;box-shadow:var(--shadow-lg);transform:translateX(120%);transition:transform .3s;pointer-events:all;display:flex;align-items:center;gap:.5rem;min-width:240px}
+.toast.show{transform:translateX(0)}
+.toast-ok{border-left:3px solid var(--green)}.toast-warn{border-left:3px solid var(--yellow)}.toast-err{border-left:3px solid var(--red)}
+/* ── Progress bars ── */
+.progress{height:6px;background:var(--card-border);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;transition:width .5s}
+/* ── Scan progress ── */
+#scan-progress{display:none;margin-top:1rem}
+.scan-steps{display:flex;flex-direction:column;gap:.4rem;margin-bottom:.75rem}
+.scan-step{display:flex;align-items:center;gap:.5rem;font-size:.82rem;color:var(--muted)}
+.scan-step.done{color:var(--green)}.scan-step.active{color:var(--text)}
+.scan-step-icon{width:16px;text-align:center}
+/* ── Data table ── */
+.data-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.data-table th{text-align:left;padding:.5rem .75rem;border-bottom:2px solid var(--card-border);color:var(--muted);font-size:.7rem;font-weight:700;text-transform:uppercase}
+.data-table td{padding:.5rem .75rem;border-bottom:1px solid var(--card-border)}
+.data-table tr:hover td{background:var(--accent-light)}
+/* ── Form ── */
+.form-group{margin-bottom:.9rem}
+.form-label{font-size:.76rem;color:var(--muted);margin-bottom:.3rem;display:block;font-weight:500}
+.form-input,.form-select,.form-textarea{width:100%;background:var(--bg);border:1px solid var(--card-border);border-radius:6px;padding:.48rem .75rem;color:var(--text);font-size:.85rem;outline:none;transition:border-color .15s}
+.form-textarea{resize:vertical;font-family:'SF Mono',Consolas,monospace;font-size:.8rem}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+/* ── Copilot ── */
+#chat-msgs{flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:.65rem;min-height:280px;max-height:460px}
+.msg{max-width:82%;padding:.7rem 1rem;border-radius:10px;font-size:.85rem;line-height:1.55}
+.msg.user{background:var(--accent);color:#fff;align-self:flex-end;border-radius:10px 10px 2px 10px}
+.msg.bot{background:var(--bg);border:1px solid var(--card-border);align-self:flex-start;border-radius:10px 10px 10px 2px}
+.msg.bot pre{background:var(--card);border:1px solid var(--card-border);border-radius:5px;padding:.5rem;font-size:.76rem;overflow-x:auto;margin-top:.4rem}
+#chat-input-wrap{display:flex;gap:.5rem;padding:.75rem;border-top:1px solid var(--card-border);background:var(--card)}
+#chat-input{flex:1;background:var(--bg);border:1px solid var(--card-border);border-radius:6px;padding:.45rem .75rem;color:var(--text);font-size:.85rem;resize:none;height:50px;outline:none;font-family:inherit}
+#chat-input:focus{border-color:var(--accent)}
+/* ── Tooltip ── */
+.tooltip{position:relative}
+.tooltip::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:#1e293b;color:#f8fafc;font-size:.7rem;padding:.25rem .55rem;border-radius:4px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;z-index:999}
+.tooltip:hover::after{opacity:1}
+/* ── Confidence bar inline ── */
+.conf-bar{display:flex;align-items:center;gap:.4rem}
+.conf-track{flex:1;height:4px;background:var(--card-border);border-radius:2px;overflow:hidden}
+.conf-fill{height:100%;border-radius:2px;background:var(--accent)}
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--card-border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+/* ── Animations ── */
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .25s ease}
+@keyframes countUp{from{opacity:0}to{opacity:1}}
+</style>
+<link rel="stylesheet" href="/static/dashboard.css">
+</head>
+<body>
+
+<!-- Sidebar -->
+<div id="sidebar">
+  <div class="logo" onclick="toggleSidebar()" title="Toggle sidebar">
+    <span class="logo-icon">👻</span>
+    <div class="logo-text">
+      <div class="logo-name">Ghost<span>Sec</span></div>
+      <div class="logo-ver">v2.3 · Security Platform</div>
+    </div>
+  </div>
+  <nav>
+    <div class="nav-section">Audit</div>
+    <div class="nav-item active" onclick="showPage('dashboard',this)" data-page="dashboard">
+      <span class="nav-icon">📊</span><span class="nav-label">Dashboard</span>
+    </div>
+    <div class="nav-item" onclick="showPage('scan',this)" data-page="scan">
+      <span class="nav-icon">🔍</span><span class="nav-label">New Scan</span>
+    </div>
+    <div class="nav-item" onclick="showPage('findings',this)" data-page="findings">
+      <span class="nav-icon">🐛</span><span class="nav-label">Findings</span>
+      <span class="nav-badge" id="badge-findings">0</span>
+    </div>
+    <div class="nav-item" onclick="showPage('heatmap',this)" data-page="heatmap">
+      <span class="nav-icon">🗺</span><span class="nav-label">Heatmap</span>
+    </div>
+    <div class="nav-item" onclick="showPage('history',this)" data-page="history">
+      <span class="nav-icon">📈</span><span class="nav-label">History</span>
+    </div>
+    <div class="nav-item" onclick="showPage('graph',this)" data-page="graph">
+      <span class="nav-icon">🕸</span><span class="nav-label">Contract Graph</span>
+    </div>
+    <div class="nav-item" onclick="showPage('livefeed',this)" data-page="livefeed">
+      <span class="nav-icon">📡</span><span class="nav-label">Live Feed</span>
+    </div>
+    <div class="nav-section">Smart Contracts</div>
+    <div class="nav-item" onclick="showPage('ton',this)" data-page="ton">
+      <span class="nav-icon">⛓</span><span class="nav-label">TON Audit</span>
+    </div>
+    <div class="nav-section">AI</div>
+    <div class="nav-item" onclick="showPage('copilot',this)" data-page="copilot">
+      <span class="nav-icon">🤖</span><span class="nav-label">Copilot</span>
+    </div>
+    <div class="nav-section">System</div>
+    <div class="nav-item" onclick="showPage('health',this)" data-page="health">
+      <span class="nav-icon">💚</span><span class="nav-label">Health</span>
+    </div>
+    <div class="nav-item" onclick="showPage('reports',this)" data-page="reports">
+      <span class="nav-icon">📄</span><span class="nav-label">Reports</span>
+    </div>
+    <div class="nav-item" onclick="showPage('settings',this)" data-page="settings">
+      <span class="nav-icon">⚙️</span><span class="nav-label">Settings</span>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="status-row">
+      <span class="status-dot dot-off" id="dot-llm"></span>
+      <span class="sidebar-footer-text" id="label-llm" style="font-size:.72rem;color:rgba(255,255,255,.35)">LLM: checking…</span>
+    </div>
+    <div class="status-row">
+      <span class="status-dot dot-ok"></span>
+      <span class="sidebar-footer-text" style="font-size:.72rem;color:rgba(255,255,255,.35)">Engine: Online</span>
+    </div>
+  </div>
+</div>
+
+<!-- Main -->
+<div id="main">
+  <div id="topbar">
+    <button id="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">☰</button>
+    <h1 id="page-title">Dashboard</h1>
+    <input class="topbar-search" id="topbar-path" placeholder="Path or GitHub URL…">
+    <button class="btn btn-accent" onclick="quickScan()">⚡ Quick Scan</button>
+    <button class="btn" onclick="loadDemoData()" title="Load demo data">🎲 Demo</button>
+    <button id="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+  </div>
+
+  <div id="content">
+
+    <!-- DASHBOARD PAGE -->
+    <div id="page-dashboard" class="page active">
+      <div class="stats-grid">
+        <div class="stat-card stat-crit">
+          <div class="stat-num" style="color:var(--crit)" id="st-crit">0</div>
+          <div class="stat-lbl">Critical</div>
+          <div class="stat-delta up" id="st-crit-d"></div>
+        </div>
+        <div class="stat-card stat-high">
+          <div class="stat-num" style="color:var(--high)" id="st-high">0</div>
+          <div class="stat-lbl">High</div>
+          <div class="stat-delta" id="st-high-d"></div>
+        </div>
+        <div class="stat-card stat-med">
+          <div class="stat-num" style="color:var(--med)" id="st-med">0</div>
+          <div class="stat-lbl">Medium</div>
+          <div class="stat-delta" id="st-med-d"></div>
+        </div>
+        <div class="stat-card stat-low">
+          <div class="stat-num" style="color:var(--low)" id="st-low">0</div>
+          <div class="stat-lbl">Low</div>
+          <div class="stat-delta down" id="st-low-d"></div>
+        </div>
+        <div class="stat-card stat-sla" style="display:flex;align-items:center;gap:.85rem">
+          <div class="sla-ring" id="sla-ring">
+            <svg width="60" height="60" viewBox="0 0 60 60">
+              <circle cx="30" cy="30" r="24" fill="none" stroke="var(--card-border)" stroke-width="5"/>
+              <circle cx="30" cy="30" r="24" fill="none" stroke="var(--green)" stroke-width="5"
+                stroke-dasharray="150.8" stroke-dashoffset="15.08" id="sla-arc"
+                stroke-linecap="round"/>
+            </svg>
+            <div class="sla-ring-label">
+              <div class="sla-ring-pct" id="sla-pct">90%</div>
+              <div class="sla-ring-txt">SLA</div>
+            </div>
+          </div>
+          <div>
+            <div class="stat-num" style="color:var(--accent);font-size:1.4rem" id="st-total">0</div>
+            <div class="stat-lbl">Total Findings</div>
+            <div style="font-size:.7rem;color:var(--muted);margin-top:.2rem" id="st-sla-label">SLA Compliance</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Recent Findings</div>
+            <button class="btn btn-sm" onclick="showPage('findings',document.querySelector('[data-page=findings]'))">View All →</button>
+          </div>
+          <div id="dash-findings">
+            <div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-title">No findings yet</div><div class="empty-state-sub">Run a scan or load demo data</div></div>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-title">Severity Distribution</div>
+            <div id="dash-donut" style="padding:.5rem 0"></div>
+          </div>
+          <div class="card" style="margin-top:.75rem">
+            <div class="card-title">Risk Assessment</div>
+            <div style="display:flex;align-items:center;gap:.75rem">
+              <div id="dash-risk" style="font-size:2rem;font-weight:800;color:var(--muted)">—</div>
+              <div>
+                <div id="dash-risk-score" style="font-size:.85rem;color:var(--muted)">Risk Score: —</div>
+                <div id="dash-summary" style="font-size:.78rem;color:var(--muted);margin-top:.2rem;max-width:180px;line-height:1.4"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCAN PAGE -->
+    <div id="page-scan" class="page">
+      <div class="card" style="max-width:680px">
+        <div class="card-title">New Security Scan</div>
+        <div class="form-group">
+          <label class="form-label">Target Path or GitHub URL</label>
+          <input class="form-input" id="scan-target" placeholder="/path/to/project  or  https://github.com/org/repo">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Scan Type</label>
+            <select class="form-select" id="scan-type">
+              <option value="all">Full Scan (all scanners)</option>
+              <option value="ast">AST + Code Analysis</option>
+              <option value="secrets">Secret Detection</option>
+              <option value="deps">Dependency CVEs</option>
+              <option value="ton">TON Smart Contracts</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">LLM Enrichment</label>
+            <select class="form-select" id="scan-llm">
+              <option value="off">Disabled (faster)</option>
+              <option value="high">HIGH+ findings only</option>
+              <option value="all">All findings</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-accent" style="width:100%;padding:.55rem" onclick="startScan()">🚀 Start Scan</button>
+        <div id="scan-progress">
+          <div class="scan-steps" id="scan-steps">
+            <div class="scan-step" id="step-1"><span class="scan-step-icon">⏳</span> Enumerating files…</div>
+            <div class="scan-step" id="step-2"><span class="scan-step-icon">⏳</span> Running scanners…</div>
+            <div class="scan-step" id="step-3"><span class="scan-step-icon">⏳</span> Triaging findings…</div>
+            <div class="scan-step" id="step-4"><span class="scan-step-icon">⏳</span> Generating report…</div>
+          </div>
+          <div class="progress">
+            <div class="progress-fill" id="scan-bar" style="width:0%;background:var(--accent)"></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:.5rem;margin-top:.5rem;font-size:.8rem;color:var(--muted)">
+            <div class="spinner" id="scan-spinner"></div>
+            <span id="scan-status">Initialising…</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FINDINGS PAGE -->
+    <div id="page-findings" class="page">
+      <div class="filter-bar">
+        <input class="filter-search" id="f-search" placeholder="🔍  Search by message, file, rule ID…" oninput="filterFindings()">
+        <select class="filter-select" id="f-sev" onchange="filterFindings()">
+          <option value="">All Severities</option>
+          <option value="CRITICAL">🔴 Critical</option>
+          <option value="HIGH">🟠 High</option>
+          <option value="MEDIUM">🟡 Medium</option>
+          <option value="LOW">🟢 Low</option>
+          <option value="INFO">⚪ Info</option>
+        </select>
+        <select class="filter-select" id="f-cat" onchange="filterFindings()">
+          <option value="">All Categories</option>
+          <option value="injection">Injection</option>
+          <option value="auth">Authentication</option>
+          <option value="crypto">Cryptography</option>
+          <option value="secrets">Secrets</option>
+          <option value="ton">TON/Smart Contract</option>
+          <option value="k8s">Kubernetes</option>
+          <option value="xss">XSS</option>
+          <option value="sqli">SQL Injection</option>
+        </select>
+        <div class="filter-actions">
+          <button class="btn btn-sm" onclick="clearFilters()">✕ Clear</button>
+          <button class="btn btn-sm" onclick="exportCSV()">↓ CSV</button>
+          <button class="btn btn-sm" onclick="exportSARIF()">↓ SARIF</button>
+          <span id="findings-count" style="font-size:.78rem;color:var(--muted);margin-left:.25rem"></span>
+        </div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table class="findings-table" id="findings-table">
+          <thead>
+            <tr>
+              <th class="col-sev" onclick="sortFindings('severity')">Severity</th>
+              <th class="col-id" onclick="sortFindings('rule_id')">Rule ID</th>
+              <th class="col-msg" onclick="sortFindings('message')">Message</th>
+              <th class="col-file" onclick="sortFindings('file')">File</th>
+              <th class="col-cwe" onclick="sortFindings('cwe')">CWE</th>
+              <th onclick="sortFindings('owasp')">OWASP</th>
+              <th class="col-actions"></th>
+            </tr>
+          </thead>
+          <tbody id="findings-tbody">
+            <tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">🐛</div><div class="empty-state-title">No findings yet</div><div class="empty-state-sub">Run a scan or click Demo</div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- HEATMAP PAGE -->
+    <div id="page-heatmap" class="page">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Risk Heatmap — Files × Severity</div>
+          <div style="font-size:.78rem;color:var(--muted)">Hover cells for details</div>
+        </div>
+        <div id="heatmap-container"></div>
+        <div class="heatmap-legend">
+          <span>Low risk</span>
+          <div class="heatmap-legend-bar" id="heatmap-legend-bar"></div>
+          <span>High risk</span>
+        </div>
+      </div>
+      <div class="card" style="margin-top:0">
+        <div class="card-title">Top Risk Files</div>
+        <div class="bar-chart" id="heatmap-bar-chart"></div>
+      </div>
+    </div>
+
+    <!-- HISTORY PAGE -->
+    <div id="page-history" class="page">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Scan History — Last 10 Scans</div>
+          <div style="display:flex;gap:.5rem">
+            <button class="btn btn-sm" onclick="loadHistory()">🔄 Refresh</button>
+          </div>
+        </div>
+        <div id="history-list" class="history-list"></div>
+      </div>
+    </div>
+
+    <!-- TON AUDIT PAGE -->
+    <div id="page-ton" class="page">
+      <div class="card" style="max-width:700px">
+        <div class="card-title">TON Smart Contract Audit</div>
+        <div class="form-group">
+          <label class="form-label">Contract Path (.fc / .tact / directory)</label>
+          <input class="form-input" id="ton-path" placeholder="/path/to/wallet.fc">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Or paste FunC / Tact code</label>
+          <textarea class="form-input form-textarea" id="ton-snippet" rows="6" placeholder="() recv_internal(slice in_msg) impure { ... }"></textarea>
+        </div>
+        <div class="form-row">
+          <button class="btn btn-accent" onclick="runTONScan()">⛓ Audit Contract</button>
+          <button class="btn" onclick="runTONSnippet()">⚡ Analyse Snippet</button>
+        </div>
+        <div id="ton-results" style="margin-top:1rem"></div>
+      </div>
+    </div>
+
+    <!-- COPILOT PAGE -->
+    <div id="page-copilot" class="page">
+      <div class="card" style="display:flex;flex-direction:column;max-width:780px">
+        <div class="card-title">🤖 Security Copilot — AI Assistant</div>
+        <div id="chat-msgs">
+          <div class="msg bot">
+            👋 Hi! I'm your Security Copilot.<br><br>
+            I can help you:<br>
+            • Explain security findings and CWEs<br>
+            • Suggest code fixes and remediations<br>
+            • Review code snippets for vulnerabilities<br>
+            • Answer AppSec and compliance questions<br><br>
+            Try: <em>"Explain CWE-89"</em> or paste a finding ID.
+          </div>
+        </div>
+        <div id="chat-input-wrap">
+          <textarea id="chat-input" placeholder="Ask a security question… (Enter to send)" onkeydown="chatKey(event)"></textarea>
+          <button class="btn btn-accent" onclick="sendChat()" style="align-self:flex-end">Send</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.75rem;max-width:780px">
+        <button class="btn btn-sm" onclick="quickAsk('What is CWE-89 SQL injection and how to fix it?')">SQL injection</button>
+        <button class="btn btn-sm" onclick="quickAsk('Explain CWE-79 XSS and mitigation strategies')">XSS / CWE-79</button>
+        <button class="btn btn-sm" onclick="quickAsk('How to prevent hardcoded secrets in Python?')">Secrets</button>
+        <button class="btn btn-sm" onclick="quickAsk('Explain accept_message() risk in TON FunC contracts')">TON risks</button>
+        <button class="btn btn-sm" onclick="quickAsk('What is JWT algorithm confusion attack?')">JWT attacks</button>
+        <button class="btn btn-sm" onclick="reviewClipboard()">Review clipboard</button>
+      </div>
+    </div>
+
+    <!-- HEALTH PAGE -->
+    <div id="page-health" class="page">
+      <div class="card">
+        <div class="card-title">System Health</div>
+        <div id="health-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.75rem">
+          <div class="empty-state">Loading…</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">LLM / Model Router</div>
+        <div id="llm-details"><div class="empty-state" style="padding:1rem">Loading…</div></div>
+      </div>
+    </div>
+
+    <!-- REPORTS PAGE -->
+    <div id="page-reports" class="page">
+      <div class="card">
+        <div class="card-title">Saved Reports</div>
+        <div id="reports-list">
+          <div class="empty-state"><div class="empty-state-icon">📄</div><div class="empty-state-title">No reports saved yet</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS PAGE -->
+    <div id="page-settings" class="page">
+      <div class="card" style="max-width:600px">
+        <div class="card-title">Platform Settings</div>
+        <div class="form-group">
+          <label class="form-label">API Base URL</label>
+          <input class="form-input" id="cfg-api" value="" placeholder="http://localhost:8000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Default Scan Mode</label>
+          <select class="form-select">
+            <option>Full Scan</option><option>AST Only</option><option>Secrets Only</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">SLA Thresholds (days)</label>
+          <div class="form-row">
+            <div><label class="form-label" style="font-size:.7rem">Critical</label><input class="form-input" value="1" type="number"></div>
+            <div><label class="form-label" style="font-size:.7rem">High</label><input class="form-input" value="7" type="number"></div>
+          </div>
+        </div>
+        <button class="btn btn-accent" onclick="toast('Settings saved','ok')">Save Settings</button>
+      </div>
+    </div>
+
+    <!-- CONTRACT GRAPH PAGE -->
+    <div id="page-graph" class="page">
+      <div class="card" style="padding:0;overflow:hidden">
+        <div class="card-header" style="padding:.75rem 1rem;border-bottom:1px solid var(--card-border)">
+          <div class="card-title" style="margin:0">TON Contract Interaction Graph</div>
+          <div style="display:flex;gap:.5rem">
+            <button class="btn btn-sm" onclick="refreshContractGraph()">🔄 Refresh</button>
+            <button class="btn btn-sm" onclick="resetGraphView()">⊙ Reset View</button>
+          </div>
+        </div>
+        <div class="graph-panel" style="height:480px">
+          <canvas id="graph-canvas" style="width:100%;height:100%"></canvas>
+        </div>
+        <div class="graph-legend" id="graph-legend">
+          <div class="graph-legend-item"><div class="graph-legend-dot" style="background:#58a6ff"></div>Wallet</div>
+          <div class="graph-legend-item"><div class="graph-legend-dot" style="background:#a371f7"></div>Contract</div>
+          <div class="graph-legend-item"><div class="graph-legend-dot" style="background:#3fb950"></div>Token</div>
+          <div class="graph-legend-item"><div class="graph-legend-dot" style="background:#ffa657"></div>Jetton</div>
+          <div class="graph-legend-item"><div class="graph-legend-dot" style="background:#e3b341"></div>NFT</div>
+          <div class="graph-legend-item" style="margin-left:1rem"><div class="graph-legend-dot" style="background:#ff7b72;border-radius:2px;width:22px;height:4px;border:none"></div>Critical risk</div>
+          <div class="graph-legend-item"><span style="font-size:.71rem;color:var(--muted)">Drag nodes · Scroll to zoom · Pan to navigate</span></div>
+        </div>
+      </div>
+      <div class="two-col" style="margin-top:.75rem">
+        <div class="card">
+          <div class="card-title">Severity Distribution</div>
+          <div class="chart-canvas-wrap" style="height:180px">
+            <canvas id="sev-chart-canvas" style="width:100%;height:180px"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Graph Stats</div>
+          <div id="graph-stats" style="font-size:.83rem;display:flex;flex-direction:column;gap:.5rem">
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Nodes</span><strong id="gstat-nodes">0</strong></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Edges</span><strong id="gstat-edges">0</strong></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">High-risk nodes</span><strong id="gstat-highrisk" style="color:var(--high)">0</strong></div>
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Critical nodes</span><strong id="gstat-critical" style="color:var(--crit,#ff7b72)">0</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIVE FEED PAGE -->
+    <div id="page-livefeed" class="page">
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="padding:.75rem 1rem;border-bottom:1px solid var(--card-border);display:flex;align-items:center;gap:.6rem;background:var(--bg,#0d1117)">
+          <span style="font-size:.83rem;font-weight:600;flex:1">📡 Live Scan Feed</span>
+          <div class="live-status" id="live-status-bar">
+            <div class="live-status-dot" id="live-dot"></div>
+            <span class="live-status-label" id="live-status-label">Idle</span>
+          </div>
+        </div>
+        <div class="live-feed-body" id="live-feed-body" style="max-height:440px;overflow-y:auto;font-family:monospace;font-size:.75rem"></div>
+        <div class="live-feed-controls">
+          <button class="btn btn-sm btn-accent" id="live-connect-btn" onclick="toggleLiveConnect()">Connect</button>
+          <button class="btn btn-sm" onclick="toggleLivePause()" id="live-pause-btn">⏸ Pause</button>
+          <button class="btn btn-sm" onclick="clearLiveFeed()">🗑 Clear</button>
+          <span class="live-count" id="live-count">0 events</span>
+        </div>
+      </div>
+      <div class="card" style="margin-top:.75rem">
+        <div class="card-title">Connection Info</div>
+        <div style="font-size:.82rem;display:flex;flex-direction:column;gap:.4rem">
+          <div style="display:flex;gap:.5rem;align-items:center">
+            <span style="color:var(--muted)">WebSocket endpoint:</span>
+            <code style="background:var(--bg);padding:.1rem .4rem;border-radius:3px;font-size:.76rem" id="ws-url-display"></code>
+          </div>
+          <div style="display:flex;gap:.5rem;align-items:center">
+            <span style="color:var(--muted)">SSE fallback:</span>
+            <code style="background:var(--bg);padding:.1rem .4rem;border-radius:3px;font-size:.76rem" id="sse-url-display"></code>
+          </div>
+          <div style="margin-top:.5rem;color:var(--muted);font-size:.78rem">
+            The live feed connects automatically when a scan starts. Findings stream in real-time as they are discovered.
+            If WebSocket is unavailable, Server-Sent Events (SSE) are used as fallback.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- Detail slide panel -->
+<div id="detail-overlay" onclick="closeDetail()"></div>
+<div id="detail-panel">
+  <div id="detail-panel-header">
+    <div style="flex:1">
+      <div id="dp-badge" style="margin-bottom:.4rem"></div>
+      <div id="dp-title" style="font-size:.97rem;font-weight:700;line-height:1.3"></div>
+      <div id="dp-loc" style="font-size:.75rem;color:var(--muted);margin-top:.2rem;font-family:monospace"></div>
+    </div>
+    <button class="btn btn-sm" onclick="closeDetail()">✕</button>
+  </div>
+  <div id="detail-panel-body"></div>
+  <div id="detail-panel-footer">
+    <button class="btn btn-sm btn-accent" onclick="explainCurrentFinding()">🤖 Explain</button>
+    <button class="btn btn-sm" onclick="fixCurrentFinding()">🔧 Get Fix</button>
+    <button class="btn btn-sm" onclick="suppressCurrentFinding()">🔕 Suppress</button>
+    <button class="btn btn-sm" onclick="acknowledgeCurrentFinding()">✓ Acknowledge</button>
+  </div>
+</div>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loading">
+  <div class="spinner" style="width:36px;height:36px;border-width:3px"></div>
+  <div id="loading-msg" style="color:var(--muted);font-size:.88rem">Processing…</div>
+</div>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<script>
+const API = '';
+let STATE = {
+  findings: [],
+  filteredFindings: [],
+  report: null,
+  currentFinding: null,
+  sortCol: 'severity',
+  sortDir: 'asc',
+  theme: 'light'
+};
+
+// ── SEV helpers ──────────────────────────────────────────────────────────────
+const SEV_ORDER = {CRITICAL:0,HIGH:1,MEDIUM:2,LOW:3,INFO:4};
+const SEV_COLOR = s => ({CRITICAL:'var(--crit)',HIGH:'var(--high)',MEDIUM:'var(--med)',LOW:'var(--low)',INFO:'var(--info)'}[s]||'var(--info)');
+const SEV_DOT = s => ({CRITICAL:'🔴',HIGH:'🟠',MEDIUM:'🟡',LOW:'🟢',INFO:'⚪'}[s]||'⚪');
+
+function sevBadge(s) {
+  return `<span class="sev-badge sev-${s}">${SEV_DOT(s)} ${s}</span>`;
+}
+
+// ── Theme ────────────────────────────────────────────────────────────────────
+function toggleTheme() {
+  STATE.theme = STATE.theme === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', STATE.theme === 'dark' ? 'dark' : '');
+  document.getElementById('theme-toggle').textContent = STATE.theme === 'dark' ? '☀️' : '🌙';
+}
+
+// ── Sidebar ──────────────────────────────────────────────────────────────────
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+}
+
+// ── Navigation ───────────────────────────────────────────────────────────────
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const pg = document.getElementById('page-'+id);
+  if(pg) { pg.classList.add('active'); pg.classList.add('fade-in'); }
+  if(el) el.classList.add('active');
+  else {
+    const navEl = document.querySelector('[data-page="'+id+'"]');
+    if(navEl) navEl.classList.add('active');
+  }
+  const labels = {dashboard:'Dashboard',scan:'New Scan',findings:'Findings',heatmap:'Risk Heatmap',
+    history:'Scan History',graph:'Contract Graph',livefeed:'Live Feed',
+    ton:'TON Audit',copilot:'Security Copilot',health:'Health',reports:'Reports',settings:'Settings'};
+  document.getElementById('page-title').textContent = labels[id]||id;
+  if(id==='health') loadHealth();
+  if(id==='reports') loadReports();
+  if(id==='heatmap') renderHeatmap();
+  if(id==='history') loadHistory();
+  if(id==='graph') initContractGraph();
+  if(id==='livefeed') initLiveFeed();
+}
+
+// ── Demo data ─────────────────────────────────────────────────────────────────
+function generateDemoData() {
+  return [
+    {id:'G-001',severity:'CRITICAL',type:'injection',rule_id:'sqli-raw-query',cwe:'CWE-89',owasp:'A03:2021',
+     message:'SQL injection via unsanitized user input in login handler',
+     file:'src/auth/login.py',line:42,
+     description:'User-controlled input is directly concatenated into a SQL query without parameterization, allowing full database compromise.',
+     remediation:'Use parameterized queries or an ORM. Replace: cursor.execute("SELECT * FROM users WHERE name=\'"+name+"\'") with cursor.execute("SELECT * FROM users WHERE name=?", (name,))',
+     code_snippet:'query = "SELECT * FROM users WHERE name=\'" + request.args[\'name\'] + "\'"',
+     confidence:97},
+    {id:'G-002',severity:'CRITICAL',type:'secrets',rule_id:'hardcoded-aws-key',cwe:'CWE-798',owasp:'A07:2021',
+     message:'Hardcoded AWS access key found in configuration file',
+     file:'config/settings.py',line:17,
+     description:'AWS access key ID (AKIA...) hardcoded directly in source code. Exposure via version control leads to full cloud account compromise.',
+     remediation:'Remove the key immediately, rotate credentials in AWS IAM, use environment variables or AWS Secrets Manager.',
+     code_snippet:'AWS_ACCESS_KEY_ID = "AKIAIOSFODNN7EXAMPLE"',
+     confidence:99},
+    {id:'G-003',severity:'CRITICAL',type:'ton',rule_id:'ton-accept-before-check',cwe:'CWE-703',owasp:'A04:2021',
+     message:'accept_message() called before input validation in recv_internal',
+     file:'contracts/wallet.fc',line:28,
+     description:'TON contract calls accept_message() before validating the sender or message content, allowing gas drainage attacks.',
+     remediation:'Always validate sender, amount, and message format BEFORE calling accept_message().',
+     code_snippet:'() recv_internal(slice in_msg) impure {\n  accept_message();\n  ;; validation happens too late\n}',
+     confidence:95},
+    {id:'G-004',severity:'HIGH',type:'auth',rule_id:'jwt-alg-none',cwe:'CWE-347',owasp:'A02:2021',
+     message:'JWT library accepts "alg:none" — signature verification bypass',
+     file:'src/middleware/auth.py',line:89,
+     description:'JWT tokens with algorithm set to "none" are accepted, bypassing signature verification entirely.',
+     remediation:'Explicitly whitelist allowed algorithms: jwt.decode(token, key, algorithms=["HS256"]).',
+     code_snippet:'decoded = jwt.decode(token, options={"verify_signature": False})',
+     confidence:93},
+    {id:'G-005',severity:'HIGH',type:'xss',rule_id:'xss-innerhtml',cwe:'CWE-79',owasp:'A03:2021',
+     message:'Reflected XSS via unescaped user input rendered with innerHTML',
+     file:'web/static/app.js',line:134,
+     description:'User-supplied search query is inserted directly into the DOM via innerHTML without sanitization.',
+     remediation:'Use textContent instead of innerHTML, or sanitize with DOMPurify.',
+     code_snippet:'document.getElementById("results").innerHTML = userQuery;',
+     confidence:88},
+    {id:'G-006',severity:'HIGH',type:'k8s',rule_id:'k8s-privileged-container',cwe:'CWE-250',owasp:'A05:2021',
+     message:'Kubernetes pod configured with privileged: true',
+     file:'deploy/k8s/deployment.yaml',line:55,
+     description:'Privileged containers have full host kernel capabilities, enabling container escape.',
+     remediation:'Remove privileged: true, use specific capabilities with securityContext.capabilities.add.',
+     code_snippet:'securityContext:\n  privileged: true',
+     confidence:100},
+    {id:'G-007',severity:'HIGH',type:'crypto',rule_id:'weak-md5-password',cwe:'CWE-327',owasp:'A02:2021',
+     message:'MD5 used for password hashing — cryptographically broken',
+     file:'src/users/models.py',line:73,
+     description:'MD5 is not a password hashing function. It is fast and reversible via rainbow tables.',
+     remediation:'Use bcrypt, scrypt, or argon2: from argon2 import PasswordHasher; ph = PasswordHasher()',
+     code_snippet:'hashed = hashlib.md5(password.encode()).hexdigest()',
+     confidence:100},
+    {id:'G-008',severity:'HIGH',type:'injection',rule_id:'cmd-injection-subprocess',cwe:'CWE-78',owasp:'A03:2021',
+     message:'OS command injection via subprocess with shell=True',
+     file:'src/utils/scanner.py',line:201,
+     description:'User input is passed to subprocess.run with shell=True, enabling arbitrary command execution.',
+     remediation:'Use shell=False with a list of arguments, or validate input strictly.',
+     code_snippet:'subprocess.run("nmap " + target, shell=True)',
+     confidence:91},
+    {id:'G-009',severity:'MEDIUM',type:'k8s',rule_id:'k8s-no-resource-limits',cwe:'CWE-770',owasp:'A05:2021',
+     message:'Container missing CPU/memory resource limits in Kubernetes manifest',
+     file:'deploy/k8s/api-deployment.yaml',line:38,
+     description:'Without resource limits, a single pod can exhaust node resources causing cluster-wide denial of service.',
+     remediation:'Add resources.limits.cpu and resources.limits.memory to all containers.',
+     code_snippet:'containers:\n  - name: api\n    image: myapp:latest\n    # no resources defined',
+     confidence:100},
+    {id:'G-010',severity:'MEDIUM',type:'auth',rule_id:'weak-session-secret',cwe:'CWE-335',owasp:'A02:2021',
+     message:'Flask secret key is weak/predictable — session forgery risk',
+     file:'app.py',line:12,
+     description:'Flask secret key "dev" is weak, allowing attackers to forge session cookies.',
+     remediation:'Generate a strong random key: python -c "import secrets; print(secrets.token_hex(32))"',
+     code_snippet:'app.secret_key = "dev"',
+     confidence:95},
+    {id:'G-011',severity:'MEDIUM',type:'secrets',rule_id:'env-file-committed',cwe:'CWE-312',owasp:'A02:2021',
+     message:'.env file with secrets committed to repository',
+     file:'.env',line:1,
+     description:'Sensitive credentials including database passwords and API keys are stored in a committed .env file.',
+     remediation:'Add .env to .gitignore, rotate all exposed credentials, use a secrets manager.',
+     code_snippet:'DATABASE_URL=postgresql://admin:password123@prod-db:5432/app',
+     confidence:100},
+    {id:'G-012',severity:'MEDIUM',type:'injection',rule_id:'nosql-injection',cwe:'CWE-943',owasp:'A03:2021',
+     message:'NoSQL injection in MongoDB query via unvalidated input',
+     file:'src/api/search.py',line:67,
+     description:'User input is inserted directly into a MongoDB query dict, allowing operator injection ($where, $ne).',
+     remediation:'Validate and sanitize all inputs. Reject keys starting with "$".',
+     code_snippet:'db.users.find({"email": request.json["email"]})',
+     confidence:82},
+    {id:'G-013',severity:'MEDIUM',type:'ton',rule_id:'ton-integer-overflow',cwe:'CWE-190',owasp:'A04:2021',
+     message:'Integer overflow in TON FunC arithmetic without bounds check',
+     file:'contracts/token.fc',line:91,
+     description:'Unchecked arithmetic in FunC can overflow, leading to incorrect token balances.',
+     remediation:'Add explicit bounds checking before arithmetic operations.',
+     code_snippet:'int new_balance = current_balance + amount; ;; no overflow check',
+     confidence:78},
+    {id:'G-014',severity:'MEDIUM',type:'xss',rule_id:'template-injection',cwe:'CWE-79',owasp:'A03:2021',
+     message:'Server-side template injection in Jinja2 render_template_string',
+     file:'src/api/email.py',line:44,
+     description:'User-controlled input passed to render_template_string enables SSTI attacks.',
+     remediation:'Never pass user input to render_template_string. Use render_template with safe templates.',
+     code_snippet:'render_template_string(user_template)',
+     confidence:85},
+    {id:'G-015',severity:'LOW',type:'crypto',rule_id:'insecure-random',cwe:'CWE-338',owasp:'A02:2021',
+     message:'Cryptographically weak random number generator used for token generation',
+     file:'src/utils/tokens.py',line:22,
+     description:'random.random() is not cryptographically secure and should not be used for security tokens.',
+     remediation:'Use secrets.token_urlsafe() or secrets.token_hex() for security-sensitive values.',
+     code_snippet:'token = str(random.random())[2:]',
+     confidence:90},
+    {id:'G-016',severity:'LOW',type:'k8s',rule_id:'k8s-hostpath-mount',cwe:'CWE-732',owasp:'A05:2021',
+     message:'Kubernetes hostPath volume mount exposes host filesystem',
+     file:'deploy/k8s/monitoring.yaml',line:71,
+     description:'hostPath mounts can allow container escape if the application is compromised.',
+     remediation:'Use emptyDir, ConfigMap, or PVC instead of hostPath volumes where possible.',
+     code_snippet:'volumes:\n  - name: data\n    hostPath:\n      path: /etc',
+     confidence:88},
+    {id:'G-017',severity:'LOW',type:'auth',rule_id:'missing-rate-limit',cwe:'CWE-307',owasp:'A07:2021',
+     message:'Login endpoint missing rate limiting — brute force possible',
+     file:'src/auth/routes.py',line:18,
+     description:'The /api/auth/login endpoint has no rate limiting, enabling unlimited brute force attempts.',
+     remediation:'Add flask-limiter or a WAF rule: @limiter.limit("5 per minute")',
+     code_snippet:'@app.route("/api/auth/login", methods=["POST"])\ndef login():\n    # no rate limiting',
+     confidence:75},
+    {id:'G-018',severity:'LOW',type:'secrets',rule_id:'debug-mode-enabled',cwe:'CWE-215',owasp:'A05:2021',
+     message:'Flask/Django debug mode enabled in production configuration',
+     file:'config/production.py',line:5,
+     description:'Debug mode exposes interactive tracebacks and the Werkzeug debugger, enabling RCE.',
+     remediation:'Set DEBUG=False in production. Use environment-specific config files.',
+     code_snippet:'DEBUG = True  # TODO: disable in production',
+     confidence:100},
+    {id:'G-019',severity:'INFO',type:'k8s',rule_id:'k8s-image-latest',cwe:null,owasp:'A06:2021',
+     message:'Container image pinned to :latest tag — reproducibility risk',
+     file:'deploy/k8s/worker.yaml',line:29,
+     description:'Using :latest tag prevents reproducible deployments and may pull unexpected code.',
+     remediation:'Pin images to specific digest or semantic version: myapp:1.4.2 or myapp@sha256:...',
+     code_snippet:'image: myapp:latest',
+     confidence:100},
+    {id:'G-020',severity:'INFO',type:'crypto',rule_id:'tls-min-version',cwe:null,owasp:'A02:2021',
+     message:'TLS minimum version not explicitly set — TLS 1.0/1.1 may be accepted',
+     file:'src/server/config.py',line:88,
+     description:'Without explicit TLS version configuration, older insecure versions may be negotiated.',
+     remediation:'Set ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2 or use TLS 1.3.',
+     code_snippet:'ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)',
+     confidence:70}
+  ];
+}
+
+// ── Load demo data ────────────────────────────────────────────────────────────
+function loadDemoData() {
+  const findings = generateDemoData();
+  const counts = {CRITICAL:0,HIGH:0,MEDIUM:0,LOW:0,INFO:0};
+  findings.forEach(f => counts[f.severity]=(counts[f.severity]||0)+1);
+  const report = {
+    findings,
+    severity_counts: counts,
+    risk_score: 78,
+    risk_level: 'HIGH',
+    executive_summary: '3 critical vulnerabilities require immediate attention including SQL injection, hardcoded secrets, and TON contract exploit.'
+  };
+  STATE.findings = findings;
+  STATE.report = report;
+  updateDashboard(report);
+  renderFindings(findings);
+  document.getElementById('badge-findings').textContent = findings.length;
+  renderHeatmap();
+  loadHistory();
+  toast('Demo data loaded — ' + findings.length + ' findings', 'ok');
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────────────
+function animateCounter(el, target, duration) {
+  const start = parseInt(el.textContent)||0;
+  const range = target - start;
+  const step = duration / Math.abs(range||1);
+  let current = start;
+  const inc = range > 0 ? 1 : -1;
+  const timer = setInterval(() => {
+    current += inc;
+    el.textContent = current;
+    if(current === target) clearInterval(timer);
+  }, Math.max(step, 8));
+}
+
+function updateSLARing(pct) {
+  const arc = document.getElementById('sla-arc');
+  const lbl = document.getElementById('sla-pct');
+  const circumference = 2 * Math.PI * 24; // r=24
+  const offset = circumference - (pct / 100) * circumference;
+  arc.style.strokeDashoffset = offset;
+  arc.style.stroke = pct >= 90 ? 'var(--green)' : pct >= 70 ? 'var(--yellow)' : 'var(--crit)';
+  lbl.textContent = pct + '%';
+  lbl.style.color = pct >= 90 ? 'var(--green)' : pct >= 70 ? 'var(--yellow)' : 'var(--crit)';
+  document.getElementById('st-sla-label').textContent = pct >= 90 ? 'SLA: On Track' : pct >= 70 ? 'SLA: At Risk' : 'SLA: Breached';
+}
+
+function renderInlineDonut(counts) {
+  const total = Object.values(counts).reduce((a,b)=>a+b,0) || 1;
+  const svgSize = 120, cx = 60, cy = 60, r = 48;
+  const circ = 2 * Math.PI * r;
+  const order = ['CRITICAL','HIGH','MEDIUM','LOW','INFO'];
+  const colors = {'CRITICAL':'#dc2626','HIGH':'#ea580c','MEDIUM':'#d97706','LOW':'#16a34a','INFO':'#6b7280'};
+  let offset = 0;
+  let paths = order.map(sev => {
+    const val = counts[sev]||0;
+    const pct = val / total;
+    const dash = pct * circ;
+    const gap = circ - dash;
+    const path = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${colors[sev]}"
+      stroke-width="20" stroke-dasharray="${dash} ${gap}"
+      stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})"/>`;
+    offset += dash;
+    return val > 0 ? path : '';
+  }).join('');
+  const legend = order.map(sev => counts[sev] > 0 ?
+    `<div style="display:flex;align-items:center;gap:.3rem;font-size:.72rem">
+      <span style="width:8px;height:8px;border-radius:2px;background:${colors[sev]};flex-shrink:0"></span>
+      <span style="color:var(--muted)">${sev}</span>
+      <span style="font-weight:700;color:var(--text);margin-left:auto">${counts[sev]}</span>
+    </div>` : ''
+  ).join('');
+  return `<div style="display:flex;align-items:center;gap:1rem">
+    <svg width="${svgSize}" height="${svgSize}" viewBox="0 0 ${svgSize} ${svgSize}" style="flex-shrink:0">
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--card-border)" stroke-width="20"/>
+      ${paths}
+      <text x="${cx}" y="${cy+4}" text-anchor="middle" font-size="14" font-weight="700" fill="var(--text)">${total}</text>
+      <text x="${cx}" y="${cy+18}" text-anchor="middle" font-size="9" fill="var(--muted)">TOTAL</text>
+    </svg>
+    <div style="flex:1;display:flex;flex-direction:column;gap:.35rem">${legend}</div>
+  </div>`;
+}
+
+function updateDashboard(data) {
+  const c = data.severity_counts || {};
+  const total = (c.CRITICAL||0)+(c.HIGH||0)+(c.MEDIUM||0)+(c.LOW||0)+(c.INFO||0);
+
+  animateCounter(document.getElementById('st-crit'), c.CRITICAL||0, 600);
+  animateCounter(document.getElementById('st-high'), c.HIGH||0, 600);
+  animateCounter(document.getElementById('st-med'), c.MEDIUM||0, 600);
+  animateCounter(document.getElementById('st-low'), c.LOW||0, 600);
+  animateCounter(document.getElementById('st-total'), total, 600);
+
+  const slaScore = Math.max(0, 100 - (c.CRITICAL||0)*15 - (c.HIGH||0)*5 - (c.MEDIUM||0)*2);
+  updateSLARing(Math.min(100, slaScore));
+
+  const rl = data.risk_level || 'LOW';
+  const dashRisk = document.getElementById('dash-risk');
+  dashRisk.textContent = rl;
+  dashRisk.style.color = SEV_COLOR(rl);
+  document.getElementById('dash-risk-score').textContent = 'Risk Score: ' + (data.risk_score||0) + '/100';
+  document.getElementById('dash-summary').textContent = data.executive_summary || '';
+
+  document.getElementById('dash-donut').innerHTML = renderInlineDonut(c);
+
+  const top5 = (data.findings||[]).slice(0,5);
+  const dashF = document.getElementById('dash-findings');
+  if(!top5.length) {
+    dashF.innerHTML = '<div class="empty-state"><div class="empty-state-icon">✅</div><div class="empty-state-title">No findings</div></div>';
+    return;
+  }
+  dashF.innerHTML = top5.map(f =>
+    `<div style="display:flex;align-items:center;gap:.65rem;padding:.5rem .25rem;border-bottom:1px solid var(--card-border);cursor:pointer" onclick="openDetail(${STATE.findings.indexOf(f)})">
+      ${sevBadge(f.severity)}
+      <span style="font-size:.83rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(f.message)}</span>
+      <span style="font-size:.71rem;color:var(--muted);font-family:monospace">${(f.file||'').split('/').slice(-1)[0]}</span>
+    </div>`
+  ).join('');
+}
+
+// ── Findings table ────────────────────────────────────────────────────────────
+function renderFindings(findings) {
+  STATE.filteredFindings = findings;
+  const tbody = document.getElementById('findings-tbody');
+  document.getElementById('findings-count').textContent = findings.length + ' findings';
+  if(!findings.length) {
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">✅</div><div class="empty-state-title">No findings match filters</div></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = findings.map((f,i) => {
+    const cweLink = f.cwe ? `<a href="https://cwe.mitre.org/data/definitions/${f.cwe.replace('CWE-','')}.html" target="_blank" style="color:var(--accent);text-decoration:none">${f.cwe}</a>` : '—';
+    const shortFile = (f.file||'').split('/').slice(-2).join('/') + (f.line ? ':'+f.line : '');
+    return `<tr onclick="openDetail(${STATE.findings.indexOf(f)})" title="Click for details">
+      <td class="col-sev">${sevBadge(f.severity)}</td>
+      <td class="col-id">${esc(f.rule_id||f.id||'')}</td>
+      <td class="col-msg" title="${esc(f.message)}">${esc(f.message)}</td>
+      <td class="col-file" title="${esc(f.file||'')}">${esc(shortFile)}</td>
+      <td class="col-cwe">${cweLink}</td>
+      <td><span style="font-size:.74rem;color:var(--muted)">${esc(f.owasp||'—')}</span></td>
+      <td class="col-actions">
+        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openDetail(${STATE.findings.indexOf(f)})" title="View details">→</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function filterFindings() {
+  const q = (document.getElementById('f-search').value||'').toLowerCase().trim();
+  const sev = document.getElementById('f-sev').value;
+  const cat = document.getElementById('f-cat').value;
+  let filtered = STATE.findings.filter(f => {
+    const matchQ = !q || (f.message||'').toLowerCase().includes(q)
+      || (f.file||'').toLowerCase().includes(q)
+      || (f.rule_id||'').toLowerCase().includes(q)
+      || (f.cwe||'').toLowerCase().includes(q)
+      || (f.id||'').toLowerCase().includes(q);
+    const matchSev = !sev || f.severity === sev;
+    const matchCat = !cat || (f.type||'').toLowerCase().includes(cat);
+    return matchQ && matchSev && matchCat;
+  });
+  sortAndRender(filtered);
+}
+
+function clearFilters() {
+  document.getElementById('f-search').value = '';
+  document.getElementById('f-sev').value = '';
+  document.getElementById('f-cat').value = '';
+  renderFindings(STATE.findings);
+}
+
+let sortState = {col:'severity',dir:'asc'};
+function sortFindings(col) {
+  if(sortState.col === col) sortState.dir = sortState.dir === 'asc' ? 'desc' : 'asc';
+  else { sortState.col = col; sortState.dir = 'asc'; }
+  document.querySelectorAll('.findings-table thead th').forEach(th => {
+    th.classList.remove('sort-asc','sort-desc');
+  });
+  const ths = document.querySelectorAll('.findings-table thead th');
+  const colMap = {severity:0,rule_id:1,message:2,file:3,cwe:4,owasp:5};
+  const idx = colMap[col];
+  if(idx !== undefined) ths[idx].classList.add(sortState.dir === 'asc' ? 'sort-asc' : 'sort-desc');
+  filterFindings();
+}
+
+function sortAndRender(findings) {
+  const col = sortState.col; const dir = sortState.dir;
+  findings = [...findings].sort((a,b) => {
+    let va = col==='severity' ? SEV_ORDER[a.severity]||9 : (a[col]||'');
+    let vb = col==='severity' ? SEV_ORDER[b.severity]||9 : (b[col]||'');
+    if(typeof va === 'string') va = va.toLowerCase();
+    if(typeof vb === 'string') vb = vb.toLowerCase();
+    if(va < vb) return dir==='asc'?-1:1;
+    if(va > vb) return dir==='asc'?1:-1;
+    return 0;
+  });
+  renderFindings(findings);
+}
+
+// ── Detail panel ──────────────────────────────────────────────────────────────
+function openDetail(idx) {
+  const f = STATE.findings[idx];
+  if(!f) return;
+  STATE.currentFinding = f;
+
+  document.getElementById('dp-badge').innerHTML = sevBadge(f.severity);
+  document.getElementById('dp-title').textContent = f.message || f.id;
+  document.getElementById('dp-loc').textContent = (f.file||'') + (f.line ? ':'+f.line : '');
+
+  const body = document.getElementById('detail-panel-body');
+  body.innerHTML = `
+    <div class="detail-field">
+      <div class="detail-field-label">Description</div>
+      <div class="detail-field-value">${esc(f.description||'No description available.')}</div>
+    </div>
+    ${f.code_snippet ? `<div class="detail-field">
+      <div class="detail-field-label">Code Snippet</div>
+      <div class="code-block">${esc(f.code_snippet)}</div>
+    </div>` : ''}
+    <div class="detail-field">
+      <div class="detail-field-label">Remediation</div>
+      <div class="remediation-block">${esc(f.remediation||'No remediation available.')}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem">
+      <div class="detail-field" style="margin:0">
+        <div class="detail-field-label">Rule ID</div>
+        <div class="detail-field-value" style="font-family:monospace;font-size:.8rem">${esc(f.rule_id||f.id||'—')}</div>
+      </div>
+      <div class="detail-field" style="margin:0">
+        <div class="detail-field-label">Confidence</div>
+        <div class="conf-bar"><div class="conf-track"><div class="conf-fill" style="width:${f.confidence||0}%"></div></div><span style="font-size:.73rem;color:var(--muted)">${f.confidence||'—'}%</span></div>
+      </div>
+      <div class="detail-field" style="margin:0">
+        <div class="detail-field-label">CWE</div>
+        <div class="detail-field-value">${f.cwe ? `<a href="https://cwe.mitre.org/data/definitions/${f.cwe.replace('CWE-','')}.html" target="_blank" style="color:var(--accent)">${esc(f.cwe)}</a>` : '—'}</div>
+      </div>
+      <div class="detail-field" style="margin:0">
+        <div class="detail-field-label">OWASP</div>
+        <div class="detail-field-value" style="font-size:.82rem">${esc(f.owasp||'—')}</div>
+      </div>
+      <div class="detail-field" style="margin:0">
+        <div class="detail-field-label">Category</div>
+        <div class="detail-field-value">${esc(f.type||'—')}</div>
+      </div>
+      <div class="detail-field" style="margin:0">
+        <div class="detail-field-label">Line</div>
+        <div class="detail-field-value" style="font-family:monospace">${f.line||'—'}</div>
+      </div>
+    </div>
+    <div class="detail-field">
+      <div class="detail-field-label">Tags</div>
+      <div class="detail-tags">
+        ${f.severity ? `<span class="tag">${f.severity}</span>` : ''}
+        ${f.type ? `<span class="tag">${f.type}</span>` : ''}
+        ${f.owasp ? `<span class="tag">${f.owasp}</span>` : ''}
+        ${f.cwe ? `<span class="tag">${f.cwe}</span>` : ''}
+      </div>
+    </div>`;
+
+  document.getElementById('detail-overlay').classList.add('open');
+  document.getElementById('detail-panel').classList.add('open');
+}
+
+function closeDetail() {
+  document.getElementById('detail-overlay').classList.remove('open');
+  document.getElementById('detail-panel').classList.remove('open');
+}
+
+function explainCurrentFinding() {
+  const f = STATE.currentFinding; if(!f) return;
+  closeDetail();
+  showPage('copilot', null);
+  quickAsk('Explain this security finding in detail:\nRule: ' + (f.rule_id||f.id) + '\nSeverity: ' + f.severity + '\nDescription: ' + f.description + '\nCWE: ' + (f.cwe||'N/A'));
+}
+function fixCurrentFinding() {
+  const f = STATE.currentFinding; if(!f) return;
+  closeDetail();
+  showPage('copilot', null);
+  quickAsk('Provide a concrete code fix for:\n' + f.message + '\nCode: ' + (f.code_snippet||'N/A') + '\nCWE: ' + (f.cwe||'N/A'));
+}
+function suppressCurrentFinding() {
+  toast('Finding suppressed (demo)', 'ok');
+  closeDetail();
+}
+function acknowledgeCurrentFinding() {
+  toast('Finding acknowledged (demo)', 'ok');
+  closeDetail();
+}
+
+// ── Heatmap ───────────────────────────────────────────────────────────────────
+function renderHeatmap() {
+  const container = document.getElementById('heatmap-container');
+  const files = [
+    'src/auth/login.py','src/auth/routes.py','src/api/search.py','src/api/users.py',
+    'src/utils/scanner.py','src/utils/tokens.py','src/middleware/auth.py',
+    'web/static/app.js','web/static/admin.js','config/settings.py',
+    'config/production.py','app.py','.env','deploy/k8s/deployment.yaml',
+    'deploy/k8s/api-deployment.yaml','deploy/k8s/worker.yaml','deploy/k8s/monitoring.yaml',
+    'contracts/wallet.fc','contracts/token.fc','src/users/models.py'
+  ];
+  const severities = ['CRITICAL','HIGH','MEDIUM','LOW','INFO'];
+  const colors = {CRITICAL:'#dc2626',HIGH:'#ea580c',MEDIUM:'#d97706',LOW:'#16a34a',INFO:'#6b7280'};
+
+  // Build risk matrix from findings
+  const matrix = {};
+  files.forEach(f => { matrix[f] = {CRITICAL:0,HIGH:0,MEDIUM:0,LOW:0,INFO:0}; });
+  STATE.findings.forEach(finding => {
+    if(matrix[finding.file]) matrix[finding.file][finding.severity]++;
+  });
+  // Add some random demo values if no findings
+  const hasData = STATE.findings.length > 0;
+  if(!hasData) {
+    files.forEach(f => {
+      matrix[f].CRITICAL = Math.random() > 0.85 ? Math.floor(Math.random()*3)+1 : 0;
+      matrix[f].HIGH = Math.random() > 0.7 ? Math.floor(Math.random()*4)+1 : 0;
+      matrix[f].MEDIUM = Math.random() > 0.5 ? Math.floor(Math.random()*5)+1 : 0;
+      matrix[f].LOW = Math.floor(Math.random()*3);
+      matrix[f].INFO = Math.floor(Math.random()*4);
+    });
+  }
+
+  const cellsHtml = files.map(file => {
+    const row = severities.map(sev => {
+      const count = matrix[file][sev];
+      const opacity = count === 0 ? 0.06 : Math.min(0.2 + count * 0.25, 1);
+      const bg = count === 0 ? 'var(--card-border)' : colors[sev];
+      const tip = `${file.split('/').slice(-1)[0]} · ${sev}: ${count}`;
+      return `<div class="heatmap-cell" style="background:${bg};opacity:${opacity}" data-tip="${tip}" title="${tip}" onclick="filterBySevFile('${sev}','${file}')"></div>`;
+    }).join('');
+    return `<div class="heatmap-row">${row}</div>`;
+  }).join('');
+
+  const labelsHtml = files.map(f =>
+    `<div class="heatmap-label" title="${f}">${f.split('/').slice(-1)[0]}</div>`
+  ).join('');
+
+  const colLabels = severities.map(s =>
+    `<div class="hm-col-label" style="color:${colors[s]}">${s.slice(0,4)}</div>`
+  ).join('');
+
+  container.innerHTML = `
+    <div class="heatmap-grid">
+      <div style="padding-top:25px">
+        <div class="heatmap-labels">${labelsHtml}</div>
+      </div>
+      <div>
+        <div class="hm-col-labels" style="display:flex;margin-bottom:4px">${colLabels}</div>
+        <div class="heatmap-cells" style="gap:2px">${cellsHtml}</div>
+      </div>
+    </div>`;
+
+  // Bar chart
+  const fileScores = files.map(f => ({
+    file: f.split('/').slice(-1)[0],
+    score: (matrix[f].CRITICAL*10)+(matrix[f].HIGH*5)+(matrix[f].MEDIUM*2)+(matrix[f].LOW*1)
+  })).sort((a,b)=>b.score-a.score).slice(0,8);
+  const maxScore = Math.max(...fileScores.map(f=>f.score), 1);
+  document.getElementById('heatmap-bar-chart').innerHTML = fileScores.map(f => {
+    const pct = Math.round((f.score/maxScore)*100);
+    const col = f.score >= 15 ? '#dc2626' : f.score >= 8 ? '#ea580c' : f.score >= 3 ? '#d97706' : '#16a34a';
+    return `<div class="bar-row">
+      <div class="bar-row-label" title="${f.file}">${f.file.slice(0,14)}${f.file.length>14?'…':''}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${col}"></div></div>
+      <div class="bar-val">${f.score}</div>
+    </div>`;
+  }).join('');
+
+  // Legend gradient
+  document.getElementById('heatmap-legend-bar').innerHTML =
+    ['#16a34a55','#d9770655','#ea580c55','#dc262655'].map(c=>`<div style="flex:1;background:${c}"></div>`).join('');
+}
+
+function filterBySevFile(sev, file) {
+  showPage('findings', null);
+  document.getElementById('f-sev').value = sev;
+  document.getElementById('f-search').value = file.split('/').slice(-1)[0];
+  filterFindings();
+  toast('Filtered: ' + sev + ' in ' + file.split('/').slice(-1)[0], 'ok');
+}
+
+// ── History ───────────────────────────────────────────────────────────────────
+function generateHistoryData() {
+  const now = Date.now();
+  const day = 86400000;
+  return [
+    {date:now-9*day,target:'/srv/webapp',critical:4,high:8,medium:12,low:6,total:30},
+    {date:now-8*day,target:'/srv/webapp',critical:4,high:7,medium:11,low:5,total:27},
+    {date:now-7*day,target:'github.com/org/api',critical:3,high:9,medium:14,low:7,total:33},
+    {date:now-6*day,target:'/srv/webapp',critical:3,high:7,medium:10,low:4,total:24},
+    {date:now-5*day,target:'contracts/wallet.fc',critical:2,high:5,medium:8,low:3,total:18},
+    {date:now-4*day,target:'/srv/webapp',critical:3,high:6,medium:9,low:3,total:21},
+    {date:now-3*day,target:'github.com/org/api',critical:2,high:5,medium:7,low:2,total:16},
+    {date:now-2*day,target:'/srv/webapp',critical:2,high:4,medium:7,low:2,total:15},
+    {date:now-1*day,target:'/srv/webapp',critical:2,high:4,medium:6,low:2,total:14},
+    {date:now,target:'/srv/webapp',critical:STATE.findings.filter(f=>f.severity==='CRITICAL').length||3,
+      high:STATE.findings.filter(f=>f.severity==='HIGH').length||5,
+      medium:STATE.findings.filter(f=>f.severity==='MEDIUM').length||6,
+      low:STATE.findings.filter(f=>f.severity==='LOW').length||4,
+      total:STATE.findings.length||18}
+  ];
+}
+
+function loadHistory() {
+  const data = generateHistoryData();
+  const container = document.getElementById('history-list');
+  const maxTotal = Math.max(...data.map(d=>d.total), 1);
+
+  container.innerHTML = data.slice().reverse().map((scan, revIdx) => {
+    const idx = data.length - 1 - revIdx;
+    const prev = idx > 0 ? data[idx-1] : null;
+    const delta = prev ? scan.total - prev.total : 0;
+    const trendClass = delta > 0 ? 'trend-up' : delta < 0 ? 'trend-down' : 'trend-flat';
+    const trendArrow = delta > 0 ? '↑' : delta < 0 ? '↓' : '→';
+    const dotColor = scan.critical > 0 ? '#dc2626' : scan.high > 0 ? '#ea580c' : '#16a34a';
+    const dateStr = new Date(scan.date).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const barH = (v, max, col) => {
+      const h = Math.max(4, Math.round((v/max)*32));
+      return v > 0 ? `<div class="history-bar" style="height:${h}px;background:${col};width:14px" title="${col.replace('#','')} ${v}"></div>` : '';
+    };
+    return `<div class="history-item">
+      <div class="history-dot" style="background:${dotColor};margin-top:2px">
+        <span style="font-size:.6rem;color:#fff">${scan.total}</span>
+      </div>
+      <div class="history-content">
+        <div class="history-meta">
+          <span class="history-date">${dateStr}</span>
+          <span class="history-target">${scan.target}</span>
+          <span class="trend-arrow ${trendClass}">${trendArrow} ${Math.abs(delta)||''}</span>
+          <span style="margin-left:auto;font-size:.75rem;font-weight:600">${scan.total} findings</span>
+        </div>
+        <div style="display:flex;gap:1rem;font-size:.73rem;color:var(--muted);margin-bottom:.4rem">
+          <span style="color:var(--crit)">${scan.critical} crit</span>
+          <span style="color:var(--high)">${scan.high} high</span>
+          <span style="color:var(--med)">${scan.medium} med</span>
+          <span style="color:var(--low)">${scan.low} low</span>
+        </div>
+        <div class="history-bars">
+          ${barH(scan.critical,maxTotal,'#dc2626')}
+          ${barH(scan.high,maxTotal,'#ea580c')}
+          ${barH(scan.medium,maxTotal,'#d97706')}
+          ${barH(scan.low,maxTotal,'#16a34a')}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Quick scan ────────────────────────────────────────────────────────────────
+async function quickScan() {
+  const path = document.getElementById('topbar-path').value.trim();
+  if(!path) { toast('Enter a target path first', 'warn'); return; }
+  document.getElementById('scan-target').value = path;
+  showPage('scan', document.querySelector('[data-page="scan"]'));
+  await startScan();
+}
+
+async function startScan() {
+  const target = document.getElementById('scan-target').value.trim();
+  const mode   = document.getElementById('scan-type').value;
+  if(!target) { toast('Enter a target path', 'warn'); return; }
+
+  const prog = document.getElementById('scan-progress');
+  const bar  = document.getElementById('scan-bar');
+  const status = document.getElementById('scan-status');
+  prog.style.display = 'block';
+
+  const stepEls = [1,2,3,4].map(i => document.getElementById('step-'+i));
+  let pct = 0; let stepIdx = 0;
+  stepEls.forEach(s => { s.className='scan-step'; s.querySelector('.scan-step-icon').textContent='⏳'; });
+
+  const tick = setInterval(() => {
+    pct = Math.min(pct + 5, 88);
+    bar.style.width = pct + '%';
+    const newStep = Math.min(Math.floor(pct/25), 3);
+    if(newStep > stepIdx) {
+      stepEls[stepIdx].className='scan-step done';
+      stepEls[stepIdx].querySelector('.scan-step-icon').textContent='✅';
+      stepIdx = newStep;
+      stepEls[stepIdx].className='scan-step active';
+      stepEls[stepIdx].querySelector('.scan-step-icon').textContent='⚡';
+    }
+  }, 350);
+
+  try {
+    const ep = mode==='ton' ? '/api/audit/ton' : mode==='deps' ? '/api/scan/deps' : '/api/scan/path';
+    const body = mode==='ton' ? {contract_path:target,audit_type:'full'}
+               : mode==='deps' ? {path:target}
+               : {path:target,mode:mode};
+    const r = await fetch(API+ep,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok) throw new Error(await r.text());
+    const data = await r.json();
+    clearInterval(tick);
+    bar.style.width='100%';
+    status.textContent='✅ Scan complete';
+    stepEls.forEach(s=>{s.className='scan-step done';s.querySelector('.scan-step-icon').textContent='✅';});
+    STATE.findings = data.findings||[];
+    STATE.report = data;
+    updateDashboard(data);
+    renderFindings(STATE.findings);
+    document.getElementById('badge-findings').textContent = STATE.findings.length;
+    toast('Scan complete — '+STATE.findings.length+' findings','ok');
+    setTimeout(()=>showPage('findings',document.querySelector('[data-page="findings"]')),800);
+  } catch(e) {
+    clearInterval(tick);
+    status.textContent = '❌ Error: '+e.message;
+    toast('Scan failed: '+e.message,'err');
+  } finally {
+    setTimeout(()=>{bar.style.width='0';prog.style.display='none';},3000);
+  }
+}
+
+// ── Export ────────────────────────────────────────────────────────────────────
+function exportCSV() {
+  if(!STATE.findings.length) { toast('No findings to export','warn'); return; }
+  const cols = ['id','severity','rule_id','message','file','line','cwe','owasp','type','confidence'];
+  const header = cols.join(',');
+  const rows = STATE.filteredFindings.map(f =>
+    cols.map(c => '"'+(String(f[c]||'').replace(/"/g,'""'))+'"').join(',')
+  );
+  const csv = [header,...rows].join('\n');
+  download(csv, 'ghost-findings.csv', 'text/csv');
+  toast('CSV exported','ok');
+}
+
+async function exportSARIF() {
+  if(!STATE.report) { toast('No report to export','warn'); return; }
+  const sarif = {
+    version: '2.1.0',
+    $schema: 'https://json.schemastore.org/sarif-2.1.0.json',
+    runs: [{
+      tool: { driver: { name: 'GhostSecurity', version: '2.3', rules: [] } },
+      results: STATE.filteredFindings.map(f => ({
+        ruleId: f.rule_id||f.id,
+        level: {CRITICAL:'error',HIGH:'error',MEDIUM:'warning',LOW:'note',INFO:'none'}[f.severity]||'none',
+        message: { text: f.message },
+        locations: f.file ? [{physicalLocation:{artifactLocation:{uri:f.file},region:{startLine:f.line||1}}}] : []
+      }))
+    }]
+  };
+  download(JSON.stringify(sarif,null,2),'ghost-results.sarif','application/json');
+  toast('SARIF exported','ok');
+}
+
+function download(content, filename, type) {
+  const b = new Blob([content],{type});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(b);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ── TON ───────────────────────────────────────────────────────────────────────
+async function runTONScan() {
+  const path = document.getElementById('ton-path').value.trim();
+  if(!path) { toast('Enter a contract path','warn'); return; }
+  setLoading(true,'Auditing TON contract…');
+  try {
+    const r = await fetch(API+'/api/audit/ton',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contract_path:path,audit_type:'full'})});
+    renderTONResults(await r.json());
+  } catch(e) { toast('Error: '+e.message,'err'); }
+  setLoading(false);
+}
+
+async function runTONSnippet() {
+  const code = document.getElementById('ton-snippet').value.trim();
+  if(!code) { toast('Paste some FunC/Tact code first','warn'); return; }
+  setLoading(true,'Analysing snippet…');
+  try {
+    const r = await fetch(API+'/api/ton/analyze-snippet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code,lang:'fc'})});
+    renderTONResults(await r.json());
+  } catch(e) { toast('Error: '+e.message,'err'); }
+  setLoading(false);
+}
+
+function renderTONResults(data) {
+  const findings = data.findings||[];
+  const c = data.severity_counts||{};
+  document.getElementById('ton-results').innerHTML = `
+    <div class="card">
+      <div style="display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap">
+        ${['CRITICAL','HIGH','MEDIUM','LOW','INFO'].map(s=>`
+          <div style="text-align:center">
+            <div style="font-size:1.5rem;font-weight:800;color:${SEV_COLOR(s)}">${c[s]||0}</div>
+            <div style="font-size:.7rem;color:var(--muted)">${s}</div>
+          </div>`).join('')}
+      </div>
+      ${findings.length ? findings.map(f=>`
+        <div style="padding:.65rem 0;border-bottom:1px solid var(--card-border);display:flex;gap:.65rem;align-items:flex-start">
+          ${sevBadge(f.severity)}
+          <div style="flex:1">
+            <div style="font-size:.85rem;font-weight:600">${esc(f.id)} — ${esc(f.description)}</div>
+            <div style="font-size:.78rem;color:var(--muted);margin-top:.2rem">${esc(f.recommendation||'')}</div>
+          </div>
+        </div>`).join('') : '<div class="empty-state" style="padding:1rem">✅ No issues found</div>'}
+    </div>`;
+}
+
+// ── Copilot ───────────────────────────────────────────────────────────────────
+async function sendChat() {
+  const inp = document.getElementById('chat-input');
+  const q = inp.value.trim();
+  if(!q) return;
+  inp.value = '';
+  appendMsg(q,'user');
+  const thinking = appendMsg('⌛ Thinking…','bot');
+  try {
+    const r = await fetch(API+'/api/copilot/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q})});
+    if(!r.ok) throw new Error('API '+r.status);
+    const data = await r.json();
+    thinking.innerHTML = formatAnswer(data.answer||'No response');
+  } catch(e) {
+    thinking.textContent = '❌ Copilot unavailable. Check LLM configuration.';
+  }
+}
+function chatKey(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();} }
+function quickAsk(q) { document.getElementById('chat-input').value=q; sendChat(); }
+async function reviewClipboard() {
+  try {
+    const text = await navigator.clipboard.readText();
+    quickAsk('Review this code for security issues:\n```\n'+text.slice(0,1500)+'\n```');
+  } catch(e) { toast('Clipboard access denied','warn'); }
+}
+function appendMsg(text,role) {
+  const el = document.createElement('div');
+  el.className='msg '+role;
+  el.innerHTML=formatAnswer(text);
+  document.getElementById('chat-msgs').appendChild(el);
+  el.scrollIntoView({behavior:'smooth'});
+  return el;
+}
+function formatAnswer(s) {
+  return String(s)
+    .replace(/```([a-z]*)\n?([\s\S]*?)```/g,(_,l,c)=>`<pre>${esc(c)}</pre>`)
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\n/g,'<br>');
+}
+
+// ── Health ────────────────────────────────────────────────────────────────────
+async function loadHealth() {
+  try {
+    const [h,llm] = await Promise.all([
+      fetch(API+'/api/health').then(r=>r.json()).catch(()=>({})),
+      fetch(API+'/api/health/llm').then(r=>r.json()).catch(()=>({}))
+    ]);
+    const grid = document.getElementById('health-grid');
+    const svcs = h.services||{};
+    const entries = Object.entries(svcs);
+    grid.innerHTML = entries.length ? entries.map(([name,svc])=>{
+      const ok = svc.status==='ok';
+      return `<div class="card" style="margin:0">
+        <div style="display:flex;align-items:center;gap:.5rem">
+          <span class="status-dot ${ok?'dot-ok':'dot-warn'}"></span>
+          <span style="font-size:.85rem;font-weight:600">${name}</span>
+        </div>
+        <div style="font-size:.74rem;color:var(--muted);margin-top:.3rem">Status: ${svc.status}</div>
+        ${svc.latency_ms?`<div style="font-size:.72rem;color:var(--muted)">${svc.latency_ms}ms</div>`:''}
+      </div>`;
+    }).join('') : '<div class="empty-state">No health data available</div>';
+
+    document.getElementById('llm-details').innerHTML = `
+      <div style="display:flex;flex-wrap:wrap;gap:1rem;font-size:.84rem">
+        <span><span style="color:var(--muted)">Backend:</span> <strong>${llm.active_backend||'?'}</strong></span>
+        <span><span style="color:var(--muted)">Ollama:</span> <strong>${llm.ollama_available?'✅ Available':'❌ Not running'}</strong></span>
+        <span><span style="color:var(--muted)">Cloud:</span> <strong>${llm.cloud_available?'✅ Configured':'❌ No API key'}</strong></span>
+      </div>`;
+
+    const avail = llm.ollama_available||llm.cloud_available;
+    document.getElementById('dot-llm').className='status-dot '+(avail?'dot-ok':'dot-off');
+    document.getElementById('label-llm').textContent='LLM: '+(avail?'Ready':'Offline');
+  } catch(e) {}
+}
+
+// ── Reports ───────────────────────────────────────────────────────────────────
+async function loadReports() {
+  try {
+    const data = await fetch(API+'/api/reports').then(r=>r.json()).catch(()=>({reports:[]}));
+    const el = document.getElementById('reports-list');
+    if(!(data.reports||[]).length) { el.innerHTML='<div class="empty-state"><div class="empty-state-icon">📄</div><div class="empty-state-title">No reports saved yet</div></div>'; return; }
+    el.innerHTML = `<table class="data-table"><thead><tr><th>Session</th><th>Target</th><th>Risk</th><th>Findings</th><th>Date</th><th></th></tr></thead><tbody>
+      ${data.reports.map(r=>`<tr>
+        <td style="font-family:monospace;font-size:.76rem">${r.session_id}</td>
+        <td>${esc(r.target||'?')}</td>
+        <td>${sevBadge(r.risk_level||'INFO')}</td>
+        <td>${r.total_findings||0}</td>
+        <td style="font-size:.76rem;color:var(--muted)">${r.timestamp||''}</td>
+        <td><a href="/api/reports/${r.session_id}/html" target="_blank" style="color:var(--accent);font-size:.78rem">HTML ↗</a></td>
+      </tr>`).join('')}
+    </tbody></table>`;
+  } catch(e) {}
+}
+
+// ── Utils ─────────────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function setLoading(on,msg='Processing…') {
+  document.getElementById('loading').classList.toggle('active',on);
+  if(on) document.getElementById('loading-msg').textContent=msg;
+}
+function toast(msg,type='ok') {
+  const el = document.createElement('div');
+  el.className='toast toast-'+type;
+  const icon = type==='ok'?'✅':type==='warn'?'⚠️':'❌';
+  el.innerHTML=`<span>${icon}</span><span>${esc(msg)}</span>`;
+  document.getElementById('toast-container').appendChild(el);
+  requestAnimationFrame(()=>{ requestAnimationFrame(()=>el.classList.add('show')); });
+  setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=>el.remove(),350); },3500);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  loadHealth();
+  // Auto-load demo data for instant visual richness
+  loadDemoData();
+  // Initialise the FindingsTable class wrapper around the existing table
+  const tbl = document.getElementById('findings-table');
+  const tbd = document.getElementById('findings-tbody');
+  if(tbl && tbd && window.FindingsTable) {
+    window.dashFindingsTable = new FindingsTable(tbl, tbd, {
+      onRowClick: (f, idx) => openDetail(STATE.findings.indexOf(f) >= 0 ? STATE.findings.indexOf(f) : idx),
+    });
+  }
+  // Show URL info for live feed
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const wsUrl = proto + '//' + location.host + '/ws/scan';
+  const sseUrl = location.origin + '/api/dashboard/live';
+  const wsd = document.getElementById('ws-url-display');
+  const ssed = document.getElementById('sse-url-display');
+  if(wsd) wsd.textContent = wsUrl;
+  if(ssed) ssed.textContent = sseUrl;
+});
+// Close detail panel on Escape
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeDetail(); });
+
+// ── Contract Graph ────────────────────────────────────────────────────────────
+let _contractGraph = null;
+let _sevChart = null;
+
+async function initContractGraph() {
+  const canvas = document.getElementById('graph-canvas');
+  if(!canvas || !window.ContractGraph) return;
+  try {
+    let nodes = [], edges = [];
+    try {
+      const data = await fetch(API+'/api/dashboard/graph').then(r=>r.ok?r.json():null);
+      if(data && data.nodes && data.nodes.length) {
+        nodes = data.nodes; edges = data.edges || [];
+      }
+    } catch(_) {}
+
+    // Fall back to findings-derived data
+    if(!nodes.length && STATE.findings.length) {
+      const fileMap = {};
+      STATE.findings.forEach(f => {
+        const p = f.file || 'unknown';
+        if(!fileMap[p]) fileMap[p] = {count:0, risk:'NONE', sev:'INFO'};
+        fileMap[p].count++;
+        const SEV_O = {CRITICAL:0,HIGH:1,MEDIUM:2,LOW:3,INFO:4};
+        if((SEV_O[f.severity]||9) < (SEV_O[fileMap[p].sev]||9)) {
+          fileMap[p].sev = f.severity;
+          fileMap[p].risk = f.severity;
+        }
+      });
+      nodes = Object.entries(fileMap).map(([path, d]) => ({
+        id: 'n_'+path.replace(/[^a-z0-9]/gi,'_').slice(0,20),
+        type: path.endsWith('.fc')||path.endsWith('.tact') ? 'contract'
+              : path.endsWith('.py') ? 'script'
+              : path.endsWith('.yaml')||path.endsWith('.yml') ? 'config' : 'file',
+        label: path.split('/').slice(-1)[0],
+        risk: d.risk,
+        count: d.count,
+      }));
+      // Connect nodes in same directory
+      const seen = new Set();
+      Object.entries(fileMap).forEach(([pa]) => {
+        const da = pa.split('/').slice(0,-1).join('/');
+        Object.entries(fileMap).forEach(([pb]) => {
+          if(pa === pb) return;
+          const db = pb.split('/').slice(0,-1).join('/');
+          const key = [pa,pb].sort().join('|');
+          if(da && da===db && !seen.has(key)) {
+            seen.add(key);
+            edges.push({
+              source:'n_'+pa.replace(/[^a-z0-9]/gi,'_').slice(0,20),
+              target:'n_'+pb.replace(/[^a-z0-9]/gi,'_').slice(0,20),
+              label:'same-dir'
+            });
+          }
+        });
+      });
+    }
+
+    if(_contractGraph) _contractGraph.destroy();
+    _contractGraph = new ContractGraph(canvas, nodes, edges);
+    _contractGraph.render();
+
+    // Update stats
+    document.getElementById('gstat-nodes').textContent = nodes.length;
+    document.getElementById('gstat-edges').textContent = edges.length;
+    document.getElementById('gstat-highrisk').textContent = nodes.filter(n=>n.risk==='HIGH').length;
+    document.getElementById('gstat-critical').textContent = nodes.filter(n=>n.risk==='CRITICAL').length;
+  } catch(e) { console.error('Graph init error', e); }
+
+  // Also render severity chart
+  const sevCanvas = document.getElementById('sev-chart-canvas');
+  if(sevCanvas && window.SeverityChart) {
+    const counts = {};
+    STATE.findings.forEach(f => { counts[f.severity] = (counts[f.severity]||0)+1; });
+    if(_sevChart) _sevChart.destroy();
+    _sevChart = new SeverityChart(sevCanvas, counts, { animate: true, animMs: 700 });
+    _sevChart.render();
+  }
+}
+
+async function refreshContractGraph() {
+  if(_contractGraph) { _contractGraph.destroy(); _contractGraph = null; }
+  await initContractGraph();
+  toast('Graph refreshed','ok');
+}
+
+function resetGraphView() {
+  if(_contractGraph) {
+    _contractGraph._pan = {x:0,y:0};
+    _contractGraph._scale = 1;
+    _contractGraph._positions = {};
+    _contractGraph._initLayout();
+    _contractGraph._simTick = 0;
+  }
+}
+
+// ── Live Feed ─────────────────────────────────────────────────────────────────
+let _liveFeedView = null;
+let _liveConnected = false;
+
+function initLiveFeed() {
+  if(_liveFeedView) return; // already initialised
+  const body   = document.getElementById('live-feed-body');
+  const status = document.getElementById('live-status-bar');
+  const count  = document.getElementById('live-count');
+  if(!body || !window.LiveFeedView) return;
+  _liveFeedView = new LiveFeedView(body, status, count, { maxRows: 300, autoScroll: true });
+  // Don't auto-connect — user must click Connect
+}
+
+function toggleLiveConnect() {
+  if(!_liveFeedView) initLiveFeed();
+  if(!_liveFeedView) return;
+  if(_liveConnected) {
+    _liveFeedView.disconnect();
+    _liveConnected = false;
+    document.getElementById('live-connect-btn').textContent = 'Connect';
+    toast('Live feed disconnected','ok');
+  } else {
+    const proto  = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl  = proto + '//' + location.host + '/ws/scan';
+    const sseUrl = location.origin + '/api/dashboard/live';
+    _liveFeedView.connect(wsUrl, sseUrl);
+    _liveConnected = true;
+    document.getElementById('live-connect-btn').textContent = 'Disconnect';
+    toast('Live feed connecting…','ok');
+  }
+}
+
+function toggleLivePause() {
+  if(!_liveFeedView) return;
+  _liveFeedView.togglePause();
+  const btn = document.getElementById('live-pause-btn');
+  if(btn) btn.textContent = btn.textContent.includes('Resume') ? '⏸ Pause' : '▶ Resume';
+}
+
+function clearLiveFeed() {
+  if(_liveFeedView) _liveFeedView.clear();
+}
+</script>
+<script src="/static/dashboard.js"></script>
+</body>
+</html>

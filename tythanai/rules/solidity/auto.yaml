@@ -1,0 +1,510 @@
+- id: GHOST-SOL-AUTO-001
+  name: Block gas price used in logic
+  description: 'Block gas price used in logic: Miners can manipulate gas price'
+  severity: HIGH
+  cwe: CWE-330
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: tx\.gasprice
+    confidence: 0.83
+  fix: Miners can manipulate gas price
+  tags:
+  - solidity
+  - gas
+- id: GHOST-SOL-AUTO-002
+  name: now used in comparison
+  description: 'now used in comparison: block.timestamp can be manipulated'
+  severity: HIGH
+  cwe: CWE-362
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: now\b(?=[\s\S]{0,20}(?:==|<=|>=|<|>))
+    confidence: 0.83
+  fix: block.timestamp can be manipulated
+  tags:
+  - solidity
+  - timestamp
+- id: GHOST-SOL-AUTO-003
+  name: Low-level call with gas specification
+  description: 'Low-level call with gas specification: Use Call patterns carefully'
+  severity: HIGH
+  cwe: CWE-691
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: \.gas\s*\([^)]+\)\.call\s*\(
+    confidence: 0.83
+  fix: Use Call patterns carefully
+  tags:
+  - solidity
+  - gas
+- id: GHOST-SOL-AUTO-004
+  name: Assembly memory/storage ops
+  description: 'Assembly memory/storage ops: Audit inline assembly carefully'
+  severity: HIGH
+  cwe: CWE-710
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: assembly\s*\{[^}]*(?:mload|mstore|sload|sstore)[^}]*\}
+    confidence: 0.83
+  fix: Audit inline assembly carefully
+  tags:
+  - solidity
+  - assembly
+- id: GHOST-SOL-AUTO-005
+  name: Type.max for bounds check
+  description: 'Type.max for bounds check: Ensure max values are used correctly'
+  severity: MEDIUM
+  cwe: CWE-190
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: type\s*\(\s*\w+\s*\)\.max
+    confidence: 0.83
+  fix: Ensure max values are used correctly
+  tags:
+  - solidity
+  - bounds
+- id: GHOST-SOL-AUTO-006
+  name: Duplicate msg.sender in ABI encode
+  description: 'Duplicate msg.sender in ABI encode: Check for unintended duplicates'
+  severity: MEDIUM
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: abi\.encode\s*\([^)]*msg\.sender[^)]*msg\.sender
+    confidence: 0.83
+  fix: Check for unintended duplicates
+  tags:
+  - solidity
+  - abi
+- id: GHOST-SOL-AUTO-007
+  name: Weak entropy for ID generation
+  description: 'Weak entropy for ID generation: Use better entropy sources'
+  severity: HIGH
+  cwe: CWE-330
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: keccak256\s*\(\s*abi\.encodePacked\s*\(\s*msg\.sender\s*,\s*block\.timestamp\s*\)\s*\)
+    confidence: 0.83
+  fix: Use better entropy sources
+  tags:
+  - solidity
+  - random
+- id: GHOST-SOL-AUTO-008
+  name: Public whitelist mapping modifiable
+  description: 'Public whitelist mapping modifiable: Protect whitelist modification'
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: mapping\s*\(\s*address\s*=>\s*bool\s*\)\s*public\s+whitelist
+    confidence: 0.83
+  fix: Protect whitelist modification
+  tags:
+  - solidity
+  - access
+- id: GHOST-SOL-AUTO-009
+  name: Payable function no value check
+  description: 'Payable function no value check: Validate msg.value'
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: function\s+\w+\s*\([^)]*\)\s*external\s*payable(?![\s\S]{0,100}require|[\s\S]{0,100}msg\.value)
+    confidence: 0.83
+  fix: Validate msg.value
+  tags:
+  - solidity
+  - payment
+- id: GHOST-SOL-AUTO-010
+  name: Transfer entire balance
+  description: 'Transfer entire balance: Verify correct balance logic'
+  severity: HIGH
+  cwe: CWE-682
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: \.transfer\s*\(\s*address\s*\(this\)\.balance\s*\)
+    confidence: 0.83
+  fix: Verify correct balance logic
+  tags:
+  - solidity
+  - balance
+- id: GHOST-SOL-AUTO-011
+  name: Duplicate onlyOwner modifier
+  description: 'Duplicate onlyOwner modifier: Use single onlyOwner modifier'
+  severity: LOW
+  cwe: CWE-710
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: onlyOwner.*\n.*onlyOwner
+    confidence: 0.83
+  fix: Use single onlyOwner modifier
+  tags:
+  - solidity
+  - style
+- id: GHOST-SOL-AUTO-012
+  name: Emit Transfer to zero address
+  description: 'Emit Transfer to zero address: Validate transfer recipient'
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: emit\s+Transfer\s*\([^)]*address\s*\(\s*0\s*\)
+    confidence: 0.83
+  fix: Validate transfer recipient
+  tags:
+  - solidity
+  - erc20
+- id: GHOST-SOL-AUTO-013
+  name: Balance subtraction without check
+  description: 'Balance subtraction without check: Check balance before subtraction'
+  severity: HIGH
+  cwe: CWE-190
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: balances\s*\[msg\.sender\]\s*-=\s*amount(?![\s\S]{0,100}require\s*\([^)]*balances\s*\[msg\.sender\]\s*>=)
+    confidence: 0.83
+  fix: Check balance before subtraction
+  tags:
+  - solidity
+  - balance
+- id: GHOST-SOL-AUTO-014
+  name: Integer min assignment
+  description: 'Integer min assignment: Negative values can cause unexpected behavior'
+  severity: MEDIUM
+  cwe: CWE-190
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: int\d+\s+\w+\s*=\s*type\s*\(\s*int\d+\s*\)\.min
+    confidence: 0.83
+  fix: Negative values can cause unexpected behavior
+  tags:
+  - solidity
+  - integer
+- id: GHOST-SOL-AUTO-015
+  name: uint256(-1) pattern
+  description: 'uint256(-1) pattern: Use type(uint256).max for clarity'
+  severity: LOW
+  cwe: CWE-547
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.83
+  patterns:
+  - type: regex
+    pattern: uint256\s*\(\s*-\s*1\s*\)
+    confidence: 0.83
+  fix: Use type(uint256).max for clarity
+  tags:
+  - solidity
+  - style
+- id: GHOST-SOL-AUTO-016
+  name: require without message
+  description: 'require without message: Add descriptive require message'
+  severity: LOW
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: require\s*\(\s*\w+\s*>\s*0\s*\)(?![\s\S]{0,50}revert)
+    confidence: 0.82
+  fix: Add descriptive require message
+  tags:
+  - solidity
+  - require
+- id: GHOST-SOL-AUTO-017
+  name: Modifier without placeholder
+  description: 'Modifier without placeholder: Add _ placeholder in modifier'
+  severity: HIGH
+  cwe: CWE-710
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: modifier\s+\w+\s*\(\s*\)(?![\s\S]{0,100}_;)
+    confidence: 0.82
+  fix: Add _ placeholder in modifier
+  tags:
+  - solidity
+  - modifier
+- id: GHOST-SOL-AUTO-018
+  name: selfdestruct in public function
+  description: 'selfdestruct in public function: Restrict selfdestruct access'
+  severity: CRITICAL
+  cwe: CWE-285
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: function\s+\w+\s*\([^)]*\)\s*(?:public|external)(?=[\s\S]{0,200}selfdestruct)
+    confidence: 0.82
+  fix: Restrict selfdestruct access
+  tags:
+  - solidity
+  - selfdestruct
+- id: GHOST-SOL-AUTO-019
+  name: this.send/transfer/call
+  description: 'this.send/transfer/call: Prefer pull-over-push payment'
+  severity: MEDIUM
+  cwe: CWE-362
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: address\s*\(\s*this\s*\)(?=[\s\S]{0,50}\.(?:send|transfer|call))
+    confidence: 0.82
+  fix: Prefer pull-over-push payment
+  tags:
+  - solidity
+  - payment
+- id: GHOST-SOL-AUTO-020
+  name: Storage slot access
+  description: 'Storage slot access: Document storage slot usage'
+  severity: MEDIUM
+  cwe: CWE-710
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: \.slot(?=\s*$)
+    confidence: 0.82
+  fix: Document storage slot usage
+  tags:
+  - solidity
+  - storage
+- id: GHOST-SOL-AUTO-021
+  name: Infinite ERC20 approval
+  description: 'Infinite ERC20 approval: Use finite approval amounts'
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: IERC20\s*\([^)]+\)\.approve\s*\([^,]+,\s*type\s*\(\s*uint256\s*\)\.max\s*\)
+    confidence: 0.82
+  fix: Use finite approval amounts
+  tags:
+  - solidity
+  - erc20
+- id: GHOST-SOL-AUTO-022
+  name: ABI encode comparison
+  description: 'ABI encode comparison: Use hashes for efficient comparison'
+  severity: LOW
+  cwe: CWE-710
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: encode\s*\([^)]*\)\s*!=\s*encode\s*\([^)]*\)
+    confidence: 0.82
+  fix: Use hashes for efficient comparison
+  tags:
+  - solidity
+  - gas
+- id: GHOST-SOL-AUTO-023
+  name: Array iteration with users.length
+  description: 'Array iteration with users.length: Cache array length before loop'
+  severity: MEDIUM
+  cwe: CWE-400
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: for\s*\([^;]+;\s*i\s*<\s*users\.length
+    confidence: 0.82
+  fix: Cache array length before loop
+  tags:
+  - solidity
+  - gas
+- id: GHOST-SOL-AUTO-024
+  name: Casting owner to payable
+  description: 'Casting owner to payable: Ensure owner is expected to receive ETH'
+  severity: MEDIUM
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: payable\s*\(\s*owner\s*\)
+    confidence: 0.82
+  fix: Ensure owner is expected to receive ETH
+  tags:
+  - solidity
+  - payment
+- id: GHOST-SOL-AUTO-025
+  name: Addition result zero check
+  description: 'Addition result zero check: Check for overflow first'
+  severity: HIGH
+  cwe: CWE-190
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: add\s*\([^)]+\)\s*==\s*0
+    confidence: 0.82
+  fix: Check for overflow first
+  tags:
+  - solidity
+  - overflow
+- id: GHOST-SOL-AUTO-026
+  name: Multiplication result zero check
+  description: 'Multiplication result zero check: Check for overflow first'
+  severity: HIGH
+  cwe: CWE-190
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: mul\s*\([^)]+\)\s*==\s*0
+    confidence: 0.82
+  fix: Check for overflow first
+  tags:
+  - solidity
+  - overflow
+- id: GHOST-SOL-AUTO-027
+  name: Function returns with no return
+  description: 'Function returns with no return: Ensure all paths return a value'
+  severity: HIGH
+  cwe: CWE-252
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: returns\s*\([^)]*\)\s*\{(?![\s\S]{0,50}return)
+    confidence: 0.82
+  fix: Ensure all paths return a value
+  tags:
+  - solidity
+  - return
+- id: GHOST-SOL-AUTO-028
+  name: calldataload in assembly
+  description: 'calldataload in assembly: Validate calldata boundaries'
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: assembly\s*\{[^}]*calldataload
+    confidence: 0.82
+  fix: Validate calldata boundaries
+  tags:
+  - solidity
+  - calldata
+- id: GHOST-SOL-AUTO-029
+  name: Deprecated .call.value() syntax
+  description: 'Deprecated .call.value() syntax: Use .call{value: }() syntax'
+  severity: MEDIUM
+  cwe: CWE-693
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: \.call\.value\s*\(
+    confidence: 0.82
+  fix: 'Use .call{value: }() syntax'
+  tags:
+  - solidity
+  - deprecated
+- id: GHOST-SOL-AUTO-030
+  name: Deprecated suicide() call
+  description: 'Deprecated suicide() call: Use selfdestruct()'
+  severity: LOW
+  cwe: CWE-710
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.82
+  patterns:
+  - type: regex
+    pattern: suicide\s*\(
+    confidence: 0.82
+  fix: Use selfdestruct()
+  tags:
+  - solidity
+  - deprecated

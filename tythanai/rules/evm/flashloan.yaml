@@ -1,0 +1,86 @@
+- id: GHOST-EVM-FL-001
+  name: Spot Price After Flash Loan
+  description: Price queried in same block as flash loan
+  severity: CRITICAL
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.92
+  patterns:
+  - type: regex
+    pattern: flashLoan|executeOperation.*getPrice
+    confidence: 0.92
+  fix: Use TWAP; never spot price in flash loan callbacks
+  tags:
+  - flashloan
+  - oracle
+  - price
+- id: GHOST-EVM-FL-002
+  name: Unchecked Flash Loan Repay
+  description: Flash loan repayment not verified
+  severity: CRITICAL
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.95
+  patterns:
+  - type: regex
+    pattern: executeOperation\b(?!.*repay|.*return.*true)
+    confidence: 0.95
+  fix: Verify flash loan repayment in callback
+  tags:
+  - flashloan
+  - repayment
+- id: GHOST-EVM-FL-003
+  name: Flash Loan Without Fee Check
+  description: Flash loan fee not validated
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: onFlashLoan\b(?!.*fee)
+    confidence: 0.88
+  fix: Include fee in repayment amount
+  tags:
+  - flashloan
+  - fee
+- id: GHOST-EVM-FL-004
+  name: Flash Loan Initiator Not Checked
+  description: Flash loan initiator unverified
+  severity: HIGH
+  cwe: CWE-284
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.88
+  patterns:
+  - type: regex
+    pattern: executeOperation\b(?!.*initiator)
+    confidence: 0.88
+  fix: Verify initiator == expected contract
+  tags:
+  - flashloan
+  - initiator
+- id: GHOST-EVM-FL-005
+  name: Balancer Flash Loan Missing Check
+  description: Balancer vault not validated
+  severity: HIGH
+  cwe: CWE-20
+  owasp: A01:2021
+  languages:
+  - solidity
+  confidence: 0.85
+  patterns:
+  - type: regex
+    pattern: IBalancerVault\b(?!.*vault.*==)
+    confidence: 0.85
+  fix: Verify Balancer vault address
+  tags:
+  - flashloan
+  - balancer

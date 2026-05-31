@@ -1,0 +1,185 @@
+{
+  "name": "ghost-security",
+  "displayName": "Ghost Security",
+  "description": "Real-time AI security scanning for TON/Web3 and general code — powered by Ghost Security Platform",
+  "version": "1.0.0",
+  "publisher": "ghost-security",
+  "icon": "images/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ghost-security/vscode-extension"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Linters",
+    "Other"
+  ],
+  "keywords": [
+    "security",
+    "TON",
+    "blockchain",
+    "FunC",
+    "Tact",
+    "vulnerability",
+    "SAST",
+    "audit"
+  ],
+  "activationEvents": [
+    "onLanguage:python",
+    "onLanguage:javascript",
+    "onLanguage:typescript",
+    "onLanguage:func",
+    "onLanguage:tact",
+    "onLanguage:solidity",
+    "onCommand:ghost.scanFile",
+    "onCommand:ghost.scanWorkspace",
+    "onCommand:ghost.tonSelfCheck",
+    "onView:ghostFindings"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "ghost.scanFile",
+        "title": "Ghost: Scan Current File",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "ghost.scanWorkspace",
+        "title": "Ghost: Scan Entire Workspace",
+        "icon": "$(search)"
+      },
+      {
+        "command": "ghost.tonSelfCheck",
+        "title": "Ghost: TON Bug Bounty Self-Check",
+        "icon": "$(checklist)"
+      },
+      {
+        "command": "ghost.clearFindings",
+        "title": "Ghost: Clear Findings",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "ghost.openSettings",
+        "title": "Ghost: Open Settings",
+        "icon": "$(gear)"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "ghostSecurity",
+          "title": "Ghost Security",
+          "icon": "$(shield)"
+        }
+      ]
+    },
+    "views": {
+      "ghostSecurity": [
+        {
+          "id": "ghostFindings",
+          "name": "Security Findings",
+          "type": "tree"
+        },
+        {
+          "id": "ghostHistory",
+          "name": "Scan History",
+          "type": "tree"
+        }
+      ]
+    },
+    "menus": {
+      "editor/context": [
+        {
+          "command": "ghost.scanFile",
+          "group": "ghost@1",
+          "when": "editorTextFocus"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "ghost.scanWorkspace",
+          "when": "view == ghostFindings",
+          "group": "navigation"
+        },
+        {
+          "command": "ghost.clearFindings",
+          "when": "view == ghostFindings",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Ghost Security",
+      "properties": {
+        "ghost.serverUrl": {
+          "type": "string",
+          "default": "http://localhost:8000",
+          "description": "Ghost Security Platform API URL"
+        },
+        "ghost.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API key for Ghost Security Platform"
+        },
+        "ghost.scanOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically scan files on save"
+        },
+        "ghost.minSeverity": {
+          "type": "string",
+          "enum": ["INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL"],
+          "default": "MEDIUM",
+          "description": "Minimum severity level to show"
+        },
+        "ghost.enableTON": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable TON/FunC/Tact smart contract analysis"
+        },
+        "ghost.enableReachability": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable reachability analysis to reduce dependency scan noise"
+        }
+      }
+    },
+    "languages": [
+      {
+        "id": "func",
+        "aliases": ["FunC", "func"],
+        "extensions": [".fc", ".func"]
+      },
+      {
+        "id": "tact",
+        "aliases": ["Tact"],
+        "extensions": [".tact"]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "func",
+        "scopeName": "source.func",
+        "path": "./syntaxes/func.tmGrammar.json"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package",
+    "vscode:prepublish": "npm run compile"
+  },
+  "dependencies": {
+    "axios": "^1.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^2.22.0",
+    "typescript": "^5.3.0"
+  }
+}
