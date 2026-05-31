@@ -4030,6 +4030,131 @@ def main():
             print(GREEN(f"💾  Saved to {args.save}"))
         return 1 if report.critical_paths > 0 else 0
 
+    # ── Phase 18: Memory, Knowledge, Multi-Agent, Explainability ────────────
+
+    def cmd_multi_agent(args) -> int:
+        """Run full 8-agent analysis on findings."""
+        import json as _json
+        from backend.agents.multi_agent_orchestrator import MultiAgentOrchestrator
+        from backend.core.confidence import findings_from_dicts
+
+        if not args.target:
+            console.print("[red]Usage: tythanai multi-agent <findings.json>[/red]")
+            return 1
+        try:
+            raw = _json.loads(Path(args.target).read_text())
+            findings = findings_from_dicts(raw if isinstance(raw, list) else raw.get("findings", []))
+        except Exception as exc:
+            console.print(f"[red]Error reading findings: {exc}[/red]")
+            return 1
+        console.print(f"[cyan]Running 8-agent analysis on {len(findings)} findings...[/cyan]")
+        orchestrator = MultiAgentOrchestrator()
+        quick = getattr(args, "quick", False)
+        result = orchestrator.run_quick(findings) if quick else orchestrator.run(findings)
+        console.print(f"[green]✓ Session {result.session_id}[/green]")
+        console.print(f"  Confirmed: {len(result.confirmed_findings)}")
+        console.print(f"  Removed FPs: {len(result.removed_findings)}")
+        console.print(f"  Attack chains: {len(result.attack_chains)}")
+        console.print(f"  New rule proposals: {len(result.generated_rules)}")
+        console.print(f"  Precision estimate: {result.precision_estimate:.1%}")
+        if result.report_markdown:
+            report_path = Path("reports") / f"multi_agent_{result.session_id}.md"
+            report_path.parent.mkdir(parents=True, exist_ok=True)
+            report_path.write_text(result.report_markdown)
+            console.print(f"  Report: {report_path}")
+        return 0
+
+    def cmd_explain(args) -> int:
+        """Explain why findings were detected."""
+        import json as _json
+        from backend.core.explainability import ExplainabilityEngine
+        from backend.core.confidence import findings_from_dicts
+
+        if not args.target:
+            console.print("[red]Usage: tythanai explain <findings.json>[/red]")
+            return 1
+        try:
+            raw = _json.loads(Path(args.target).read_text())
+            findings = findings_from_dicts(raw if isinstance(raw, list) else raw.get("findings", []))
+        except Exception as exc:
+            console.print(f"[red]Error reading findings: {exc}[/red]")
+            return 1
+        engine = ExplainabilityEngine()
+        explanations = engine.batch_explain(findings)
+        for fp, expl in explanations.items():
+            console.print(f"\n[bold]{fp}[/bold] ({expl.rule_id})")
+            console.print(f"  Why: {expl.why_detected}")
+            console.print(f"  FP risk: {expl.false_positive_risk}")
+            console.print(f"  Confidence: {expl.confidence_explanation.explanation}")
+        return 0
+
+    def cmd_chain_analyze(args) -> int:
+        """Analyze findings for attack chains."""
+        import json as _json
+        from backend.analysis.chain_analyzer import analyze_attack_chains
+        from backend.core.confidence import findings_from_dicts
+
+        if not args.target:
+            console.print("[red]Usage: tythanai chain-analyze <findings.json>[/red]")
+            return 1
+        try:
+            raw = _json.loads(Path(args.target).read_text())
+            findings = findings_from_dicts(raw if isinstance(raw, list) else raw.get("findings", []))
+        except Exception as exc:
+            console.print(f"[red]Error reading findings: {exc}[/red]")
+            return 1
+        chains = analyze_attack_chains(findings)
+        if not chains:
+            console.print("[green]No attack chains detected.[/green]")
+            return 0
+        console.print(f"[red]Found {len(chains)} attack chain(s):[/red]")
+        for chain in chains:
+            sev_color = "red" if chain.severity == "CRITICAL" else "yellow"
+            console.print(f"\n  [{sev_color}]{chain.severity}[/{sev_color}] Chain: {chain.chain_type}")
+            console.print(f"  Risk score: {chain.combined_risk_score:.1f}/10")
+            console.print(f"  {chain.narrative}")
+        return 1 if any(c.severity == "CRITICAL" for c in chains) else 0
+
+    def cmd_learn(args) -> int:
+        """Trigger learning cycle and show stats."""
+        from backend.core.continuous_learning import ContinuousLearningCoordinator
+        coordinator = ContinuousLearningCoordinator()
+        console.print("[cyan]Running learning cycle...[/cyan]")
+        result = coordinator.trigger_learning_cycle()
+        stats = coordinator.get_stats()
+        console.print(f"[green]✓ Learning cycle complete[/green]")
+        console.print(f"  Scans learned from: {stats.total_scans_learned_from}")
+        console.print(f"  Rules evolved: {stats.total_rules_evolved}")
+        console.print(f"  FPs learned: {stats.total_fps_learned}")
+        console.print(f"  Confirmed TPs: {stats.total_confirmed_tps}")
+        console.print(f"  System precision: {stats.current_system_precision:.1%}")
+        console.print(f"  System recall: {stats.current_system_recall:.1%}")
+        return 0
+
+    def cmd_memory_stats(args) -> int:
+        """Show memory system statistics."""
+        from backend.memory.memory_manager import MemoryManager
+        mm = MemoryManager()
+        stats = mm.get_stats()
+        console.print("[cyan]Memory System Statistics:[/cyan]")
+        for layer, count in stats.items():
+            console.print(f"  {layer}: {count} entries")
+        return 0
+
+    def cmd_dataset_stats(args) -> int:
+        """Show training dataset statistics."""
+        from backend.core.dataset_manager import DatasetManager
+        dm = DatasetManager()
+        stats = dm.get_stats()
+        console.print("[cyan]Training Dataset:[/cyan]")
+        console.print(f"  Total entries: {stats.total_entries}")
+        console.print(f"  True positives: {stats.true_positives}")
+        console.print(f"  False positives: {stats.false_positives}")
+        console.print(f"  Needs review: {stats.needs_review}")
+        console.print(f"  TP rate: {stats.tp_rate:.1%}")
+        console.print(f"  Coverage rules: {stats.coverage_rules}")
+        return 0
+
     dispatch = {
         "scan":         cmd_scan,
         "ton":          cmd_ton,
@@ -4106,6 +4231,13 @@ def main():
         "threat-intel": cmd_threat_intel_lookup,
         "calibrate":    cmd_calibrate,
         "cross-repo":   cmd_cross_repo,
+        # TythanAI Phase 18 — autonomous AI platform evolution
+        "multi-agent":  cmd_multi_agent,
+        "explain":      cmd_explain,
+        "chain-analyze": cmd_chain_analyze,
+        "learn":        cmd_learn,
+        "memory-stats": cmd_memory_stats,
+        "dataset-stats": cmd_dataset_stats,
     }
     handler = dispatch.get(args.command)
     if handler:

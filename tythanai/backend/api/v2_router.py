@@ -878,3 +878,339 @@ async def cross_repo_taint(req: CrossRepoRequest) -> Dict[str, Any]:
     except Exception as exc:
         logger.exception("cross repo taint failed")
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Phase 18: Memory, Knowledge, Multi-Agent, Explainability, Chain Analysis
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class MultiAgentRequest(BaseModel):
+    findings: List[Dict[str, Any]]
+    quick_mode: bool = False
+
+
+class ChainAnalysisRequest(BaseModel):
+    findings: List[Dict[str, Any]]
+
+
+class ExplainRequest(BaseModel):
+    findings: List[Dict[str, Any]]
+
+
+class FeedbackRequest(BaseModel):
+    scan_id: str
+    fp_fingerprints: List[str] = Field(default_factory=list)
+    fn_descriptions: List[str] = Field(default_factory=list)
+
+
+class MemorySearchRequest(BaseModel):
+    query: str
+    layer: str = "all"   # "long_term" | "semantic" | "episodic" | "all"
+    top_k: int = Field(default=5, ge=1, le=20)
+
+
+class RuleProposeRequest(BaseModel):
+    findings: List[Dict[str, Any]]
+
+
+class RuleConfirmRequest(BaseModel):
+    rule_id: str
+
+
+@router.post("/multi-agent/analyze")
+async def multi_agent_analyze(req: MultiAgentRequest) -> Dict[str, Any]:
+    """Run full 8-agent analysis pipeline on findings."""
+    try:
+        from backend.agents.multi_agent_orchestrator import MultiAgentOrchestrator
+        findings = findings_from_dicts(req.findings)
+        orchestrator = MultiAgentOrchestrator()
+        if req.quick_mode:
+            result = await asyncio.get_event_loop().run_in_executor(
+                None, orchestrator.run_quick, findings
+            )
+        else:
+            result = await asyncio.get_event_loop().run_in_executor(
+                None, orchestrator.run, findings
+            )
+        return {
+            "session_id": result.session_id,
+            "original_count": len(result.original_findings),
+            "confirmed_count": len(result.confirmed_findings),
+            "removed_count": len(result.removed_findings),
+            "attack_chains": result.attack_chains,
+            "generated_rules": result.generated_rules,
+            "precision_estimate": result.precision_estimate,
+            "report_markdown": result.report_markdown,
+            "plan_notes": result.plan_notes,
+            "total_iterations": result.total_iterations,
+        }
+    except Exception as exc:
+        logger.exception("multi-agent analysis failed")
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.post("/attack-chains/analyze")
+async def attack_chain_analyze(req: ChainAnalysisRequest) -> Dict[str, Any]:
+    """Analyze findings for attack chains and exploit paths."""
+    try:
+        from backend.analysis.chain_analyzer import analyze_attack_chains
+        findings = findings_from_dicts(req.findings)
+        chains = await asyncio.get_event_loop().run_in_executor(
+            None, analyze_attack_chains, findings
+        )
+        return {
+            "total_chains": len(chains),
+            "critical_chains": sum(1 for c in chains if c.severity == "CRITICAL"),
+            "chains": [
+                {
+                    "chain_id": c.chain_id,
+                    "severity": c.severity,
+                    "chain_type": c.chain_type,
+                    "combined_risk_score": c.combined_risk_score,
+                    "confidence": c.confidence,
+                    "narrative": c.narrative,
+                    "finding_count": len(c.finding_fingerprints),
+                }
+                for c in chains
+            ],
+        }
+    except Exception as exc:
+        logger.exception("attack chain analysis failed")
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.post("/explain/findings")
+async def explain_findings(req: ExplainRequest) -> Dict[str, Any]:
+    """Generate explainability reports for findings."""
+    try:
+        from backend.core.explainability import ExplainabilityEngine
+        findings = findings_from_dicts(req.findings)
+        engine = ExplainabilityEngine()
+        explanations = await asyncio.get_event_loop().run_in_executor(
+            None, engine.batch_explain, findings
+        )
+        return {
+            "total_explained": len(explanations),
+            "explanations": {
+                fp: {
+                    "why_detected": e.why_detected,
+                    "reasoning_chain": e.reasoning_chain,
+                    "false_positive_risk": e.false_positive_risk,
+                    "confidence_explanation": {
+                        "base": e.confidence_explanation.base_confidence,
+                        "final": e.confidence_explanation.final_confidence,
+                        "explanation": e.confidence_explanation.explanation,
+                    },
+                    "evidence_count": len(e.evidence),
+                    "recommended_verification": e.recommended_verification,
+                }
+                for fp, e in explanations.items()
+            },
+        }
+    except Exception as exc:
+        logger.exception("explainability failed")
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.post("/learning/feedback")
+async def submit_feedback(req: FeedbackRequest) -> Dict[str, Any]:
+    """Submit FP/FN feedback to trigger continuous learning."""
+    try:
+        from backend.core.continuous_learning import ContinuousLearningCoordinator
+        coordinator = ContinuousLearningCoordinator()
+        count = coordinator.process_feedback(
+            scan_id=req.scan_id,
+            fp_fingerprints=req.fp_fingerprints,
+            fn_descriptions=req.fn_descriptions,
+        )
+        return {
+            "scan_id": req.scan_id,
+            "learning_actions_taken": count,
+            "fp_count": len(req.fp_fingerprints),
+            "fn_count": len(req.fn_descriptions),
+        }
+    except Exception as exc:
+        logger.exception("feedback submission failed")
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.get("/learning/stats")
+async def learning_stats() -> Dict[str, Any]:
+    """Get continuous learning statistics."""
+    try:
+        from backend.core.continuous_learning import ContinuousLearningCoordinator
+        coordinator = ContinuousLearningCoordinator()
+        stats = coordinator.get_stats()
+        return {
+            "total_events": stats.total_events,
+            "processed_events": stats.processed_events,
+            "total_scans_learned_from": stats.total_scans_learned_from,
+            "total_rules_evolved": stats.total_rules_evolved,
+            "total_fps_learned": stats.total_fps_learned,
+            "total_confirmed_tps": stats.total_confirmed_tps,
+            "current_precision": stats.current_system_precision,
+            "current_recall": stats.current_system_recall,
+            "last_learning_cycle": stats.last_learning_cycle,
+            "knowledge_entries": stats.knowledge_entries,
+        }
+    except Exception as exc:
+        logger.exception("learning stats failed")
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.post("/learning/cycle")
+async def trigger_learning_cycle() -> Dict[str, Any]:
+    """Manually trigger a learning cycle."""
+    try:
+        from backend.core.continuous_learning import ContinuousLearningCoordinator
+        coordinator = ContinuousLearningCoordinator()
+        result = await asyncio.get_event_loop().run_in_executor(
+            None, coordinator.trigger_learning_cycle
+        )
+        return result
+    except Exception as exc:
+        logger.exception("learning cycle failed")
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.post("/memory/search")
+async def memory_search(req: MemorySearchRequest) -> Dict[str, Any]:
+    """Search the memory system across all layers."""
+    try:
+        from backend.memory.memory_manager import MemoryManager
+        mm = MemoryManager()
+        results = mm.retrieve_before_decision(req.query, top_k_per_layer=req.top_k)
+        return {
+            "query": req.query,
+            "results": {
+                layer: [
+                    {
+                        "entry_id": r.entry.entry_id,
+                        "content": r.entry.content[:200],
+                        "score": r.score,
+                        "memory_type": r.entry.memory_type,
+                        "timestamp": r.entry.timestamp,
+                    }
+                    for r in items
+                ]
+                for layer, items in results.items()
+            },
+        }
+    except Exception as exc:
+        logger.exception("memory search failed")
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.get("/memory/stats")
+async def memory_stats() -> Dict[str, Any]:
+    """Get memory system statistics."""
+    try:
+        from backend.memory.memory_manager import MemoryManager
+        mm = MemoryManager()
+        return mm.get_stats()
+    except Exception as exc:
+        logger.exception("memory stats failed")
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.post("/rules/evolve/propose")
+async def rules_propose(req: RuleProposeRequest) -> Dict[str, Any]:
+    """Propose new evolved rules from confirmed findings."""
+    try:
+        from backend.core.rule_evolution import RuleEvolutionSystem
+        findings = findings_from_dicts(req.findings)
+        evolution = RuleEvolutionSystem()
+        proposals = []
+        for finding in findings[:10]:  # cap at 10
+            proposed = evolution.propose_rule(finding)
+            proposals.append({
+                "proposal_id": proposed.proposal_id,
+                "rule_id": proposed.rule_id,
+                "name": proposed.name,
+                "status": proposed.status,
+                "confidence": proposed.confidence,
+                "cwe_id": proposed.cwe_id,
+                "severity": proposed.severity,
+            })
+        return {"proposed_count": len(proposals), "proposals": proposals}
+    except Exception as exc:
+        logger.exception("rule proposal failed")
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.post("/rules/evolve/confirm")
+async def rules_confirm(req: RuleConfirmRequest) -> Dict[str, Any]:
+    """Confirm a proposed rule (increments confirmation count)."""
+    try:
+        from backend.core.rule_evolution import RuleEvolutionSystem
+        evolution = RuleEvolutionSystem()
+        rule = evolution.confirm_rule(req.rule_id)
+        return {
+            "rule_id": rule.rule_id,
+            "status": rule.status,
+            "confirmation_count": rule.confirmation_count,
+            "confidence": rule.confidence,
+        }
+    except Exception as exc:
+        logger.exception("rule confirm failed")
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.get("/rules/evolved")
+async def rules_evolved_list() -> Dict[str, Any]:
+    """List all evolved rules by status."""
+    try:
+        from backend.core.rule_evolution import RuleEvolutionSystem
+        evolution = RuleEvolutionSystem()
+        stats = evolution.get_stats()
+        active = evolution.list_active_rules()
+        proposed = evolution.list_proposed_rules()
+        return {
+            "stats": stats,
+            "active_rules": [
+                {
+                    "rule_id": r.rule_id,
+                    "name": r.name,
+                    "cwe_id": r.cwe_id,
+                    "severity": r.severity,
+                    "version": r.version,
+                    "benchmark_precision": r.benchmark_precision,
+                }
+                for r in active
+            ],
+            "proposed_rules": [
+                {
+                    "proposal_id": r.proposal_id,
+                    "rule_id": r.rule_id,
+                    "status": r.status,
+                    "confirmation_count": r.confirmation_count,
+                }
+                for r in proposed
+            ],
+        }
+    except Exception as exc:
+        logger.exception("evolved rules listing failed")
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@router.get("/dataset/stats")
+async def dataset_stats() -> Dict[str, Any]:
+    """Get training dataset statistics."""
+    try:
+        from backend.core.dataset_manager import DatasetManager
+        dm = DatasetManager()
+        stats = dm.get_stats()
+        return {
+            "total_entries": stats.total_entries,
+            "true_positives": stats.true_positives,
+            "false_positives": stats.false_positives,
+            "needs_review": stats.needs_review,
+            "tp_rate": stats.tp_rate,
+            "fp_rate": stats.fp_rate,
+            "coverage_rules": stats.coverage_rules,
+            "by_severity": stats.by_severity,
+        }
+    except Exception as exc:
+        logger.exception("dataset stats failed")
+        raise HTTPException(status_code=500, detail=str(exc))
