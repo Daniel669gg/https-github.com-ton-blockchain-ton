@@ -98,6 +98,9 @@ class KGNodeType(str, Enum):
     CLOUD_RESOURCE = "cloud_resource"
     FINDING = "finding"
     VERIFICATION = "verification"
+    PATCH = "patch"
+    VALIDATION = "validation"
+    REGRESSION = "regression"
 
 
 class KGNode(BaseModel):
@@ -113,6 +116,7 @@ class KGEdge(BaseModel):
     # Original relations: CONTAINS / CALLS / FLOWS_TO / LEADS_TO / MITIGATES / FIXES / EXPLOITS
     # Phase 2 additions: IMPORTS / DEPENDS_ON / REACHES / PROPAGATES_TO / VULNERABLE_TO /
     #                    VERIFIED_BY / EXPLOITABLE_VIA / EXPOSED_THROUGH / OWNED_BY
+    # Phase 3 additions: VALIDATES / INTRODUCES / REMOVES
     relation: str
     weight: float = 1.0
 

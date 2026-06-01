@@ -735,6 +735,14 @@ _ATTACK_SUBJECTS       = {
     "privilege_escalation_paths", "lateral_movement_paths",
 }
 _DEPENDENCY_SUBJECTS   = {"vulnerable_dependency", "exploitable_dependency"}
+_REMEDIATION_SUBJECTS  = {
+    "verified_fixes",
+    "rejected_fixes",
+    "vulnerable_patch",
+    "regression_after_fix",
+    "attack_paths_removed",
+    "fixes_for_cve",
+}
 
 
 class SecurityQueryLanguage:
@@ -843,6 +851,10 @@ class SecurityQueryLanguage:
                     f"Dependency query '{subject}': {len(items)} result(s)"
                 )
 
+            elif q_type == "remediation":
+                items, explanation = self._execute_remediation_query(subject, conds)
+                result_type = subject
+
             else:
                 explanation = f"Unknown query type for subject='{subject}'"
 
@@ -950,6 +962,8 @@ class SecurityQueryLanguage:
             return "attack"
         if subject in _DEPENDENCY_SUBJECTS:
             return "dependency"
+        if subject in _REMEDIATION_SUBJECTS:
+            return "remediation"
         return "unknown"
 
     # ------------------------------------------------------------------
@@ -1167,6 +1181,54 @@ class SecurityQueryLanguage:
                 entry_points=_SQL_SOURCE_PATTERNS,
                 target_assets=all_sinks,
             )
+
+    def _execute_remediation_query(
+        self, subject: str, conditions: Dict[str, str]
+    ) -> tuple[List[Any], str]:
+        """Execute remediation / fix-tracking queries.
+
+        These queries return structure rather than live data — the engine
+        provides the QueryResult schema; callers populate items by attaching
+        a VerifiedFixEngine or KnowledgeGraph store.
+
+        Returns
+        -------
+        (items, explanation) where items is always [] (no live store attached).
+        """
+        _EXPLANATIONS: Dict[str, str] = {
+            "verified_fixes": (
+                "Returns verified fixes from the KG — fixes whose VerifiedFix.fix_status "
+                "is VERIFIED and fix_confidence >= threshold."
+            ),
+            "rejected_fixes": (
+                "Returns rejected fixes from the KG — fixes whose VerifiedFix.fix_status "
+                "is REJECTED due to build failure, regression, or low confidence."
+            ),
+            "vulnerable_patch": (
+                "Returns patches that introduced a new vulnerability — fixes where "
+                "VerifiedFix.regression_detected is True and the regression is a security issue."
+            ),
+            "regression_after_fix": (
+                "Returns fixes that caused functional regressions — fixes where "
+                "VerifiedFix.regression_detected is True regardless of security impact."
+            ),
+            "attack_paths_removed": (
+                "Returns attack paths eliminated by applied fixes — KG edges of type "
+                "REMOVES connecting FIX nodes to former SINK or DATAFLOW nodes."
+            ),
+            "fixes_for_cve": (
+                "Returns fixes linked to a specific CVE or CWE — FIX nodes reachable "
+                "from CVE nodes via FIXES edges, optionally filtered by cve= condition."
+            ),
+        }
+        explanation = _EXPLANATIONS.get(
+            subject,
+            f"Remediation query '{subject}': no live store attached — returns empty result set.",
+        )
+        cve_filter = conditions.get("cve", "")
+        if cve_filter:
+            explanation += f" (CVE/CWE filter: '{cve_filter}')"
+        return [], explanation
 
     def _execute_dependency_query(self, subject: str) -> List[Any]:
         """Execute dependency queries."""
