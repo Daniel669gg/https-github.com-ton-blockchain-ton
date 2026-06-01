@@ -101,6 +101,12 @@ class KGNodeType(str, Enum):
     PATCH = "patch"
     VALIDATION = "validation"
     REGRESSION = "regression"
+    # --- Phase 5 additions ---
+    RESEARCH = "research"
+    ADVISORY = "advisory"
+    EXPLOIT = "exploit"
+    REMEDIATION_PATTERN = "remediation_pattern"
+    GENERATED_RULE = "generated_rule"
 
 
 class KGNode(BaseModel):
@@ -117,6 +123,7 @@ class KGEdge(BaseModel):
     # Phase 2 additions: IMPORTS / DEPENDS_ON / REACHES / PROPAGATES_TO / VULNERABLE_TO /
     #                    VERIFIED_BY / EXPLOITABLE_VIA / EXPOSED_THROUGH / OWNED_BY
     # Phase 3 additions: VALIDATES / INTRODUCES / REMOVES
+    # Phase 5 additions: DERIVED_FROM / VALIDATED_BY / MITIGATED_BY / EXPLOITS_VIA / DETECTS
     relation: str
     weight: float = 1.0
 

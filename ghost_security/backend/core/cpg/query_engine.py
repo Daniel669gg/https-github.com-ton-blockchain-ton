@@ -743,6 +743,15 @@ _REMEDIATION_SUBJECTS  = {
     "attack_paths_removed",
     "fixes_for_cve",
 }
+_KNOWLEDGE_SUBJECTS = {
+    "research_for_cve",
+    "rules_for_cwe",
+    "exploit_patterns",
+    "remediation_patterns",
+    "generated_rules",
+    "validated_rules",
+    "research_sources",
+}
 
 
 class SecurityQueryLanguage:
@@ -855,6 +864,10 @@ class SecurityQueryLanguage:
                 items, explanation = self._execute_remediation_query(subject, conds)
                 result_type = subject
 
+            elif q_type == "knowledge":
+                items, explanation = self._execute_knowledge_query(subject, conds)
+                result_type = subject
+
             else:
                 explanation = f"Unknown query type for subject='{subject}'"
 
@@ -964,6 +977,8 @@ class SecurityQueryLanguage:
             return "dependency"
         if subject in _REMEDIATION_SUBJECTS:
             return "remediation"
+        if subject in _KNOWLEDGE_SUBJECTS:
+            return "knowledge"
         return "unknown"
 
     # ------------------------------------------------------------------
@@ -1228,6 +1243,56 @@ class SecurityQueryLanguage:
         cve_filter = conditions.get("cve", "")
         if cve_filter:
             explanation += f" (CVE/CWE filter: '{cve_filter}')"
+        return [], explanation
+
+    def _execute_knowledge_query(
+        self, subject: str, conditions: Dict[str, str]
+    ) -> tuple[List[Any], str]:
+        """Execute knowledge corpus queries (Phase 5).
+
+        Returns (items, explanation). Items are always [] when no corpus is
+        attached — callers attach a SecurityCorpus to populate live results.
+        """
+        _EXPLANATIONS: Dict[str, str] = {
+            "research_for_cve": (
+                "Returns research entries linked to a CVE — ResearchEntry nodes whose "
+                "related_cves field contains the requested CVE ID."
+            ),
+            "rules_for_cwe": (
+                "Returns generated detection rules for a CWE — GeneratedRuleEntry nodes "
+                "with cwe_id matching the condition and status VALIDATED or PROMOTED."
+            ),
+            "exploit_patterns": (
+                "Returns known exploitation patterns from the corpus — ExploitEntry nodes "
+                "and ExtractedPattern records with pattern_type=EXPLOITATION."
+            ),
+            "remediation_patterns": (
+                "Returns remediation patterns from the corpus — RemediationPatternEntry "
+                "nodes and ExtractedPattern records with pattern_type=REMEDIATION."
+            ),
+            "generated_rules": (
+                "Returns all generated detection rules in the corpus regardless of status, "
+                "ordered by confidence descending."
+            ),
+            "validated_rules": (
+                "Returns generated rules with status VALIDATED or PROMOTED and "
+                "false_positive_rate < 0.25."
+            ),
+            "research_sources": (
+                "Returns all research and advisory entries in the corpus, grouped by "
+                "source (NVD, MITRE, OWASP, CNA, independent)."
+            ),
+        }
+        explanation = _EXPLANATIONS.get(
+            subject,
+            f"Knowledge query '{subject}': no live corpus attached — returns empty result set.",
+        )
+        cve_filter = conditions.get("cve", "")
+        cwe_filter = conditions.get("cwe", "")
+        if cve_filter:
+            explanation += f" (CVE filter: '{cve_filter}')"
+        if cwe_filter:
+            explanation += f" (CWE filter: '{cwe_filter}')"
         return [], explanation
 
     def _execute_dependency_query(self, subject: str) -> List[Any]:
