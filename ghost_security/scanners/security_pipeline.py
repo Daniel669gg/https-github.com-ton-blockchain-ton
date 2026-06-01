@@ -1,5 +1,5 @@
 """
-Ghost Security — Unified Security Pipeline v2.2
+TythanAI — Unified Security Pipeline v2.2
 Runs all available scanners, merges results, applies triage.
 """
 import time
@@ -50,6 +50,19 @@ class SecurityPipeline:
             from core.analysis.taint_tracker import TaintTracker
             self._taint = TaintTracker()
         except Exception: self._taint = None
+        # ── Phase 6: Real Detection Engine additions ──────────────────────
+        try:
+            from scanners.semgrep_integration import SemgrepScanner
+            self._semgrep = SemgrepScanner()
+        except Exception: self._semgrep = None
+        try:
+            from scanners.osv_scanner import OSVScanner
+            self._osv = OSVScanner()
+        except Exception: self._osv = None
+        try:
+            from scanners.epss_enricher import EPSSEnricher
+            self._epss = EPSSEnricher()
+        except Exception: self._epss = None
 
     def scan(self, directory: str, mode: str = "all",
              run_triage: bool = True) -> Dict:
@@ -97,6 +110,12 @@ class SecurityPipeline:
         if (run_all or mode == "deps") and self._deps:
             _run("dependency_scanner", lambda: self._deps.scan_directory(directory))
 
+        if (run_all or mode == "semgrep") and self._semgrep and self._semgrep.is_available():
+            _run("semgrep", lambda: self._semgrep.scan_directory(directory))
+
+        if (run_all or mode == "osv") and self._osv:
+            _run("osv_scanner", lambda: self._osv.scan_directory(directory))
+
         if (run_all or mode == "taint") and self._taint:
             py_files = list(root.rglob("*.py"))[:50]  # cap for performance
             taint_findings = []
@@ -115,6 +134,19 @@ class SecurityPipeline:
             except Exception:
                 pass
 
+        # EPSS enrichment for CVE findings
+        if self._epss and all_findings:
+            cve_findings = [f for f in all_findings if str(f.get("cve", f.get("id",""))).startswith("CVE-")]
+            if cve_findings:
+                try:
+                    enriched = self._epss.enrich(cve_findings)
+                    # Replace enriched findings back
+                    cve_ids_enriched = {f.get("cve", f.get("id","")) for f in enriched}
+                    all_findings = [f for f in all_findings if not str(f.get("cve", f.get("id",""))).startswith("CVE-")]
+                    all_findings.extend(enriched)
+                except Exception:
+                    pass
+
         # Count severity
         sev_c: Dict[str,int] = {"CRITICAL":0,"HIGH":0,"MEDIUM":0,"LOW":0,"INFO":0}
         for f in all_findings:
@@ -125,18 +157,20 @@ class SecurityPipeline:
             sev_c["MEDIUM"]*8 + sev_c["LOW"]*3, 100)
 
         return {
-            "target":          directory,
-            "mode":            mode,
-            "timestamp":       time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-            "duration_s":      round(time.time()-t0, 2),
-            "total_findings":  len(all_findings),
-            "severity_counts": sev_c,
-            "risk_score":      risk_score,
-            "risk_level":      ("CRITICAL" if risk_score>=75 else "HIGH"
-                               if risk_score>=50 else "MEDIUM" if risk_score>=25 else "LOW"),
-            "scanners_run":    scanner_log,
-            "findings":        all_findings,
-            "recommendations": self._recommendations(sev_c, all_findings),
+            "target":           directory,
+            "mode":             mode,
+            "timestamp":        time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "duration_s":       round(time.time()-t0, 2),
+            "total_findings":   len(all_findings),
+            "severity_counts":  sev_c,
+            "risk_score":       risk_score,
+            "risk_level":       ("CRITICAL" if risk_score>=75 else "HIGH"
+                                if risk_score>=50 else "MEDIUM" if risk_score>=25 else "LOW"),
+            "scanners_run":     scanner_log,
+            "findings":         all_findings,
+            "recommendations":  self._recommendations(sev_c, all_findings),
+            "semgrep_available": self._semgrep.is_available() if self._semgrep else False,
+            "osv_online":        self._osv.is_online() if self._osv else False,
         }
 
     def _recommendations(self, counts: Dict, findings: List[Dict]) -> List[str]:
