@@ -48,6 +48,11 @@ class NodeType(str, Enum):
     ROUTE = "route"                 # URL route (may aggregate endpoints)
     RUNTIME_FINDING = "runtime_finding"   # DAST-confirmed finding
     RUNTIME_EVIDENCE = "runtime_evidence" # raw HTTP evidence from DAST
+    # Phase 8 — TON Elite additions
+    SMART_CONTRACT    = "smart_contract"    # TON smart contract node
+    TON_MESSAGE       = "ton_message"       # Inter-contract TON message
+    PRIVILEGED_ACTOR  = "privileged_actor"  # Admin/owner/multisig signer
+    JETTON_TRANSFER   = "jetton_transfer"   # Jetton transfer event node
 
 
 class GraphNode(BaseModel):
@@ -1718,3 +1723,241 @@ AttackGraphBuilder.add_runtime_findings         = _ag_add_runtime_findings      
 AttackGraphBuilder.build_from_runtime_correlation = _ag_build_from_runtime_correlation  # type: ignore[attr-defined]
 AttackGraphBuilder.find_exposed_endpoints       = _ag_find_exposed_endpoints       # type: ignore[attr-defined]
 AttackGraphBuilder.find_verified_exploits       = _ag_find_verified_exploits       # type: ignore[attr-defined]
+
+
+# ===========================================================================
+# Phase 8 — TON Elite extensions to AttackGraphBuilder
+# ===========================================================================
+
+def _ag_add_ton_contract_nodes(
+    self: "AttackGraphBuilder",
+    graph: "AttackGraph",
+    ton_findings: List[Any],
+    sbom: Optional[Any] = None,
+) -> int:
+    """
+    Inject SMART_CONTRACT / PRIVILEGED_ACTOR nodes for each TON contract.
+    Returns number of nodes created.
+    """
+    created = 0
+    seen: set = set()
+
+    sbom_map: Dict[str, Any] = {}
+    if sbom and hasattr(sbom, "entries"):
+        sbom_map = {e.file: e for e in sbom.entries}
+
+    for f in ton_findings:
+        file_path = f.get("file", "unknown")
+        if file_path in seen:
+            continue
+        seen.add(file_path)
+
+        ctype = sbom_map.get(file_path)
+        contract_type = ctype.contract_type if ctype else "unknown"
+        upgrade = ctype.upgrade_path if ctype else False
+        name = file_path.rsplit("/", 1)[-1] if "/" in file_path else file_path
+
+        nid = f"smart_contract:{file_path}"
+        if not any(n.node_id == nid for n in graph.nodes):
+            graph.nodes.append(GraphNode(
+                node_id=nid,
+                type=NodeType.SMART_CONTRACT,
+                label=name,
+                properties={
+                    "file":           file_path,
+                    "contract_type":  contract_type,
+                    "upgrade_path":   upgrade,
+                },
+            ))
+            created += 1
+
+        # Add PRIVILEGED_ACTOR nodes from SBOM
+        if ctype and hasattr(ctype, "privileged_actors"):
+            for actor in ctype.privileged_actors:
+                anid = f"privileged_actor:{actor[:16]}"
+                if not any(n.node_id == anid for n in graph.nodes):
+                    graph.nodes.append(GraphNode(
+                        node_id=anid,
+                        type=NodeType.PRIVILEGED_ACTOR,
+                        label=f"Actor {actor[:16]}",
+                        properties={"address": actor},
+                    ))
+                    created += 1
+                graph.edges.append(GraphEdge(
+                    from_id=anid,
+                    to_id=nid,
+                    label="controls",
+                    probability=1.0,
+                    impact_weight=0.9,
+                ))
+
+    return created
+
+
+def _ag_add_cross_contract_edges(
+    self: "AttackGraphBuilder",
+    graph: "AttackGraph",
+    cross_contract: Any,
+) -> int:
+    """Add edges to graph from CrossContractResult attack paths."""
+    added = 0
+    for attr in ("fund_drain_paths", "ownership_takeover_paths",
+                 "reentrancy_paths", "jetton_abuse_paths", "governance_attack_paths"):
+        for path_obj in getattr(cross_contract, attr, []):
+            path = getattr(path_obj, "path", [])
+            risk = getattr(path_obj, "risk", "HIGH")
+            ptype = getattr(path_obj, "finding_type", "ATTACK")
+
+            for i in range(len(path) - 1):
+                from_nid = f"smart_contract:{path[i]}"
+                to_nid   = f"smart_contract:{path[i+1]}"
+                graph.edges.append(GraphEdge(
+                    from_id=from_nid,
+                    to_id=to_nid,
+                    label=ptype.lower(),
+                    probability={"CRITICAL": 0.95, "HIGH": 0.80, "MEDIUM": 0.60}.get(risk, 0.5),
+                    risk_weight={"CRITICAL": 1.0, "HIGH": 0.8, "MEDIUM": 0.5}.get(risk, 0.3),
+                    impact_weight=1.0,
+                ))
+                added += 1
+    return added
+
+
+def _ag_build_from_ton_findings(
+    self: "AttackGraphBuilder",
+    ton_findings: List[Any],
+    cross_contract: Optional[Any] = None,
+    sbom: Optional[Any] = None,
+) -> "AttackGraph":
+    """
+    Build an AttackGraph from TON scan results.
+
+    1. SMART_CONTRACT nodes for each contract file
+    2. VULNERABILITY nodes for each finding
+    3. PRIVILEGED_ACTOR nodes from SBOM
+    4. Cross-contract attack path edges
+    5. Compute critical paths and risk score
+    """
+    graph = AttackGraph()
+
+    # Attacker entry node
+    graph.nodes.append(GraphNode(
+        node_id="source:attacker",
+        type=NodeType.SOURCE,
+        label="External Attacker",
+        properties={"is_attacker": True},
+    ))
+
+    # Contract and actor nodes
+    _ag_add_ton_contract_nodes(self, graph, ton_findings, sbom)
+
+    # Vulnerability nodes
+    for f in ton_findings:
+        file_path = f.get("file", "unknown")
+        rule_id   = f.get("rule_id", f.get("id", "UNKNOWN"))
+        severity  = f.get("severity", "INFO")
+        line      = f.get("line", 0)
+
+        vnid = f"vuln:{rule_id}:{file_path}:{line}"
+        if not any(n.node_id == vnid for n in graph.nodes):
+            graph.nodes.append(GraphNode(
+                node_id=vnid,
+                type=NodeType.VULNERABILITY,
+                label=f"{rule_id}: {f.get('description', '')[:50]}",
+                properties={
+                    "rule_id":     rule_id,
+                    "severity":    severity,
+                    "cwe":         f.get("cwe", f.get("cwe_id", "")),
+                    "file":        file_path,
+                    "line":        line,
+                    "category":    f.get("category", ""),
+                },
+            ))
+
+        contract_nid = f"smart_contract:{file_path}"
+        if any(n.node_id == contract_nid for n in graph.nodes):
+            prob = {"CRITICAL": 0.95, "HIGH": 0.80, "MEDIUM": 0.60, "LOW": 0.30}.get(severity, 0.2)
+            graph.edges.append(GraphEdge(
+                from_id=contract_nid,
+                to_id=vnid,
+                label="contains",
+                probability=prob,
+                risk_weight=prob,
+            ))
+            # Attacker → contract
+            graph.edges.append(GraphEdge(
+                from_id="source:attacker",
+                to_id=contract_nid,
+                label="targets",
+                probability=0.5,
+            ))
+
+    # Cross-contract edges
+    if cross_contract:
+        _ag_add_cross_contract_edges(self, graph, cross_contract)
+
+    # Compute paths and risk
+    graph.critical_paths = self.find_critical_paths(graph)
+    graph.risk_score = self.compute_risk_score(graph)
+    return graph
+
+
+def _ag_find_ownership_takeover_paths(
+    self: "AttackGraphBuilder",
+    graph: "AttackGraph",
+) -> List[List[str]]:
+    """Return attack paths that pass through ownership-related vulnerability nodes."""
+    ownership_vuln_ids = {
+        n.node_id for n in graph.nodes
+        if n.type == NodeType.VULNERABILITY
+        and any(kw in n.properties.get("category", "").lower()
+                or kw in n.properties.get("description", "").lower()
+                for kw in ("ownership", "access control", "owner", "admin", "init"))
+    }
+    return [
+        path for path in graph.critical_paths
+        if any(nid in ownership_vuln_ids for nid in path)
+    ]
+
+
+def _ag_find_fund_loss_paths(
+    self: "AttackGraphBuilder",
+    graph: "AttackGraph",
+) -> List[List[str]]:
+    """Return attack paths involving fund drain vulnerabilities."""
+    fund_vuln_ids = {
+        n.node_id for n in graph.nodes
+        if n.type == NodeType.VULNERABILITY
+        and any(kw in n.properties.get("description", "").lower()
+                for kw in ("fund", "drain", "mode 128", "balance", "steal"))
+    }
+    return [
+        path for path in graph.critical_paths
+        if any(nid in fund_vuln_ids for nid in path)
+    ]
+
+
+def _ag_find_jetton_abuse_paths(
+    self: "AttackGraphBuilder",
+    graph: "AttackGraph",
+) -> List[List[str]]:
+    """Return attack paths touching Jetton-related vulnerability nodes."""
+    jetton_vuln_ids = {
+        n.node_id for n in graph.nodes
+        if n.type == NodeType.VULNERABILITY
+        and any(kw in (n.properties.get("category", "") + n.properties.get("description", "")).lower()
+                for kw in ("jetton", "tep-74", "token"))
+    }
+    return [
+        path for path in graph.critical_paths
+        if any(nid in jetton_vuln_ids for nid in path)
+    ]
+
+
+# Register Phase 8 methods on AttackGraphBuilder
+AttackGraphBuilder.add_ton_contract_nodes       = _ag_add_ton_contract_nodes       # type: ignore[attr-defined]
+AttackGraphBuilder.add_cross_contract_edges     = _ag_add_cross_contract_edges     # type: ignore[attr-defined]
+AttackGraphBuilder.build_from_ton_findings      = _ag_build_from_ton_findings      # type: ignore[attr-defined]
+AttackGraphBuilder.find_ownership_takeover_paths = _ag_find_ownership_takeover_paths  # type: ignore[attr-defined]
+AttackGraphBuilder.find_fund_loss_paths         = _ag_find_fund_loss_paths         # type: ignore[attr-defined]
+AttackGraphBuilder.find_jetton_abuse_paths      = _ag_find_jetton_abuse_paths      # type: ignore[attr-defined]

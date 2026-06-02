@@ -94,6 +94,13 @@ class ScanOptions:
     dast_openapi_spec: str = ""           # path to OpenAPI spec for API scan
     dast_auth_token: str = ""             # Bearer token for authenticated DAST
     dast_crawl_live: bool = False         # crawl live app for endpoint discovery
+    # Phase 8 — TON Elite options
+    enable_ton_elite: bool = False        # master TON Elite switch
+    ton_contract_files: List[str] = field(default_factory=list)  # .fc/.tact files to scan
+    ton_project_dir: str = ""             # project root (auto-discovers contracts)
+    ton_enable_economic_risk: bool = True  # include economic risk scoring
+    ton_enable_cross_contract: bool = True  # include cross-contract analysis
+    ton_enable_sbom: bool = True          # include blockchain SBOM generation
     max_findings: int = 500
     timeout_s: int = 120
     languages: List[str] = field(default_factory=list)   # empty = auto-detect
@@ -693,3 +700,227 @@ class UnifiedScanEngine:
         if hasattr(nf, "__dict__"):
             return {k: v for k, v in nf.__dict__.items()}
         return {}  # pragma: no cover
+
+
+# ===========================================================================
+# Phase 8 — TON Elite Mode extension to UnifiedScanEngine
+# ===========================================================================
+
+def _use_scan_ton_elite(
+    self: "UnifiedScanEngine",
+    files: Optional[List[str]] = None,
+    options: Optional["ScanOptions"] = None,
+) -> Dict[str, Any]:
+    """
+    Run the full TON Elite security scan pipeline on a set of contract files.
+
+    Steps:
+    1. Auto-discover contract files (if ton_project_dir set and no files given)
+    2. Run TonAnalyzer (static rules) on each file
+    3. Run OwnershipChecker on each file
+    4. Run RollbackCEIAnalyzer on each file
+    5. Run CrossContractAnalyzer on the full file set
+    6. Build Blockchain SBOM
+    7. Score economic risk
+    8. Build TON Knowledge Graph
+    9. Build TON Attack Graph
+    10. Generate TON Security Dashboard
+    """
+    import time
+    t_start = time.time()
+
+    if options is None:
+        options = ScanOptions()
+
+    contract_files = list(files or options.ton_contract_files)
+    if not contract_files and options.ton_project_dir:
+        contract_files = _discover_ton_contracts(options.ton_project_dir)
+
+    if not contract_files:
+        return {
+            "status":   "no_files",
+            "message":  "No TON contract files found.",
+            "findings": [],
+        }
+
+    all_findings: List[dict] = []
+    scanner_errors: List[str] = []
+
+    # --- Step 2: TonAnalyzer static rules ---
+    try:
+        from scanners.ton_scanner.ton_analyzer import TonAnalyzer
+        analyzer = TonAnalyzer()
+        for fp in contract_files:
+            try:
+                result = analyzer.analyze(fp)
+                for f in (result if isinstance(result, list) else result.get("findings", [])):
+                    d = f.to_dict() if hasattr(f, "to_dict") else dict(f)
+                    all_findings.append(d)
+            except Exception as e:
+                scanner_errors.append(f"ton_analyzer:{fp}: {e}")
+    except Exception as e:
+        scanner_errors.append(f"ton_analyzer_import: {e}")
+
+    # --- Step 3: OwnershipChecker ---
+    try:
+        from scanners.ton_scanner.ownership_checker import OwnershipChecker
+        checker = OwnershipChecker()
+        for fp in contract_files:
+            try:
+                import pathlib
+                source = pathlib.Path(fp).read_text(errors="replace")
+                lang = "tact" if fp.endswith(".tact") else "func"
+                for f in checker.check(source, lang):
+                    d = {
+                        "rule_id":      f"OWN-{f.finding_type}",
+                        "severity":     f.severity,
+                        "file":         fp,
+                        "line":         f.line,
+                        "description":  f.description,
+                        "evidence":     f.evidence,
+                        "recommendation": f.recommendation,
+                        "cwe":          f.cwe_id,
+                        "category":     "Access Control",
+                        "source":       "ownership_checker",
+                    }
+                    all_findings.append(d)
+            except Exception as e:
+                scanner_errors.append(f"ownership_checker:{fp}: {e}")
+    except Exception as e:
+        scanner_errors.append(f"ownership_checker_import: {e}")
+
+    # --- Step 4: RollbackCEIAnalyzer ---
+    try:
+        from scanners.ton_scanner.rollback_analyzer import RollbackCEIAnalyzer
+        rollback = RollbackCEIAnalyzer()
+        for fp in contract_files:
+            try:
+                import pathlib
+                source = pathlib.Path(fp).read_text(errors="replace")
+                result = rollback.analyze(source, fp)
+                all_findings.extend(result.to_findings())
+            except Exception as e:
+                scanner_errors.append(f"rollback_analyzer:{fp}: {e}")
+    except Exception as e:
+        scanner_errors.append(f"rollback_analyzer_import: {e}")
+
+    # --- Step 5: CrossContractAnalyzer ---
+    cross_result = None
+    if options.ton_enable_cross_contract and len(contract_files) > 1:
+        try:
+            from scanners.ton_scanner.cross_contract import CrossContractAnalyzer
+            cc = CrossContractAnalyzer()
+            cross_result = cc.analyze(contract_files)
+            for f in (cross_result.all_findings if cross_result else []):
+                all_findings.append(f if isinstance(f, dict) else dict(f))
+        except Exception as e:
+            scanner_errors.append(f"cross_contract: {e}")
+
+    # --- Step 6: Blockchain SBOM ---
+    sbom = None
+    if options.ton_enable_sbom:
+        try:
+            from blockchain.ton.ton_sbom import BlockchainSBOMBuilder
+            sbom = BlockchainSBOMBuilder().build(
+                contract_files, all_findings,
+                project_name=options.ton_project_dir or "TON Project"
+            )
+        except Exception as e:
+            scanner_errors.append(f"ton_sbom: {e}")
+
+    # --- Step 7: Economic Risk Scoring ---
+    economic_report = None
+    if options.ton_enable_economic_risk:
+        try:
+            from blockchain.ton.economic_risk_scorer import EconomicRiskScorer
+            cross_paths = None
+            if cross_result and hasattr(cross_result, "fund_drain_paths"):
+                cross_paths = [
+                    {
+                        "path": p.path,
+                        "finding_type": p.finding_type,
+                        "risk": p.risk,
+                        "attack_description": p.attack_description,
+                    }
+                    for p in cross_result.fund_drain_paths
+                ]
+            economic_report = EconomicRiskScorer().score(all_findings, cross_paths)
+        except Exception as e:
+            scanner_errors.append(f"economic_risk_scorer: {e}")
+
+    # --- Step 8: TON Knowledge Graph ---
+    kg = None
+    try:
+        from backend.analysis.knowledge_graph import KnowledgeGraphBuilder
+        kg_builder = KnowledgeGraphBuilder()
+        kg = kg_builder.build_ton_knowledge_graph(all_findings, sbom, cross_result)
+    except Exception as e:
+        scanner_errors.append(f"ton_kg: {e}")
+
+    # --- Step 9: TON Attack Graph ---
+    ag = None
+    try:
+        from backend.analysis.attack_graph import AttackGraphBuilder
+        ag_builder = AttackGraphBuilder()
+        ag = ag_builder.build_from_ton_findings(all_findings, cross_result, sbom)
+    except Exception as e:
+        scanner_errors.append(f"ton_ag: {e}")
+
+    # --- Step 10: Dashboard ---
+    dashboard = None
+    try:
+        from blockchain.ton.ton_dashboard import TONSecurityDashboard
+        dashboard = TONSecurityDashboard().generate(
+            findings=all_findings,
+            sbom=sbom,
+            economic_report=economic_report,
+            cross_contract=cross_result,
+            attack_graph=ag,
+            project_name=options.ton_project_dir or "TON Project",
+        )
+    except Exception as e:
+        scanner_errors.append(f"ton_dashboard: {e}")
+
+    # --- Severity counts ---
+    counts: Dict[str, int] = {"CRITICAL": 0, "HIGH": 0, "MEDIUM": 0, "LOW": 0, "INFO": 0}
+    for f in all_findings:
+        s = f.get("severity", "INFO").upper()
+        counts[s] = counts.get(s, 0) + 1
+
+    raw = counts["CRITICAL"] * 25 + counts["HIGH"] * 15 + counts["MEDIUM"] * 8 + counts["LOW"] * 3
+    risk_score = min(100, raw * 100 // 500 if raw else 0)
+
+    duration = round(time.time() - t_start, 3)
+
+    return {
+        "status":           "ok",
+        "files_scanned":    len(contract_files),
+        "findings":         all_findings,
+        "severity_counts":  counts,
+        "risk_score":       risk_score,
+        "scanner_errors":   scanner_errors,
+        "scan_duration_s":  duration,
+        "economic_report":  economic_report.to_dict() if economic_report else None,
+        "sbom":             sbom.to_dict() if sbom else None,
+        "knowledge_graph":  {"nodes": len(kg.nodes), "edges": len(kg.edges)} if kg else None,
+        "attack_graph":     {"nodes": len(ag.nodes), "edges": len(ag.edges),
+                             "risk_score": ag.risk_score,
+                             "critical_paths": len(ag.critical_paths)} if ag else None,
+        "dashboard":        dashboard.to_dict() if dashboard else None,
+    }
+
+
+def _discover_ton_contracts(project_dir: str) -> List[str]:
+    """Recursively find .fc, .func, and .tact files in a project directory."""
+    import pathlib
+    p = pathlib.Path(project_dir)
+    if not p.is_dir():
+        return []
+    files = []
+    for ext in ("*.fc", "*.func", "*.tact"):
+        files.extend(str(f) for f in p.rglob(ext))
+    return sorted(files)
+
+
+# Register scan_ton_elite on UnifiedScanEngine
+UnifiedScanEngine.scan_ton_elite = _use_scan_ton_elite  # type: ignore[attr-defined]

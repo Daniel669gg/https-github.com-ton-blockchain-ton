@@ -110,6 +110,14 @@ class KGNodeType(str, Enum):
     # --- Phase 7 additions (DAST) ---
     RUNTIME_FINDING  = "runtime_finding"   # DAST-confirmed finding
     RUNTIME_EVIDENCE = "runtime_evidence"  # Raw HTTP request/response evidence
+    # --- Phase 8 additions (TON Elite) ---
+    SMART_CONTRACT   = "smart_contract"    # TON smart contract
+    TON_WALLET       = "ton_wallet"        # TON wallet contract
+    JETTON           = "jetton"            # Jetton (TEP-74 fungible token)
+    NFT_COLLECTION   = "nft_collection"   # NFT Collection (TEP-62)
+    TREASURY         = "treasury"          # Treasury / DAO treasury contract
+    MULTISIG         = "multisig"          # Multisig contract
+    TON_MESSAGE      = "ton_message"       # TON inter-contract message
 
 
 class KGNode(BaseModel):
@@ -1365,3 +1373,320 @@ KnowledgeGraphBuilder.find_verified_exploits  = _kg_find_verified_exploits  # ty
 KnowledgeGraphBuilder.find_reachable_endpoints = _kg_find_reachable_endpoints # type: ignore[attr-defined]
 KnowledgeGraphBuilder.find_attack_surface     = _kg_find_attack_surface     # type: ignore[attr-defined]
 KnowledgeGraphBuilder.find_exploitable_routes = _kg_find_exploitable_routes # type: ignore[attr-defined]
+
+
+# ===========================================================================
+# Phase 8 — TON Elite extensions to KnowledgeGraphBuilder
+# ===========================================================================
+
+def _kg_ingest_ton_findings(
+    self: "KnowledgeGraphBuilder",
+    graph: "SecurityKnowledgeGraph",
+    ton_findings: List[Any],
+    sbom: Optional[Any] = None,
+) -> int:
+    """
+    Ingest TON analyzer findings into the Knowledge Graph.
+
+    Creates SMART_CONTRACT / TON_WALLET / JETTON / NFT_COLLECTION / TREASURY /
+    MULTISIG nodes for each unique contract file, FINDING nodes for each
+    vulnerability, and VULNERABLE_TO edges connecting them.
+
+    Returns number of nodes created.
+    """
+    created = 0
+    seen_contracts: Dict[str, str] = {}   # file → node_id
+
+    # Build contract type map from SBOM if available
+    sbom_type_map: Dict[str, str] = {}
+    if sbom and hasattr(sbom, "entries"):
+        for e in sbom.entries:
+            sbom_type_map[e.file] = e.contract_type
+
+    for finding in ton_findings:
+        file_path = finding.get("file", "unknown")
+        rule_id   = finding.get("rule_id", finding.get("id", "UNKNOWN"))
+        severity  = finding.get("severity", "INFO")
+        cwe       = finding.get("cwe", "")
+        desc      = finding.get("description", "")
+
+        # --- Contract node ---
+        if file_path not in seen_contracts:
+            ctype_str = sbom_type_map.get(file_path, _infer_kg_contract_type(file_path, desc))
+            kg_type   = _contract_type_to_kg_node_type(ctype_str)
+            cn_id     = f"contract:{file_path}"
+            name      = file_path.rsplit("/", 1)[-1] if "/" in file_path else file_path
+
+            if not any(n.node_id == cn_id for n in graph.nodes):
+                graph.nodes.append(KGNode(
+                    node_id=cn_id,
+                    type=kg_type,
+                    label=name,
+                    properties={
+                        "file":          file_path,
+                        "contract_type": ctype_str,
+                        "language":      _detect_language_kg(file_path),
+                    },
+                ))
+                created += 1
+            seen_contracts[file_path] = cn_id
+
+        contract_nid = seen_contracts[file_path]
+
+        # --- Finding node ---
+        finding_nid = f"ton_finding:{rule_id}:{file_path}:{finding.get('line', 0)}"
+        if not any(n.node_id == finding_nid for n in graph.nodes):
+            graph.nodes.append(KGNode(
+                node_id=finding_nid,
+                type=KGNodeType.FINDING,
+                label=f"{rule_id}: {desc[:60]}",
+                properties={
+                    "rule_id":     rule_id,
+                    "severity":    severity,
+                    "cwe":         cwe,
+                    "description": desc,
+                    "file":        file_path,
+                    "line":        finding.get("line", 0),
+                    "category":    finding.get("category", ""),
+                    "source":      finding.get("source", "ton_analyzer"),
+                },
+            ))
+            created += 1
+
+        graph.edges.append(KGEdge(
+            from_id=contract_nid,
+            to_id=finding_nid,
+            relation="VULNERABLE_TO",
+            weight=_severity_to_weight(severity),
+        ))
+
+    # Add OWNS / CONTROLS edges from SBOM
+    if sbom and hasattr(sbom, "entries"):
+        for entry in sbom.entries:
+            cn_id = f"contract:{entry.file}"
+            if not any(n.node_id == cn_id for n in graph.nodes):
+                continue
+            for dep in entry.dependencies:
+                dep_nid = f"contract:{dep}"
+                graph.edges.append(KGEdge(
+                    from_id=cn_id,
+                    to_id=dep_nid,
+                    relation="DEPENDS_ON",
+                    weight=0.5,
+                ))
+            for actor in entry.privileged_actors:
+                actor_nid = f"actor:{actor[:16]}"
+                if not any(n.node_id == actor_nid for n in graph.nodes):
+                    graph.nodes.append(KGNode(
+                        node_id=actor_nid,
+                        type=KGNodeType.ASSET,
+                        label=f"Actor {actor[:16]}",
+                        properties={"address": actor, "role": "privileged"},
+                    ))
+                    created += 1
+                graph.edges.append(KGEdge(
+                    from_id=actor_nid,
+                    to_id=cn_id,
+                    relation="CONTROLS",
+                    weight=1.0,
+                ))
+
+    return created
+
+
+def _kg_find_vulnerable_contracts(
+    self: "KnowledgeGraphBuilder",
+    graph: "SecurityKnowledgeGraph",
+    min_severity: str = "HIGH",
+) -> List["KGNode"]:
+    """Return SMART_CONTRACT/WALLET/JETTON/etc. nodes that have at least one VULNERABLE_TO edge
+    to a FINDING with severity >= min_severity."""
+    _rank = {"CRITICAL": 5, "HIGH": 4, "MEDIUM": 3, "LOW": 2, "INFO": 1}
+    min_rank = _rank.get(min_severity.upper(), 4)
+    node_map = {n.node_id: n for n in graph.nodes}
+
+    vulnerable_contract_ids: set = set()
+    for edge in graph.edges:
+        if edge.relation != "VULNERABLE_TO":
+            continue
+        finding = node_map.get(edge.to_id)
+        if finding and finding.type == KGNodeType.FINDING:
+            sev = finding.properties.get("severity", "INFO").upper()
+            if _rank.get(sev, 0) >= min_rank:
+                vulnerable_contract_ids.add(edge.from_id)
+
+    _ton_types = {
+        KGNodeType.SMART_CONTRACT, KGNodeType.TON_WALLET,
+        KGNodeType.JETTON, KGNodeType.NFT_COLLECTION,
+        KGNodeType.TREASURY, KGNodeType.MULTISIG,
+    }
+    return [n for n in graph.nodes
+            if n.node_id in vulnerable_contract_ids and n.type in _ton_types]
+
+
+def _kg_find_vulnerable_wallets(
+    self: "KnowledgeGraphBuilder",
+    graph: "SecurityKnowledgeGraph",
+) -> List["KGNode"]:
+    """Return TON_WALLET nodes that have VULNERABLE_TO edges."""
+    wallet_ids = {
+        e.from_id for e in graph.edges if e.relation == "VULNERABLE_TO"
+    }
+    return [n for n in graph.nodes
+            if n.node_id in wallet_ids and n.type == KGNodeType.TON_WALLET]
+
+
+def _kg_find_exploitable_messages(
+    self: "KnowledgeGraphBuilder",
+    graph: "SecurityKnowledgeGraph",
+) -> List["KGNode"]:
+    """Return TON_MESSAGE nodes that have LEADS_TO edges to FINDING nodes."""
+    msg_nodes_with_findings = {
+        e.from_id for e in graph.edges
+        if e.relation in ("LEADS_TO", "TRIGGERS")
+        and any(n.node_id == e.to_id and n.type == KGNodeType.FINDING
+                for n in graph.nodes)
+    }
+    return [n for n in graph.nodes
+            if n.node_id in msg_nodes_with_findings and n.type == KGNodeType.TON_MESSAGE]
+
+
+def _kg_find_ownership_takeovers(
+    self: "KnowledgeGraphBuilder",
+    graph: "SecurityKnowledgeGraph",
+) -> List["KGNode"]:
+    """Return FINDING nodes categorized as ownership takeover vulnerabilities."""
+    return [
+        n for n in graph.nodes
+        if n.type == KGNodeType.FINDING
+        and any(kw in n.properties.get("description", "").lower()
+                for kw in ("ownership", "owner", "admin", "init guard", "takeover"))
+        and n.properties.get("severity") in ("CRITICAL", "HIGH")
+    ]
+
+
+def _kg_find_fund_loss_paths(
+    self: "KnowledgeGraphBuilder",
+    graph: "SecurityKnowledgeGraph",
+) -> List[Dict[str, Any]]:
+    """Return paths from SMART_CONTRACT nodes to fund-drain FINDING nodes."""
+    _drain_keywords = ("fund drain", "mode 128", "carry all balance", "drain", "empty")
+    drain_findings = {
+        n.node_id for n in graph.nodes
+        if n.type == KGNodeType.FINDING
+        and any(kw in n.properties.get("description", "").lower() for kw in _drain_keywords)
+    }
+    node_map = {n.node_id: n for n in graph.nodes}
+    paths: List[Dict[str, Any]] = []
+    for edge in graph.edges:
+        if edge.relation == "VULNERABLE_TO" and edge.to_id in drain_findings:
+            contract = node_map.get(edge.from_id)
+            finding  = node_map.get(edge.to_id)
+            if contract and finding:
+                paths.append({
+                    "contract_id":    contract.node_id,
+                    "contract_label": contract.label,
+                    "contract_type":  contract.properties.get("contract_type", "unknown"),
+                    "finding_id":     finding.node_id,
+                    "severity":       finding.properties.get("severity", "UNKNOWN"),
+                    "description":    finding.properties.get("description", ""),
+                    "cwe":            finding.properties.get("cwe", ""),
+                })
+    return paths
+
+
+def _kg_find_affected_assets(
+    self: "KnowledgeGraphBuilder",
+    graph: "SecurityKnowledgeGraph",
+) -> List["KGNode"]:
+    """Return all TON entity nodes (contracts, wallets, jettons, NFTs, treasuries)."""
+    _ton_types = {
+        KGNodeType.SMART_CONTRACT, KGNodeType.TON_WALLET,
+        KGNodeType.JETTON, KGNodeType.NFT_COLLECTION,
+        KGNodeType.TREASURY, KGNodeType.MULTISIG,
+    }
+    return [n for n in graph.nodes if n.type in _ton_types]
+
+
+def _kg_build_ton_knowledge_graph(
+    self: "KnowledgeGraphBuilder",
+    ton_findings: List[Any],
+    sbom: Optional[Any] = None,
+    cross_contract: Optional[Any] = None,
+) -> "SecurityKnowledgeGraph":
+    """
+    Build a complete SecurityKnowledgeGraph from TON scan results.
+    Integrates contract nodes, finding nodes, SBOM deps, and cross-contract paths.
+    """
+    graph = SecurityKnowledgeGraph()
+    _kg_ingest_ton_findings(self, graph, ton_findings, sbom)
+    # Add cross-contract path edges
+    if cross_contract:
+        for attr in ("fund_drain_paths", "ownership_takeover_paths",
+                     "reentrancy_paths", "jetton_abuse_paths"):
+            for path_obj in getattr(cross_contract, attr, []):
+                path = getattr(path_obj, "path", [])
+                for i in range(len(path) - 1):
+                    from_nid = f"contract:{path[i]}"
+                    to_nid   = f"contract:{path[i+1]}"
+                    graph.edges.append(KGEdge(
+                        from_id=from_nid,
+                        to_id=to_nid,
+                        relation="INTERACTS_WITH",
+                        weight=1.0,
+                    ))
+    return graph
+
+
+# ---------------------------------------------------------------------------
+# Helpers for TON KG extensions
+# ---------------------------------------------------------------------------
+
+_TON_TYPE_MAP = {
+    "wallet":        KGNodeType.TON_WALLET,
+    "jetton_master": KGNodeType.JETTON,
+    "jetton_wallet": KGNodeType.JETTON,
+    "nft_collection": KGNodeType.NFT_COLLECTION,
+    "nft_item":      KGNodeType.NFT_COLLECTION,
+    "treasury":      KGNodeType.TREASURY,
+    "dao":           KGNodeType.TREASURY,
+    "multisig":      KGNodeType.MULTISIG,
+}
+
+
+def _infer_kg_contract_type(file_path: str, desc: str) -> str:
+    name = (file_path + " " + desc).lower()
+    if "treasury" in name:          return "treasury"
+    if "multisig" in name:          return "multisig"
+    if "dao" in name:               return "dao"
+    if "jetton_master" in name:     return "jetton_master"
+    if "jetton_wallet" in name:     return "jetton_wallet"
+    if "jetton" in name:            return "jetton_master"
+    if "nft_collection" in name:    return "nft_collection"
+    if "wallet" in name:            return "wallet"
+    return "smart_contract"
+
+
+def _contract_type_to_kg_node_type(ctype: str) -> "KGNodeType":
+    return _TON_TYPE_MAP.get(ctype, KGNodeType.SMART_CONTRACT)
+
+
+def _detect_language_kg(file_path: str) -> str:
+    if file_path.endswith(".tact"):  return "tact"
+    if file_path.endswith(".tlb"):   return "tlb"
+    return "func"
+
+
+def _severity_to_weight(severity: str) -> float:
+    return {"CRITICAL": 1.0, "HIGH": 0.8, "MEDIUM": 0.6, "LOW": 0.4}.get(severity.upper(), 0.2)
+
+
+# Register Phase 8 methods on KnowledgeGraphBuilder
+KnowledgeGraphBuilder.ingest_ton_findings        = _kg_ingest_ton_findings        # type: ignore[attr-defined]
+KnowledgeGraphBuilder.find_vulnerable_contracts  = _kg_find_vulnerable_contracts  # type: ignore[attr-defined]
+KnowledgeGraphBuilder.find_vulnerable_wallets    = _kg_find_vulnerable_wallets    # type: ignore[attr-defined]
+KnowledgeGraphBuilder.find_exploitable_messages  = _kg_find_exploitable_messages  # type: ignore[attr-defined]
+KnowledgeGraphBuilder.find_ownership_takeovers   = _kg_find_ownership_takeovers   # type: ignore[attr-defined]
+KnowledgeGraphBuilder.find_fund_loss_paths       = _kg_find_fund_loss_paths       # type: ignore[attr-defined]
+KnowledgeGraphBuilder.find_affected_assets       = _kg_find_affected_assets       # type: ignore[attr-defined]
+KnowledgeGraphBuilder.build_ton_knowledge_graph  = _kg_build_ton_knowledge_graph  # type: ignore[attr-defined]
