@@ -19,6 +19,7 @@ Usage:
 from __future__ import annotations
 
 import json
+import threading
 import time
 import urllib.error
 import urllib.request
@@ -28,6 +29,20 @@ EPSS_API      = "https://api.first.org/data/v1/epss"
 CISA_KEV_URL  = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
 _TIMEOUT      = 10
 _BATCH        = 100   # EPSS supports up to 100 CVEs per request
+
+# TTL constants (seconds).
+_EPSS_TTL = 3600   # EPSS scores are updated daily; 1-hour in-process cache is fine
+_KEV_TTL  = 3600   # CISA KEV updated infrequently; 1-hour reuse is safe
+
+# ---------------------------------------------------------------------------
+# Process-level cache — shared by all EPSSEnricher instances in one process.
+# Eliminates redundant HTTP calls when multiple scans run in the same worker.
+# ---------------------------------------------------------------------------
+_LOCK:          threading.Lock             = threading.Lock()
+_EPSS_CACHE:    Dict[str, Tuple[float, float]] = {}   # cve → (score, percentile)
+_EPSS_FETCHED:  Dict[str, float]               = {}   # cve → timestamp
+_KEV_CACHE:     Optional[Set[str]]             = None
+_KEV_FETCHED_AT: float                         = 0.0
 
 
 def _fetch_json(url: str, timeout: int = _TIMEOUT) -> Optional[dict]:
@@ -42,14 +57,15 @@ def _fetch_json(url: str, timeout: int = _TIMEOUT) -> Optional[dict]:
 class EPSSEnricher:
     """
     Enriches findings with EPSS scores and CISA KEV status.
-    Results are cached in memory for the lifetime of the object.
+
+    All EPSS + KEV data is cached at process level (module globals) with a 1-hour
+    TTL so that multiple scanner instances or successive scans in the same worker
+    share cached results instead of issuing duplicate HTTP requests.
     """
 
     def __init__(self, timeout: int = _TIMEOUT) -> None:
-        self._timeout      = timeout
-        self._epss_cache:  Dict[str, Tuple[float, float]] = {}  # cve → (score, percentile)
-        self._kev_cache:   Optional[Set[str]] = None
-        self._online:      Optional[bool] = None
+        self._timeout = timeout
+        self._online:  Optional[bool] = None
 
     # ── Public API ─────────────────────────────────────────────────────────────
 
@@ -68,7 +84,7 @@ class EPSSEnricher:
         for f in findings:
             cve = self._get_cve(f)
             if cve:
-                epss_score, epss_pct = self._epss_cache.get(cve, (0.0, 0.0))
+                epss_score, epss_pct = _EPSS_CACHE.get(cve, (0.0, 0.0))
                 in_kev = cve in kev_set if kev_set else False
                 f["epss_score"]      = round(epss_score, 4)
                 f["epss_percentile"] = round(epss_pct, 2)
@@ -91,7 +107,7 @@ class EPSSEnricher:
         """Look up a single CVE. Returns enrichment dict."""
         self._fetch_epss([cve])
         kev = self._fetch_kev()
-        score, pct = self._epss_cache.get(cve, (0.0, 0.0))
+        score, pct = _EPSS_CACHE.get(cve, (0.0, 0.0))
         in_kev     = cve in kev if kev else False
         return {
             "cve":             cve,
@@ -127,42 +143,57 @@ class EPSSEnricher:
         return None
 
     def _fetch_epss(self, cve_ids: List[str]) -> None:
-        """Fetch EPSS scores for a list of CVEs, skipping already cached."""
-        to_fetch = [c for c in cve_ids if c not in self._epss_cache]
+        """Fetch EPSS scores for CVEs not yet in the process-level cache."""
+        now = time.time()
+        with _LOCK:
+            to_fetch = [
+                c for c in cve_ids
+                if c not in _EPSS_CACHE or (now - _EPSS_FETCHED.get(c, 0)) > _EPSS_TTL
+            ]
         if not to_fetch:
             return
 
         for i in range(0, len(to_fetch), _BATCH):
-            batch = to_fetch[i : i + _BATCH]
+            batch    = to_fetch[i : i + _BATCH]
             cve_param = ",".join(batch)
-            url  = f"{EPSS_API}?cve={cve_param}&envelope=true"
-            data = _fetch_json(url, self._timeout)
-            if not data:
+            url      = f"{EPSS_API}?cve={cve_param}&envelope=true"
+            data     = _fetch_json(url, self._timeout)
+            ts       = time.time()
+            with _LOCK:
+                if not data:
+                    for c in batch:
+                        _EPSS_CACHE[c]   = (0.0, 0.0)
+                        _EPSS_FETCHED[c] = ts
+                    continue
+                for entry in data.get("data", []):
+                    cve   = entry.get("cve", "").upper()
+                    score = float(entry.get("epss", 0))
+                    pct   = float(entry.get("percentile", 0)) * 100
+                    _EPSS_CACHE[cve]   = (score, pct)
+                    _EPSS_FETCHED[cve] = ts
+                # Mark CVEs not returned by API as zero
                 for c in batch:
-                    self._epss_cache[c] = (0.0, 0.0)
-                continue
-            for entry in data.get("data", []):
-                cve  = entry.get("cve", "").upper()
-                score = float(entry.get("epss", 0))
-                pct   = float(entry.get("percentile", 0)) * 100
-                self._epss_cache[cve] = (score, pct)
-            # Mark unfound as 0
-            for c in batch:
-                if c not in self._epss_cache:
-                    self._epss_cache[c] = (0.0, 0.0)
+                    if c not in _EPSS_CACHE:
+                        _EPSS_CACHE[c]   = (0.0, 0.0)
+                        _EPSS_FETCHED[c] = ts
 
     def _fetch_kev(self) -> Set[str]:
-        if self._kev_cache is not None:
-            return self._kev_cache
+        global _KEV_CACHE, _KEV_FETCHED_AT
+        with _LOCK:
+            if _KEV_CACHE is not None and (time.time() - _KEV_FETCHED_AT) < _KEV_TTL:
+                return _KEV_CACHE
         data = _fetch_json(CISA_KEV_URL, self._timeout)
-        if not data:
-            self._kev_cache = set()
-            return self._kev_cache
-        self._kev_cache = {
-            v.get("cveID", "").upper()
-            for v in data.get("vulnerabilities", [])
-        }
-        return self._kev_cache
+        with _LOCK:
+            if not data:
+                _KEV_CACHE      = set()
+                _KEV_FETCHED_AT = time.time()
+                return _KEV_CACHE
+            _KEV_CACHE = {
+                v.get("cveID", "").upper()
+                for v in data.get("vulnerabilities", [])
+            }
+            _KEV_FETCHED_AT = time.time()
+            return _KEV_CACHE
 
     @staticmethod
     def _priority(f: Dict, epss: float, kev: bool) -> float:

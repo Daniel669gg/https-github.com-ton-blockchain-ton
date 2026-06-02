@@ -21,7 +21,7 @@ import tempfile
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional
 
 # Ensure project root is importable
 _ENGINE_DIR = Path(__file__).parent
@@ -30,6 +30,14 @@ if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
 from backend.core.engine.finding_normalizer import FindingNormalizer, NormalizedFinding
+
+if TYPE_CHECKING:
+    from scanners.ast_scanner.ast_analyzer import ASTScanner
+    from scanners.semgrep_integration import SemgrepScanner
+    from scanners.osv_scanner import OSVScanner
+    from scanners.secret_scanner.secret_detector import SecretDetector
+    from scanners.owasp_scanner import OWASPScanner
+    from scanners.epss_enricher import EPSSEnricher
 
 logger = logging.getLogger(__name__)
 
@@ -171,12 +179,12 @@ class UnifiedScanEngine:
         self._opts = options or ScanOptions()
         self._normalizer = FindingNormalizer()
         self._load_errors: List[str] = []
-        self._ast     = None
-        self._semgrep = None
-        self._osv     = None
-        self._secrets = None
-        self._owasp   = None
-        self._epss    = None
+        self._ast:     Optional[ASTScanner]    = None
+        self._semgrep: Optional[SemgrepScanner] = None
+        self._osv:     Optional[OSVScanner]    = None
+        self._secrets: Optional[SecretDetector] = None
+        self._owasp:   Optional[OWASPScanner]  = None
+        self._epss:    Optional[EPSSEnricher]  = None
         self._load_scanners()
 
     # ------------------------------------------------------------------
@@ -251,7 +259,7 @@ class UnifiedScanEngine:
         scanner_errors: List[str] = list(self._load_errors)   # include load errors
         scanners_used: List[str] = []
 
-        def _run_scanner(name: str, fn) -> None:
+        def _run_scanner(name: str, fn: Callable[[], dict]) -> None:
             nonlocal total_deps
             try:
                 result = fn()
