@@ -38,11 +38,16 @@ logger = logging.getLogger("tythanai.attack_graph")
 # ---------------------------------------------------------------------------
 
 class NodeType(str, Enum):
-    SOURCE = "source"           # attacker entry
-    VULNERABILITY = "vuln"      # CVE/finding
-    ASSET = "asset"             # protected resource
-    CONTROL = "control"         # security control (auth, WAF)
-    EXPLOIT = "exploit"         # exploit technique
+    SOURCE = "source"               # attacker entry
+    VULNERABILITY = "vuln"          # CVE/finding
+    ASSET = "asset"                 # protected resource
+    CONTROL = "control"             # security control (auth, WAF)
+    EXPLOIT = "exploit"             # exploit technique
+    # Phase 7 — DAST additions
+    ENDPOINT = "endpoint"           # HTTP endpoint / API route
+    ROUTE = "route"                 # URL route (may aggregate endpoints)
+    RUNTIME_FINDING = "runtime_finding"   # DAST-confirmed finding
+    RUNTIME_EVIDENCE = "runtime_evidence" # raw HTTP evidence from DAST
 
 
 class GraphNode(BaseModel):
@@ -1463,3 +1468,253 @@ def _ag_recompute_affected_paths(
 
 AttackGraphBuilder.update_findings          = _ag_update_findings          # type: ignore[attr-defined]
 AttackGraphBuilder.recompute_affected_paths = _ag_recompute_affected_paths # type: ignore[attr-defined]
+
+
+# ---------------------------------------------------------------------------
+# Phase 7 — DAST / Runtime extensions
+# ---------------------------------------------------------------------------
+
+def _ag_add_endpoint_nodes(
+    self: "AttackGraphBuilder",
+    graph: "AttackGraph",
+    attack_surface_nodes: List[Dict[str, Any]],
+) -> List[str]:
+    """
+    Ingest AttackSurface endpoint nodes into an AttackGraph.
+
+    Each endpoint becomes a NodeType.ENDPOINT node.
+    High-risk / unauthenticated endpoints are also given a SOURCE→ENDPOINT
+    edge so they appear as attacker entry-points in path analysis.
+
+    Returns list of node_ids created.
+    """
+    created: List[str] = []
+    internet_src = "source:internet"
+
+    # Ensure the generic internet SOURCE exists
+    if not any(n.node_id == internet_src for n in graph.nodes):
+        graph.nodes.append(GraphNode(
+            node_id=internet_src,
+            type=NodeType.SOURCE,
+            label="Internet Attacker",
+            properties={"description": "External unauthenticated attacker"},
+        ))
+
+    for ep in attack_surface_nodes:
+        nid   = ep.get("id", f"ep:{ep.get('method','GET')}:{ep.get('path','/')}")
+        label = f"{ep.get('method','GET')} {ep.get('path','/')}"
+
+        graph.nodes.append(GraphNode(
+            node_id=nid,
+            type=NodeType.ENDPOINT,
+            label=label,
+            properties={
+                "url":           ep.get("url", ""),
+                "path":          ep.get("path", ""),
+                "method":        ep.get("method", "GET"),
+                "handler":       ep.get("handler", ""),
+                "source_file":   ep.get("source_file", ""),
+                "auth_required": ep.get("auth_required"),
+                "risk_level":    ep.get("risk_level", "UNKNOWN"),
+                "discovery":     ep.get("discovery", "static"),
+            },
+        ))
+        created.append(nid)
+
+        # Unauthenticated or high-risk endpoints are reachable from internet
+        risk      = ep.get("risk_level", "UNKNOWN")
+        auth_req  = ep.get("auth_required")
+        if auth_req is False or risk in ("CRITICAL", "HIGH"):
+            prob = 1.0 if auth_req is False else 0.7
+            graph.edges.append(GraphEdge(
+                from_id=internet_src,
+                to_id=nid,
+                label="exposed_by",
+                probability=prob,
+                risk_weight=1.0 if risk == "CRITICAL" else 0.7,
+            ))
+
+    return created
+
+
+def _ag_add_runtime_findings(
+    self: "AttackGraphBuilder",
+    graph: "AttackGraph",
+    correlated_findings: List[Dict[str, Any]],
+) -> List[str]:
+    """
+    Add CorrelatedFinding records from Phase 7 RuntimeCorrelator into the graph.
+
+    For each correlated finding:
+      ENDPOINT → [triggers] → RUNTIME_FINDING → [exposes] → ASSET
+      RUNTIME_FINDING → [verified_by] → RUNTIME_EVIDENCE (if runtime evidence present)
+      VULNERABILITY → [confirmed_by] → RUNTIME_FINDING (if static evidence present)
+
+    Returns list of RUNTIME_FINDING node_ids created.
+    """
+    created: List[str] = []
+
+    for cf in correlated_findings:
+        ep_url    = cf.get("endpoint", {}).get("url", "") or cf.get("endpoint_url", "")
+        ep_method = cf.get("endpoint", {}).get("method", "GET")
+        ep_path   = cf.get("endpoint", {}).get("path", ep_url)
+        ep_nid    = f"ep:{ep_method}:{ep_path}"
+
+        cwe    = cf.get("cwe", "")
+        sev    = cf.get("severity", "MEDIUM")
+        status = cf.get("verification_status", "detected")
+        conf   = cf.get("combined_confidence", 50)
+        corr_id = cf.get("correlation_id", "")
+
+        rf_nid = f"runtime_finding:{corr_id}"
+
+        graph.nodes.append(GraphNode(
+            node_id=rf_nid,
+            type=NodeType.RUNTIME_FINDING,
+            label=cf.get("title", "Runtime Finding")[:60],
+            properties={
+                "cwe":                 cwe,
+                "severity":            sev,
+                "verification_status": status,
+                "combined_confidence": conf,
+                "owasp":               cf.get("owasp_category", ""),
+                "risk_score":          cf.get("risk_score", 0.0),
+            },
+        ))
+        created.append(rf_nid)
+
+        # ENDPOINT → RUNTIME_FINDING edge
+        if ep_nid in {n.node_id for n in graph.nodes}:
+            graph.edges.append(GraphEdge(
+                from_id=ep_nid,
+                to_id=rf_nid,
+                label="triggers",
+                probability=conf / 100.0,
+                risk_weight=_SEVERITY_WEIGHTS.get(sev, 0.5),
+            ))
+
+        # RUNTIME_FINDING → ASSET edge
+        # Reuse existing _asset_for_finding logic by constructing a minimal Finding
+        try:
+            minimal = Finding(  # type: ignore[call-arg]
+                rule_id=corr_id, file="", line=0,
+                severity=sev, confidence=conf / 100.0, cwe_id=cwe,
+            )
+            asset_nid = _asset_for_finding(minimal)
+            if asset_nid:
+                if not any(n.node_id == asset_nid for n in graph.nodes):
+                    graph.nodes.append(GraphNode(
+                        node_id=asset_nid, type=NodeType.ASSET,
+                        label=asset_nid.split(":")[-1].replace("_", " ").title(),
+                        properties={},
+                    ))
+                graph.edges.append(GraphEdge(
+                    from_id=rf_nid, to_id=asset_nid,
+                    label="exposes",
+                    probability=conf / 100.0,
+                    impact_weight=_ASSET_IMPACT_SCORES.get(asset_nid, 0.5),
+                ))
+        except Exception:
+            pass
+
+        # RUNTIME_EVIDENCE node (optional)
+        re_info = cf.get("runtime_evidence", {})
+        if re_info and re_info.get("url"):
+            ev_nid = f"runtime_evidence:{corr_id}"
+            graph.nodes.append(GraphNode(
+                node_id=ev_nid,
+                type=NodeType.RUNTIME_EVIDENCE,
+                label=f"Evidence: {re_info.get('method','GET')} {re_info.get('url','')[:40]}",
+                properties={
+                    "url":       re_info.get("url", ""),
+                    "method":    re_info.get("method", "GET"),
+                    "evidence":  re_info.get("evidence", "")[:200],
+                    "confidence": re_info.get("confidence", 0),
+                },
+            ))
+            graph.edges.append(GraphEdge(
+                from_id=rf_nid,
+                to_id=ev_nid,
+                label="verified_by",
+                probability=1.0,
+            ))
+
+        # Static VULNERABILITY → RUNTIME_FINDING (confirmation edge)
+        se_info = cf.get("static_evidence", {})
+        if se_info and se_info.get("file"):
+            vuln_nid = (
+                f"vuln:{se_info.get('rule_id','')}:"
+                f"{se_info.get('file','')}:{se_info.get('line',0)}"
+            )
+            if any(n.node_id == vuln_nid for n in graph.nodes):
+                graph.edges.append(GraphEdge(
+                    from_id=vuln_nid,
+                    to_id=rf_nid,
+                    label="confirmed_by",
+                    probability=conf / 100.0,
+                ))
+
+    # Recompute risk score
+    graph.risk_score = self.compute_risk_score(graph)
+    return created
+
+
+def _ag_build_from_runtime_correlation(
+    self: "AttackGraphBuilder",
+    sast_findings: List[Any],
+    attack_surface_nodes: List[Dict[str, Any]],
+    correlated_findings: List[Dict[str, Any]],
+    entrypoints: Optional[List[Any]] = None,
+    cve_records: Optional[List[Any]] = None,
+) -> "AttackGraph":
+    """
+    Build a full AttackGraph integrating SAST + DAST sources.
+
+    1. Build base graph from SAST findings via build()
+    2. Inject endpoint nodes from attack surface
+    3. Inject correlated runtime findings
+    4. Recompute critical paths and risk score
+    """
+    graph = self.build(sast_findings, entrypoints or [], cve_records)
+    self.add_endpoint_nodes(graph, attack_surface_nodes)
+    self.add_runtime_findings(graph, correlated_findings)
+    graph.critical_paths = self.find_critical_paths(graph)
+    graph.risk_score      = self.compute_risk_score(graph)
+    return graph
+
+
+def _ag_find_exposed_endpoints(
+    self: "AttackGraphBuilder",
+    graph: "AttackGraph",
+) -> List[GraphNode]:
+    """Return all ENDPOINT nodes reachable from internet SOURCE."""
+    internet_src = "source:internet"
+    reachable: Set[str] = set()
+    queue = deque([internet_src])
+    while queue:
+        nid = queue.popleft()
+        for edge in graph.edges:
+            if edge.from_id == nid and edge.to_id not in reachable:
+                reachable.add(edge.to_id)
+                queue.append(edge.to_id)
+    return [n for n in graph.nodes
+            if n.node_id in reachable and n.type == NodeType.ENDPOINT]
+
+
+def _ag_find_verified_exploits(
+    self: "AttackGraphBuilder",
+    graph: "AttackGraph",
+) -> List[GraphNode]:
+    """Return RUNTIME_FINDING nodes with verification_status='verified'."""
+    return [n for n in graph.nodes
+            if n.type == NodeType.RUNTIME_FINDING
+            and n.properties.get("verification_status") == "verified"]
+
+
+AttackGraphBuilder.update_findings              = _ag_update_findings              # type: ignore[attr-defined]
+AttackGraphBuilder.recompute_affected_paths     = _ag_recompute_affected_paths     # type: ignore[attr-defined]
+AttackGraphBuilder.add_endpoint_nodes           = _ag_add_endpoint_nodes           # type: ignore[attr-defined]
+AttackGraphBuilder.add_runtime_findings         = _ag_add_runtime_findings         # type: ignore[attr-defined]
+AttackGraphBuilder.build_from_runtime_correlation = _ag_build_from_runtime_correlation  # type: ignore[attr-defined]
+AttackGraphBuilder.find_exposed_endpoints       = _ag_find_exposed_endpoints       # type: ignore[attr-defined]
+AttackGraphBuilder.find_verified_exploits       = _ag_find_verified_exploits       # type: ignore[attr-defined]

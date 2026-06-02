@@ -107,6 +107,9 @@ class KGNodeType(str, Enum):
     EXPLOIT = "exploit"
     REMEDIATION_PATTERN = "remediation_pattern"
     GENERATED_RULE = "generated_rule"
+    # --- Phase 7 additions (DAST) ---
+    RUNTIME_FINDING  = "runtime_finding"   # DAST-confirmed finding
+    RUNTIME_EVIDENCE = "runtime_evidence"  # Raw HTTP request/response evidence
 
 
 class KGNode(BaseModel):
@@ -1105,3 +1108,260 @@ KnowledgeGraphBuilder.build_delta      = _kg_build_delta      # type: ignore[att
 KnowledgeGraphBuilder.patch_node       = _kg_patch_node       # type: ignore[attr-defined]
 KnowledgeGraphBuilder.patch_edge       = _kg_patch_edge       # type: ignore[attr-defined]
 KnowledgeGraphBuilder.apply_file_delta = _kg_apply_file_delta # type: ignore[attr-defined]
+
+
+# ---------------------------------------------------------------------------
+# Phase 7 — DAST extensions: ingest runtime findings + DAST query methods
+# ---------------------------------------------------------------------------
+
+def _kg_ingest_runtime_findings(
+    self: "KnowledgeGraphBuilder",
+    graph: "SecurityKnowledgeGraph",
+    correlated_findings: List[Dict[str, Any]],
+) -> int:
+    """
+    Ingest Phase 7 CorrelatedFinding records into the knowledge graph.
+
+    For each record:
+      ENDPOINT node ←[EXPOSED_BY]→ RUNTIME_FINDING node
+      RUNTIME_FINDING ←[VERIFIED_BY]→ RUNTIME_EVIDENCE node
+      FINDING (SAST) ←[CONFIRMED_BY]→ RUNTIME_FINDING (if static_evidence present)
+
+    Returns count of new nodes added.
+    """
+    added = 0
+    for cf in correlated_findings:
+        corr_id  = cf.get("correlation_id", "")
+        ep_info  = cf.get("endpoint", {})
+        ep_path  = ep_info.get("path", "") or cf.get("endpoint_path", "")
+        ep_method = ep_info.get("method", "GET")
+        cwe      = cf.get("cwe", "")
+        sev      = cf.get("severity", "MEDIUM")
+        status   = cf.get("verification_status", "detected")
+        conf     = cf.get("combined_confidence", 50)
+
+        # ENDPOINT node
+        ep_nid = f"endpoint::{ep_method}::{ep_path}"
+        ep_node = KGNode(
+            node_id=ep_nid,
+            type=KGNodeType.ENDPOINT,
+            label=f"{ep_method} {ep_path}",
+            properties={
+                "url":     ep_info.get("url", ""),
+                "path":    ep_path,
+                "method":  ep_method,
+                "handler": ep_info.get("handler", "") or cf.get("handler", ""),
+            },
+        )
+        self.add_node(graph, ep_node)
+
+        # RUNTIME_FINDING node
+        rf_nid = f"runtime_finding::{corr_id}"
+        rf_node = KGNode(
+            node_id=rf_nid,
+            type=KGNodeType.RUNTIME_FINDING,
+            label=cf.get("title", "Runtime Finding")[:80],
+            properties={
+                "cwe":                 cwe,
+                "severity":            sev,
+                "verification_status": status,
+                "combined_confidence": conf,
+                "owasp_category":      cf.get("owasp_category", ""),
+                "risk_score":          cf.get("risk_score", 0.0),
+            },
+        )
+        self.add_node(graph, rf_node)
+        added += 1
+
+        # ENDPOINT → RUNTIME_FINDING: EXPOSED_BY relation
+        self.add_edge(graph, KGEdge(
+            from_id=ep_nid, to_id=rf_nid,
+            relation="EXPOSED_BY",
+            weight=conf / 100.0,
+        ))
+
+        # RUNTIME_EVIDENCE node
+        re_info = cf.get("runtime_evidence", {})
+        if re_info and re_info.get("url"):
+            re_nid = f"runtime_evidence::{corr_id}"
+            re_node = KGNode(
+                node_id=re_nid,
+                type=KGNodeType.RUNTIME_EVIDENCE,
+                label=f"{re_info.get('method','GET')} {re_info.get('url','')[:50]}",
+                properties={
+                    "url":       re_info.get("url", ""),
+                    "method":    re_info.get("method", "GET"),
+                    "evidence":  re_info.get("evidence", "")[:300],
+                    "confidence": re_info.get("confidence", 0),
+                    "source":    re_info.get("source_scanner", "dast"),
+                },
+            )
+            self.add_node(graph, re_node)
+            added += 1
+
+            # RUNTIME_FINDING → RUNTIME_EVIDENCE: VERIFIED_BY
+            self.add_edge(graph, KGEdge(
+                from_id=rf_nid, to_id=re_nid,
+                relation="VERIFIED_BY",
+                weight=1.0,
+            ))
+
+        # Connect to SAST FINDING if static evidence is present
+        se_info = cf.get("static_evidence", {})
+        if se_info and se_info.get("file"):
+            sast_finding_nid = (
+                f"finding::{se_info.get('rule_id','')}::"
+                f"{se_info.get('file','')}::{se_info.get('line',0)}"
+            )
+            if sast_finding_nid in graph.node_index:
+                self.add_edge(graph, KGEdge(
+                    from_id=sast_finding_nid,
+                    to_id=rf_nid,
+                    relation="CONFIRMED_BY",
+                    weight=conf / 100.0,
+                ))
+
+    return added
+
+
+def _kg_find_exposed_endpoints(
+    self: "KnowledgeGraphBuilder",
+    graph: "SecurityKnowledgeGraph",
+) -> List["KGNode"]:
+    """Return all ENDPOINT nodes in the graph."""
+    return [n for n in graph.nodes if n.type == KGNodeType.ENDPOINT]
+
+
+def _kg_find_runtime_findings(
+    self: "KnowledgeGraphBuilder",
+    graph: "SecurityKnowledgeGraph",
+    min_confidence: int = 0,
+) -> List["KGNode"]:
+    """Return RUNTIME_FINDING nodes, optionally filtered by min confidence."""
+    return [
+        n for n in graph.nodes
+        if n.type == KGNodeType.RUNTIME_FINDING
+        and n.properties.get("combined_confidence", 0) >= min_confidence
+    ]
+
+
+def _kg_find_verified_exploits(
+    self: "KnowledgeGraphBuilder",
+    graph: "SecurityKnowledgeGraph",
+) -> List["KGNode"]:
+    """Return RUNTIME_FINDING nodes with verification_status == 'verified'."""
+    return [
+        n for n in graph.nodes
+        if n.type == KGNodeType.RUNTIME_FINDING
+        and n.properties.get("verification_status") == "verified"
+    ]
+
+
+def _kg_find_reachable_endpoints(
+    self: "KnowledgeGraphBuilder",
+    graph: "SecurityKnowledgeGraph",
+) -> List["KGNode"]:
+    """Return ENDPOINT nodes that have at least one outgoing EXPOSED_BY edge."""
+    endpoints_with_findings: Set[str] = {
+        e.from_id for e in graph.edges if e.relation == "EXPOSED_BY"
+    }
+    return [n for n in graph.nodes
+            if n.type == KGNodeType.ENDPOINT
+            and n.node_id in endpoints_with_findings]
+
+
+def _kg_find_attack_surface(
+    self: "KnowledgeGraphBuilder",
+    graph: "SecurityKnowledgeGraph",
+) -> Dict[str, Any]:
+    """
+    Summarise the attack surface: total endpoints, findings per endpoint,
+    high-risk endpoints, and top 5 exploitable routes.
+    """
+    endpoints = _kg_find_exposed_endpoints(self, graph)
+    runtime_findings = _kg_find_runtime_findings(self, graph)
+
+    # Count findings per endpoint
+    ep_finding_count: Dict[str, int] = {}
+    for edge in graph.edges:
+        if edge.relation == "EXPOSED_BY":
+            ep_finding_count[edge.from_id] = ep_finding_count.get(edge.from_id, 0) + 1
+
+    high_risk = [
+        n for n in endpoints
+        if n.properties.get("risk_level") in ("CRITICAL", "HIGH")
+    ]
+
+    top_routes = sorted(
+        ep_finding_count.items(), key=lambda x: -x[1]
+    )[:5]
+
+    node_map = {n.node_id: n for n in graph.nodes}
+    return {
+        "total_endpoints":     len(endpoints),
+        "endpoints_with_findings": len(ep_finding_count),
+        "high_risk_endpoints": len(high_risk),
+        "runtime_findings":    len(runtime_findings),
+        "verified_exploits":   len(_kg_find_verified_exploits(self, graph)),
+        "top_exploitable_routes": [
+            {
+                "endpoint": nid,
+                "label":    node_map[nid].label if nid in node_map else nid,
+                "finding_count": cnt,
+            }
+            for nid, cnt in top_routes
+        ],
+    }
+
+
+def _kg_find_exploitable_routes(
+    self: "KnowledgeGraphBuilder",
+    graph: "SecurityKnowledgeGraph",
+    min_severity: str = "HIGH",
+) -> List[Dict[str, Any]]:
+    """
+    Return endpoint → runtime_finding paths where finding severity ≥ min_severity.
+    Each entry: {endpoint_node, finding_node, severity, verification_status}.
+    """
+    _rank = {"CRITICAL": 5, "HIGH": 4, "MEDIUM": 3, "LOW": 2, "INFO": 1}
+    min_rank = _rank.get(min_severity.upper(), 4)
+
+    results: List[Dict[str, Any]] = []
+    node_map = {n.node_id: n for n in graph.nodes}
+
+    for edge in graph.edges:
+        if edge.relation != "EXPOSED_BY":
+            continue
+        finding = node_map.get(edge.to_id)
+        endpoint = node_map.get(edge.from_id)
+        if not finding or not endpoint:
+            continue
+        if finding.type != KGNodeType.RUNTIME_FINDING:
+            continue
+        sev = finding.properties.get("severity", "INFO").upper()
+        if _rank.get(sev, 0) >= min_rank:
+            results.append({
+                "endpoint_id":    endpoint.node_id,
+                "endpoint_label": endpoint.label,
+                "finding_id":     finding.node_id,
+                "finding_label":  finding.label,
+                "severity":       sev,
+                "verification_status": finding.properties.get("verification_status", "detected"),
+                "cwe":            finding.properties.get("cwe", ""),
+                "risk_score":     finding.properties.get("risk_score", 0.0),
+            })
+
+    return sorted(results, key=lambda r: -r.get("risk_score", 0))
+
+
+KnowledgeGraphBuilder.build_delta             = _kg_build_delta             # type: ignore[attr-defined]
+KnowledgeGraphBuilder.patch_node              = _kg_patch_node              # type: ignore[attr-defined]
+KnowledgeGraphBuilder.patch_edge              = _kg_patch_edge              # type: ignore[attr-defined]
+KnowledgeGraphBuilder.apply_file_delta        = _kg_apply_file_delta        # type: ignore[attr-defined]
+KnowledgeGraphBuilder.ingest_runtime_findings = _kg_ingest_runtime_findings # type: ignore[attr-defined]
+KnowledgeGraphBuilder.find_exposed_endpoints  = _kg_find_exposed_endpoints  # type: ignore[attr-defined]
+KnowledgeGraphBuilder.find_runtime_findings   = _kg_find_runtime_findings   # type: ignore[attr-defined]
+KnowledgeGraphBuilder.find_verified_exploits  = _kg_find_verified_exploits  # type: ignore[attr-defined]
+KnowledgeGraphBuilder.find_reachable_endpoints = _kg_find_reachable_endpoints # type: ignore[attr-defined]
+KnowledgeGraphBuilder.find_attack_surface     = _kg_find_attack_surface     # type: ignore[attr-defined]
+KnowledgeGraphBuilder.find_exploitable_routes = _kg_find_exploitable_routes # type: ignore[attr-defined]

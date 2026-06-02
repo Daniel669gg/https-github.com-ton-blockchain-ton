@@ -86,6 +86,14 @@ class ScanOptions:
     enable_ast: bool = True
     enable_secrets: bool = True
     enable_owasp: bool = True
+    # Phase 7 — DAST options
+    enable_dast: bool = False              # master DAST switch
+    dast_target_url: str = ""             # live app URL for DAST
+    dast_zap_url: str = "http://localhost:8080"
+    dast_zap_api_key: str = ""
+    dast_openapi_spec: str = ""           # path to OpenAPI spec for API scan
+    dast_auth_token: str = ""             # Bearer token for authenticated DAST
+    dast_crawl_live: bool = False         # crawl live app for endpoint discovery
     max_findings: int = 500
     timeout_s: int = 120
     languages: List[str] = field(default_factory=list)   # empty = auto-detect
@@ -503,3 +511,185 @@ class UnifiedScanEngine:
         except Exception:
             pass
         return count
+
+    # -----------------------------------------------------------------------
+    # Phase 7 — DAST integration
+    # -----------------------------------------------------------------------
+
+    def run_dast(self, options: Optional["ScanOptions"] = None) -> List[dict]:
+        """
+        Run the full Phase 7 DAST pipeline against a live application.
+
+        Steps:
+          1. API security scan (no ZAP required)
+          2. Security headers analysis
+          3. OWASP ZAP scan (if ZAP available)
+          4. SAST↔DAST correlation
+
+        Returns a list of normalised finding dicts.
+        """
+        opts    = options or ScanOptions()
+        target  = opts.dast_target_url
+        if not target:
+            logger.warning("DAST scan requested but dast_target_url is not set")
+            return []
+
+        dast_raw: List[dict] = []
+
+        # 1. Security headers
+        try:
+            from scanners.dast.headers_analyzer import SecurityHeadersAnalyzer
+            analyzer = SecurityHeadersAnalyzer(timeout=10)
+            h_report = analyzer.analyze(target)
+            dast_raw += analyzer.to_normalized_findings(h_report)
+            logger.info("Headers analyzer: %d findings", len(h_report.findings))
+        except Exception as exc:
+            logger.debug("Headers analyzer error: %s", exc)
+
+        # 2. Live API scanner
+        try:
+            from scanners.dast.api_scanner import APIScanner, APIScanConfig
+            api_cfg = APIScanConfig(
+                base_url=target,
+                openapi_spec_path=opts.dast_openapi_spec,
+                auth_token=opts.dast_auth_token,
+                timeout=10,
+            )
+            api_result = APIScanner(api_cfg).scan()
+            from scanners.dast.api_scanner import APIScanner as _API
+            dast_raw += _API(api_cfg).to_normalized_findings(api_result)
+            logger.info("API scanner: %d findings", len(api_result.findings))
+        except Exception as exc:
+            logger.debug("API scanner error: %s", exc)
+
+        # 3. ZAP scan (optional — requires running ZAP daemon)
+        zap_available = False
+        try:
+            from scanners.dast.zap_integration import (
+                ZAPScanner, ZAPScanConfig, ScanType, ZAPAuthConfig,
+            )
+            zap_cfg = ZAPScanConfig(
+                target_url=target,
+                zap_api_url=opts.dast_zap_url,
+                api_key=opts.dast_zap_api_key,
+                scan_types=[ScanType.SPIDER, ScanType.PASSIVE, ScanType.ACTIVE],
+                openapi_url=(
+                    opts.dast_openapi_spec
+                    if opts.dast_openapi_spec.startswith("http") else ""
+                ),
+            )
+            zap_scanner = ZAPScanner(zap_cfg)
+            ok, _ = zap_scanner.check_zap_available()
+            if ok:
+                zap_result = zap_scanner.scan()
+                dast_raw  += zap_scanner.to_normalized_findings(zap_result)
+                zap_available = True
+                logger.info("ZAP scanner: %d findings", len(zap_result.findings))
+            else:
+                logger.info("ZAP not available — skipping ZAP scan")
+        except Exception as exc:
+            logger.debug("ZAP scanner error: %s", exc)
+
+        # 4. Return normalised findings (normalizer handles dedup)
+        normalizer = FindingNormalizer()
+        normalised = normalizer.normalize_batch(dast_raw, "dast")
+        return [self._normalised_to_dict(n) for n in normalised]
+
+    def scan_with_dast(self, target: str,
+                       dast_url: str,
+                       options: Optional["ScanOptions"] = None) -> "ScanResult":
+        """
+        Full scan: SAST on *target* directory + DAST against *dast_url*.
+
+        SAST and DAST findings are merged and correlated.
+        """
+        opts = options or ScanOptions(
+            enable_dast=True,
+            dast_target_url=dast_url,
+        )
+
+        # SAST phase
+        sast_result = self.scan(target)
+
+        # DAST phase
+        dast_findings = self.run_dast(opts)
+
+        # Correlation
+        correlated_findings: List[dict] = []
+        try:
+            from core.runtime_correlation import RuntimeCorrelator
+            from scanners.dast.attack_surface import AttackSurfaceMapper
+            mapper  = AttackSurfaceMapper(
+                base_url=dast_url,
+                project_root=target,
+                crawl_live=opts.dast_crawl_live,
+            )
+            surface = mapper.map()
+            ep_nodes = mapper.to_attack_graph_nodes(surface)
+
+            correlator = RuntimeCorrelator(
+                attack_surface_endpoints=ep_nodes,
+                sast_findings=sast_result.findings,
+                dast_findings=dast_findings,
+            )
+            corr_report  = correlator.correlate()
+            correlated_findings = [cf.to_dict()
+                                   for cf in corr_report.correlated_findings]
+        except Exception as exc:
+            logger.warning("Correlation error: %s", exc)
+
+        merged = sast_result.findings + dast_findings
+        normalizer = FindingNormalizer()
+        deduped    = normalizer.deduplicate(
+            [f if isinstance(f, NormalizedFinding)
+             else NormalizedFinding(**{k: v for k, v in f.items()
+                                       if k in NormalizedFinding.__dataclass_fields__})
+             for f in merged
+             if isinstance(f, (dict, NormalizedFinding))]
+        )
+        deduped_dicts = [self._normalised_to_dict(f)
+                         if isinstance(f, NormalizedFinding) else f
+                         for f in deduped]
+
+        counts: Dict[str, int] = {"CRITICAL": 0, "HIGH": 0, "MEDIUM": 0, "LOW": 0, "INFO": 0}
+        for f in deduped_dicts:
+            s = f.get("severity", "INFO")
+            counts[s] = counts.get(s, 0) + 1
+
+        raw_score = (counts["CRITICAL"] * 25 + counts["HIGH"] * 15 +
+                     counts["MEDIUM"] * 8 + counts["LOW"] * 3)
+        risk_score = min(100, raw_score * 100 // 500 if raw_score else 0)
+        risk_level = (
+            "CRITICAL" if risk_score >= 75 else
+            "HIGH" if risk_score >= 50 else
+            "MEDIUM" if risk_score >= 25 else "LOW"
+        )
+
+        return ScanResult(
+            target=target,
+            findings=deduped_dicts,
+            severity_counts=counts,
+            risk_score=risk_score,
+            risk_level=risk_level,
+            scan_duration_s=sast_result.scan_duration_s,
+            scanners_used=sast_result.scanners_used + (
+                ["dast", "api_scanner", "headers_analyzer"] +
+                (["zap"] if opts.dast_zap_url else [])
+            ),
+            scanner_errors=sast_result.scanner_errors,
+            timestamp=sast_result.timestamp,
+            total_files_scanned=sast_result.total_files_scanned,
+            total_dependencies_checked=sast_result.total_dependencies_checked,
+            options={
+                **sast_result.options,
+                "dast_enabled": True,
+                "dast_url": dast_url,
+                "correlated_findings": correlated_findings,
+            },
+        )
+
+    @staticmethod
+    def _normalised_to_dict(nf: "NormalizedFinding") -> dict:
+        if hasattr(nf, "__dict__"):
+            return {k: v for k, v in nf.__dict__.items()}
+        return {}  # pragma: no cover
