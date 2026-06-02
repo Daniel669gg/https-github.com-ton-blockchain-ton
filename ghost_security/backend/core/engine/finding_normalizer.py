@@ -165,6 +165,41 @@ class NormalizedFinding:
 
 
 # ---------------------------------------------------------------------------
+# Finding — lightweight taint/analysis finding model
+#
+# This is the canonical home for the ``Finding`` model that scanners such as
+# the JS CPG builder, the dependency-taint analyzer and the rule generator
+# emit.  It historically lived in the now-removed ``backend.core.confidence``
+# module; that module survives only as a compatibility re-export shim
+# (``backend/core/confidence.py``) that imports this class.
+#
+# It is a Pydantic model with ``extra="allow"`` so analyzers can attach
+# domain-specific metadata (package_name, cve_ids, …) without a schema change.
+# ---------------------------------------------------------------------------
+
+from pydantic import BaseModel, ConfigDict, Field  # noqa: E402
+
+
+class Finding(BaseModel):
+    """A single security finding produced by an analyzer/scanner."""
+
+    model_config = ConfigDict(extra="allow")
+
+    rule_id: str = ""
+    file: str = ""
+    line: int = 0
+    severity: str = "MEDIUM"
+    confidence: float = 0.8
+    cwe_id: str = ""
+    description: str = ""
+    recommendation: str = ""
+    sources: List[str] = Field(default_factory=list)
+    context_lines: List[str] = Field(default_factory=list)
+    is_test_file: bool = False
+    is_suppressed: bool = False
+
+
+# ---------------------------------------------------------------------------
 # FindingNormalizer
 # ---------------------------------------------------------------------------
 

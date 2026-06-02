@@ -601,3 +601,26 @@ class SSAForm:
             "total_phi_nodes": sum(len(p) for p in self.phi_nodes.values()),
             "ssa_version":     self.version,
         }
+
+
+# ---------------------------------------------------------------------------
+# SSAConverter — thin object-oriented facade over SSAForm.build / build_file
+# ---------------------------------------------------------------------------
+
+class SSAConverter:
+    """
+    Object-oriented entry point for SSA conversion.
+
+    The actual SSA construction lives in :class:`SSAForm` (class-method
+    constructors ``SSAForm.build`` / ``SSAForm.build_file``).  This converter
+    is a thin facade that delegates to those real implementations, matching
+    the ``SSAConverter().convert(cpg)`` calling convention.
+    """
+
+    def convert(self, cpg: "CodePropertyGraph") -> SSAForm:
+        """Build and return the SSA form for a CodePropertyGraph."""
+        return SSAForm.build(cpg)
+
+    def convert_file(self, filepath: str) -> SSAForm:
+        """Build and return the SSA form for a Python source file."""
+        return SSAForm.build_file(filepath)

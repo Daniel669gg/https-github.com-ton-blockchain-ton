@@ -26,7 +26,6 @@ from backend.scanners.supply_chain import (
     SupplyChainScanner as _BaseSupplyChainScanner,
     _parse_requirements_txt,
     _parse_package_json,
-    _package_imported,
 )
 
 # CPG integration
