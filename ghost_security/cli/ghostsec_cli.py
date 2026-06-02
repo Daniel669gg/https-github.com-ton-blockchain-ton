@@ -402,6 +402,20 @@ def cmd_scan(args: argparse.Namespace) -> int:
                 Path(out_path).write_text(result.to_json(), encoding="utf-8")
                 print(f"Report (JSON fallback) written to {out_path} ({exc})")
 
+    # Write machine-readable JSON summary (for CI/CD integrations)
+    summary_path: Optional[str] = getattr(args, "json_summary", None)
+    if summary_path:
+        summary = {
+            "total_findings":  result.total_findings,
+            "severity_counts": result.severity_counts,
+            "risk_score":      result.risk_score,
+            "risk_level":      result.risk_level,
+            "scan_duration_s": result.scan_duration_s,
+            "scanners_used":   list(result.scanners_used),
+            "target":          str(result.target),
+        }
+        Path(summary_path).write_text(json.dumps(summary, indent=2), encoding="utf-8")
+
     # Return exit code based on critical findings
     return 0 if not result.critical_findings() else 2
 
@@ -412,7 +426,7 @@ def cmd_scan(args: argparse.Namespace) -> int:
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="ghostsec",
+        prog="tythanai",
         description=f"{_PRODUCT} v{_VERSION} — AI-powered security scanner",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -457,6 +471,11 @@ def _build_parser() -> argparse.ArgumentParser:
         default=120,
         metavar="SECONDS",
         help="Per-scanner timeout in seconds (default: 120)",
+    )
+    scan_p.add_argument(
+        "--json-summary",
+        metavar="FILE",
+        help="Write machine-readable JSON summary to FILE (used by CI/CD integrations)",
     )
 
     # ── version ───────────────────────────────────────────────────────────────

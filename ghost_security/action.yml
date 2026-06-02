@@ -1,0 +1,138 @@
+name: "TythanAI Security Scan"
+description: "AI-powered SAST · SCA · Secrets · EPSS scanner. Finds what Semgrep misses."
+author: "TythanAI"
+
+branding:
+  icon: "shield"
+  color: "purple"
+
+inputs:
+  target:
+    description: "Path to scan (relative to repo root)"
+    required: false
+    default: "."
+  format:
+    description: "Output format: text | json | sarif"
+    required: false
+    default: "sarif"
+  severity:
+    description: "Minimum severity to report: CRITICAL | HIGH | MEDIUM | LOW"
+    required: false
+    default: "MEDIUM"
+  fail_on:
+    description: "Exit code 2 (fail) when findings reach this severity: CRITICAL | HIGH | MEDIUM | none"
+    required: false
+    default: "HIGH"
+  enable_osv:
+    description: "Enable OSV dependency scanning"
+    required: false
+    default: "true"
+  enable_epss:
+    description: "Enable EPSS exploit-probability enrichment"
+    required: false
+    default: "true"
+  upload_sarif:
+    description: "Upload SARIF to GitHub Code Scanning"
+    required: false
+    default: "true"
+  max_findings:
+    description: "Cap on returned findings"
+    required: false
+    default: "500"
+  timeout:
+    description: "Per-scanner timeout in seconds"
+    required: false
+    default: "120"
+
+outputs:
+  findings_count:
+    description: "Total findings count"
+  critical_count:
+    description: "CRITICAL findings count"
+  high_count:
+    description: "HIGH findings count"
+  risk_score:
+    description: "Composite risk score 0–100"
+  sarif_path:
+    description: "Path to SARIF file (when format=sarif)"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install TythanAI
+      shell: bash
+      run: |
+        pip install --quiet --upgrade pip
+        pip install --quiet tythanai semgrep bandit
+        pip install --quiet -r "${{ github.action_path }}/requirements.txt" 2>/dev/null || true
+
+    - name: Run TythanAI scan
+      id: scan
+      shell: bash
+      run: |
+        set +e
+        SARIF_FILE="${{ runner.temp }}/tythanai-scan.sarif"
+        SUMMARY_FILE="${{ runner.temp }}/tythanai-summary.json"
+
+        EXTRA_FLAGS=""
+        [ "${{ inputs.enable_osv }}"  = "false" ] && EXTRA_FLAGS="$EXTRA_FLAGS --no-osv"
+        [ "${{ inputs.enable_epss }}" = "false" ] && EXTRA_FLAGS="$EXTRA_FLAGS --no-epss"
+
+        python -m cli.tythanai_cli scan "${{ inputs.target }}" \
+          --format "${{ inputs.format }}" \
+          --severity "${{ inputs.severity }}" \
+          --output "$SARIF_FILE" \
+          --max-findings "${{ inputs.max_findings }}" \
+          --timeout "${{ inputs.timeout }}" \
+          --json-summary "$SUMMARY_FILE" \
+          $EXTRA_FLAGS
+        SCAN_EXIT=$?
+
+        # Parse summary
+        if [ -f "$SUMMARY_FILE" ]; then
+          TOTAL=$(python3 -c "import json,sys; d=json.load(open('$SUMMARY_FILE')); print(d['total_findings'])" 2>/dev/null || echo 0)
+          CRIT=$(python3  -c "import json,sys; d=json.load(open('$SUMMARY_FILE')); print(d['severity_counts'].get('CRITICAL',0))" 2>/dev/null || echo 0)
+          HIGH=$(python3  -c "import json,sys; d=json.load(open('$SUMMARY_FILE')); print(d['severity_counts'].get('HIGH',0))" 2>/dev/null || echo 0)
+          RISK=$(python3  -c "import json,sys; d=json.load(open('$SUMMARY_FILE')); print(d['risk_score'])" 2>/dev/null || echo 0)
+        else
+          TOTAL=0; CRIT=0; HIGH=0; RISK=0
+        fi
+
+        echo "findings_count=$TOTAL"  >> "$GITHUB_OUTPUT"
+        echo "critical_count=$CRIT"   >> "$GITHUB_OUTPUT"
+        echo "high_count=$HIGH"       >> "$GITHUB_OUTPUT"
+        echo "risk_score=$RISK"       >> "$GITHUB_OUTPUT"
+        echo "sarif_path=$SARIF_FILE" >> "$GITHUB_OUTPUT"
+
+        # Step summary
+        cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+        ## TythanAI Scan Results
+
+        | Severity | Count |
+        |----------|-------|
+        | 🔴 CRITICAL | $CRIT |
+        | 🟠 HIGH | $HIGH |
+        | Total | $TOTAL |
+
+        **Risk score:** $RISK / 100
+        EOF
+
+        # Honour fail_on setting
+        FAIL_ON="${{ inputs.fail_on }}"
+        if [ "$FAIL_ON" = "CRITICAL" ] && [ "$CRIT" -gt 0 ]; then exit 2; fi
+        if [ "$FAIL_ON" = "HIGH" ] && ([ "$CRIT" -gt 0 ] || [ "$HIGH" -gt 0 ]); then exit 2; fi
+        if [ "$FAIL_ON" = "MEDIUM" ] && [ "$TOTAL" -gt 0 ]; then exit 2; fi
+        exit 0
+
+    - name: Upload SARIF to GitHub Code Scanning
+      if: inputs.upload_sarif == 'true' && inputs.format == 'sarif'
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ steps.scan.outputs.sarif_path }}
+        category: tythanai
+      continue-on-error: true
