@@ -1961,3 +1961,309 @@ AttackGraphBuilder.build_from_ton_findings      = _ag_build_from_ton_findings   
 AttackGraphBuilder.find_ownership_takeover_paths = _ag_find_ownership_takeover_paths  # type: ignore[attr-defined]
 AttackGraphBuilder.find_fund_loss_paths         = _ag_find_fund_loss_paths         # type: ignore[attr-defined]
 AttackGraphBuilder.find_jetton_abuse_paths      = _ag_find_jetton_abuse_paths      # type: ignore[attr-defined]
+
+
+# ===========================================================================
+# Phase 9 — Cloud Security Attack Graph (appended, no duplicate engines)
+# ===========================================================================
+
+# ── Extend NodeType with cloud entities ─────────────────────────────────────
+
+def _extend_ag_node_types() -> None:
+    try:
+        from aenum import extend_enum  # type: ignore
+        _cloud_nodes = {
+            "CLOUD_ACCOUNT":  "cloud_account",
+            "IAM_IDENTITY":   "iam_identity",
+            "IAM_ROLE":       "iam_role",
+            "CLOUD_RESOURCE": "cloud_resource",
+            "CLUSTER":        "cluster",
+            "K8S_NAMESPACE":  "k8s_namespace",
+            "K8S_POD":        "k8s_pod",
+            "CONTAINER":      "container",
+            "BUSINESS_ASSET": "business_asset",
+        }
+        for name, value in _cloud_nodes.items():
+            if name not in NodeType.__members__:
+                extend_enum(NodeType, name, value)
+    except ImportError:
+        pass
+
+
+_extend_ag_node_types()
+
+# ── Cloud node addition ──────────────────────────────────────────────────────
+
+_SEV_RANK_P9 = {"CRITICAL": 4, "HIGH": 3, "MEDIUM": 2, "LOW": 1, "INFO": 0}
+
+
+def _ag_add_cloud_nodes(
+    self: "AttackGraphBuilder",
+    graph: "AttackGraph",
+    cloud_findings: List[Dict[str, Any]],
+    iam_findings: Optional[List[Dict[str, Any]]] = None,
+    k8s_findings: Optional[List[Dict[str, Any]]] = None,
+    container_findings: Optional[List[Dict[str, Any]]] = None,
+) -> int:
+    """
+    Add cloud-layer nodes (CLOUD_RESOURCE, IAM_IDENTITY, CLUSTER, CONTAINER, K8S_POD)
+    to the AttackGraph from cloud/IAM/K8s/container findings.
+
+    Adds directed edges:
+      SOURCE → VULNERABILITY (for each critical cloud finding)
+      VULNERABILITY → ASSET (cloud resource is the targeted asset)
+      IAM_IDENTITY → CLOUD_RESOURCE (ACCESSES edge)
+      CONTAINER → K8S_POD (RUNS_ON edge)
+
+    Returns count of nodes added.
+    """
+    added = 0
+
+    def _add(nid: str, ntype_str: str, label: str, sev: str, **props) -> None:
+        nonlocal added
+        existing_ids = {n.node_id for n in graph.nodes}
+        if nid in existing_ids:
+            return
+        try:
+            nt = NodeType(ntype_str)
+        except ValueError:
+            nt = NodeType.ASSET
+        graph.nodes.append(GraphNode(
+            node_id=nid, type=nt, label=label,
+            properties={"severity": sev, **props},
+        ))
+        added += 1
+
+    def _edge(fid: str, tid: str, label: str, prob: float = 0.8) -> None:
+        existing = {(e.from_id, e.to_id) for e in graph.edges}
+        if (fid, tid) not in existing:
+            graph.edges.append(GraphEdge(
+                from_id=fid, to_id=tid, label=label, probability=prob,
+                risk_weight=prob,
+            ))
+
+    # Cloud misconfiguration findings
+    for f in cloud_findings:
+        sev       = f.get("severity", "INFO").upper()
+        res_type  = f.get("resource_type", "cloud_resource")
+        res_name  = f.get("resource_name", f.get("resource", "resource"))
+        rule_id   = f.get("rule_id", "CLOUD-UNKNOWN")
+        desc      = f.get("description", "")
+        public    = f.get("public_access", False)
+
+        vuln_id = f"cloud:vuln:{rule_id}:{res_name[:20]}"
+        asset_id = f"cloud:resource:{res_type}:{res_name[:20]}"
+
+        _add(vuln_id, "vuln", f"{rule_id}: {desc[:50]}", sev,
+             category="cloud_misconfiguration", description=desc)
+        _add(asset_id, "cloud_resource", res_name or res_type, sev,
+             resource_type=res_type, public_access=public)
+
+        # SOURCE (attacker) → VULNERABILITY → ASSET
+        src_id = "attacker:internet" if public else "attacker:internal"
+        _add(src_id, "source", "Attacker (Internet)" if public else "Attacker (Internal)", "INFO")
+        _edge(src_id, vuln_id, "exploits", 0.9 if sev == "CRITICAL" else 0.6)
+        _edge(vuln_id, asset_id, "leads_to", 0.85)
+
+    # IAM findings
+    for f in (iam_findings or []):
+        principal  = f.get("principal", f.get("resource", "unknown_identity"))
+        permission = f.get("permission", "")
+        sev        = f.get("severity", "MEDIUM").upper()
+        category   = f.get("category", "")
+
+        iam_id = f"iam:identity:{principal[:30]}"
+        _add(iam_id, "iam_identity", principal, sev,
+             permission=permission, category=category)
+
+        if "WILDCARD" in category or "*" in permission:
+            # WILDCARD IAM → escalate to CLOUD_RESOURCE (generic target)
+            target_id = "cloud:resource:all_resources"
+            _add(target_id, "cloud_resource", "All Cloud Resources (*)", "CRITICAL")
+            _edge(iam_id, target_id, "accesses", 1.0)
+
+            # Privilege escalation: iam_identity → escalates_to → higher role
+            if "iam:PassRole" in permission or "iam:*" in permission:
+                priv_id = f"iam:escalated:{principal[:20]}"
+                _add(priv_id, "iam_role", f"Escalated: {principal}", "CRITICAL",
+                     escalation_type="privilege_escalation")
+                _edge(iam_id, priv_id, "escalates_to", 1.0)
+                _edge(priv_id, target_id, "accesses", 1.0)
+
+    # K8s findings
+    for f in (k8s_findings or []):
+        pod_name   = f.get("resource_name", f.get("resource", "unknown_pod"))
+        namespace  = f.get("namespace", "default")
+        sev        = f.get("severity", "MEDIUM").upper()
+        rule_id    = f.get("rule_id", "K8S-UNKNOWN")
+
+        pod_id = f"k8s:pod:{namespace}:{pod_name[:20]}"
+        ns_id  = f"k8s:namespace:{namespace}"
+        _add(ns_id, "k8s_namespace", namespace, "INFO")
+        _add(pod_id, "k8s_pod", pod_name, sev,
+             namespace=namespace, rule_id=rule_id)
+        _edge(ns_id, pod_id, "controls", 0.9)
+
+        if sev in ("CRITICAL", "HIGH"):
+            vuln_id = f"k8s:vuln:{rule_id}:{pod_name[:15]}"
+            _add(vuln_id, "vuln", f"{rule_id} in {pod_name}", sev)
+            _edge(vuln_id, pod_id, "affects", 0.8)
+            src_id = "attacker:internal"
+            _add(src_id, "source", "Attacker (Internal)", "INFO")
+            _edge(src_id, vuln_id, "exploits", 0.7)
+
+    # Container findings
+    for f in (container_findings or []):
+        image  = f.get("image", f.get("resource", "unknown_image"))
+        sev    = f.get("severity", "MEDIUM").upper()
+        vuln_id_c = f.get("vulnerability_id", f.get("cve_id", ""))
+        desc   = f.get("description", "")
+
+        ctr_id  = f"container:image:{image[:30]}"
+        _add(ctr_id, "container", image, sev,
+             vulnerability_id=vuln_id_c, description=desc[:80])
+
+        if sev in ("CRITICAL", "HIGH"):
+            v_id = f"container:vuln:{vuln_id_c or image[:15]}"
+            _add(v_id, "vuln", vuln_id_c or desc[:50], sev)
+            _edge(v_id, ctr_id, "affects", 0.85)
+
+    return added
+
+
+def _ag_build_from_cloud_findings(
+    self: "AttackGraphBuilder",
+    cloud_findings: List[Dict[str, Any]],
+    iam_findings: Optional[List[Dict[str, Any]]] = None,
+    k8s_findings: Optional[List[Dict[str, Any]]] = None,
+    container_findings: Optional[List[Dict[str, Any]]] = None,
+) -> "AttackGraph":
+    """Build a complete AttackGraph from cloud-layer findings."""
+    graph = AttackGraph()
+    _ag_add_cloud_nodes(self, graph, cloud_findings, iam_findings, k8s_findings, container_findings)
+    graph.critical_paths = self.find_critical_paths(graph)
+    graph.risk_score = self.compute_risk_score(graph)
+    return graph
+
+
+def _ag_find_cloud_attack_paths(
+    self: "AttackGraphBuilder",
+    graph: "AttackGraph",
+) -> List[List[str]]:
+    """Return critical paths that include CLOUD_RESOURCE or IAM_IDENTITY nodes."""
+    cloud_types = {"cloud_resource", "iam_identity", "iam_role", "cloud_account",
+                   "cluster", "k8s_pod", "k8s_namespace", "container", "business_asset"}
+    cloud_node_ids = {
+        n.node_id for n in graph.nodes
+        if (n.type.value if hasattr(n.type, "value") else str(n.type)) in cloud_types
+    }
+    return [
+        path for path in graph.critical_paths
+        if any(nid in cloud_node_ids for nid in path)
+    ]
+
+
+def _ag_find_exposed_resources(
+    self: "AttackGraphBuilder",
+    graph: "AttackGraph",
+) -> List[Dict[str, Any]]:
+    """Return CLOUD_RESOURCE nodes marked as public_access=True."""
+    results = []
+    for node in graph.nodes:
+        if node.properties.get("public_access"):
+            results.append({
+                "node_id": node.node_id,
+                "label":   node.label,
+                "severity": node.properties.get("severity", "HIGH"),
+                "resource_type": node.properties.get("resource_type", "cloud_resource"),
+            })
+    return results
+
+
+def _ag_find_cloud_privilege_escalation(
+    self: "AttackGraphBuilder",
+    graph: "AttackGraph",
+) -> List[List[str]]:
+    """Return paths containing escalates_to edges (privilege escalation chains)."""
+    escalation_edges = {(e.from_id, e.to_id) for e in graph.edges if e.label == "escalates_to"}
+    result_paths = []
+    for path in graph.critical_paths:
+        for i in range(len(path) - 1):
+            if (path[i], path[i + 1]) in escalation_edges:
+                result_paths.append(path)
+                break
+    return result_paths
+
+
+def _ag_find_container_risks_cloud(
+    self: "AttackGraphBuilder",
+    graph: "AttackGraph",
+) -> List[Dict[str, Any]]:
+    """Return CONTAINER nodes with CRITICAL/HIGH severity."""
+    results = []
+    for node in graph.nodes:
+        ntype_val = node.type.value if hasattr(node.type, "value") else str(node.type)
+        sev = node.properties.get("severity", "INFO")
+        if ntype_val == "container" and sev in ("CRITICAL", "HIGH"):
+            results.append({
+                "node_id": node.node_id,
+                "label":   node.label,
+                "severity": sev,
+                "vulnerability_id": node.properties.get("vulnerability_id", ""),
+            })
+    return results
+
+
+def _ag_find_kubernetes_risks(
+    self: "AttackGraphBuilder",
+    graph: "AttackGraph",
+) -> List[Dict[str, Any]]:
+    """Return K8S_POD/CLUSTER nodes with CRITICAL/HIGH severity."""
+    results = []
+    for node in graph.nodes:
+        ntype_val = node.type.value if hasattr(node.type, "value") else str(node.type)
+        sev = node.properties.get("severity", "INFO")
+        # Match by enum type value OR by node_id prefix (fallback when aenum not available)
+        is_k8s = (ntype_val in ("k8s_pod", "cluster", "k8s_namespace")
+                  or node.node_id.startswith("k8s:"))
+        if is_k8s and sev in ("CRITICAL", "HIGH"):
+            results.append({
+                "node_id": node.node_id,
+                "label":   node.label,
+                "severity": sev,
+                "namespace": node.properties.get("namespace", ""),
+            })
+    return results
+
+
+def _ag_find_business_critical_findings(
+    self: "AttackGraphBuilder",
+    graph: "AttackGraph",
+) -> List[Dict[str, Any]]:
+    """Return BUSINESS_ASSET nodes and CRITICAL paths reaching them."""
+    business_ids = {
+        n.node_id for n in graph.nodes
+        if (n.type.value if hasattr(n.type, "value") else str(n.type)) == "business_asset"
+    }
+    results = []
+    for path in graph.critical_paths:
+        for nid in path:
+            if nid in business_ids:
+                results.append({
+                    "path":     path,
+                    "asset_id": nid,
+                    "severity": "CRITICAL",
+                })
+                break
+    return results
+
+
+# Register Phase 9 methods on AttackGraphBuilder
+AttackGraphBuilder.add_cloud_nodes             = _ag_add_cloud_nodes             # type: ignore[attr-defined]
+AttackGraphBuilder.build_from_cloud_findings   = _ag_build_from_cloud_findings   # type: ignore[attr-defined]
+AttackGraphBuilder.find_cloud_attack_paths     = _ag_find_cloud_attack_paths     # type: ignore[attr-defined]
+AttackGraphBuilder.find_exposed_resources      = _ag_find_exposed_resources      # type: ignore[attr-defined]
+AttackGraphBuilder.find_cloud_privilege_escalation = _ag_find_cloud_privilege_escalation  # type: ignore[attr-defined]
+AttackGraphBuilder.find_container_risks_cloud  = _ag_find_container_risks_cloud  # type: ignore[attr-defined]
+AttackGraphBuilder.find_kubernetes_risks       = _ag_find_kubernetes_risks       # type: ignore[attr-defined]
+AttackGraphBuilder.find_business_critical_findings = _ag_find_business_critical_findings  # type: ignore[attr-defined]

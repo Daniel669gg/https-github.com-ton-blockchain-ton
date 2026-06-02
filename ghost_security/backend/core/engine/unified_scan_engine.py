@@ -924,3 +924,261 @@ def _discover_ton_contracts(project_dir: str) -> List[str]:
 
 # Register scan_ton_elite on UnifiedScanEngine
 UnifiedScanEngine.scan_ton_elite = _use_scan_ton_elite  # type: ignore[attr-defined]
+
+
+# ===========================================================================
+# Phase 9 — scan_cloud_elite (appended, no duplicate engines)
+# ===========================================================================
+
+def _use_scan_cloud_elite(
+    self: "UnifiedScanEngine",
+    paths: List[str],
+    options: Optional["ScanOptions"] = None,
+) -> Dict[str, Any]:
+    """
+    Cloud Security Elite scan: IaC files + IAM policies + K8s manifests + Dockerfiles.
+
+    Uses existing real scanners:
+      - IAMScanner         (backend/scanners/iam_scanner.py)
+      - IaCScanner         (scanners/iac_scanner.py)
+      - IaCExtendedScanner (scanners/iac_extended.py)
+      - ManifestScanner    (scanners/k8s_scanner/k8s_scanner.py)
+      - ContainerScanner   (scanners/container_scanner.py)
+
+    Returns aggregated dict with:
+      findings, severity_counts, risk_score, iam_report, cloud_report,
+      k8s_report, container_report, security_graph_stats,
+      enterprise_risk_score, attack_graph_stats, scan_duration_s
+    """
+    import time
+    t_start = time.time()
+
+    if options is None:
+        options = ScanOptions()
+
+    all_findings: List[dict] = []
+    scanner_errors: List[str] = []
+    iam_findings_raw: List[dict] = []
+    cloud_findings_raw: List[dict] = []
+    k8s_findings_raw: List[dict] = []
+    container_findings_raw: List[dict] = []
+
+    if not paths:
+        return {
+            "status": "no_files",
+            "findings": [],
+            "severity_counts": {"CRITICAL": 0, "HIGH": 0, "MEDIUM": 0, "LOW": 0, "INFO": 0},
+            "risk_score": 0,
+            "scanner_errors": [],
+            "scan_duration_s": 0.0,
+            "iam_report": None,
+            "cloud_report": None,
+            "k8s_report": None,
+            "container_report": None,
+            "security_graph_stats": None,
+            "enterprise_risk_score": None,
+            "attack_graph_stats": None,
+        }
+
+    # ── IAM Scanner ──────────────────────────────────────────────────────────
+    try:
+        from backend.scanners.iam_scanner import IAMScanner
+        iam_scanner = IAMScanner()
+        for path in paths:
+            import os
+            if os.path.isdir(path):
+                for f in iam_scanner.scan_directory(path):
+                    d = f.model_dump() if hasattr(f, "model_dump") else dict(f)
+                    iam_findings_raw.append(d)
+                    all_findings.append({**d, "source": "iam_scanner"})
+            elif os.path.isfile(path):
+                for f in iam_scanner.scan_file(path):
+                    d = f.model_dump() if hasattr(f, "model_dump") else dict(f)
+                    iam_findings_raw.append(d)
+                    all_findings.append({**d, "source": "iam_scanner"})
+    except Exception as e:
+        scanner_errors.append(f"iam_scanner: {e}")
+
+    # ── IaC Scanner (Terraform / Dockerfile / Docker Compose) ────────────────
+    try:
+        from scanners.iac_scanner import IaCScanner
+        iac_scanner = IaCScanner()
+        for path in paths:
+            if os.path.isdir(path):
+                result = iac_scanner.scan_directory(path)
+                for f in result.get("findings", []):
+                    cloud_findings_raw.append(f)
+                    all_findings.append({**f, "source": "iac_scanner"})
+            elif os.path.isfile(path):
+                for f in iac_scanner.scan_file(path):
+                    d = f if isinstance(f, dict) else (f.model_dump() if hasattr(f, "model_dump") else dict(f))
+                    cloud_findings_raw.append(d)
+                    all_findings.append({**d, "source": "iac_scanner"})
+    except Exception as e:
+        scanner_errors.append(f"iac_scanner: {e}")
+
+    # ── IaC Extended (CloudFormation / Helm / Ansible) ───────────────────────
+    try:
+        from scanners.iac_extended import IaCExtendedScanner
+        iac_ext = IaCExtendedScanner()
+        for path in paths:
+            if os.path.isdir(path):
+                result = iac_ext.scan_directory(path)
+                for f in result.get("findings", []):
+                    cloud_findings_raw.append(f)
+                    all_findings.append({**f, "source": "iac_extended"})
+    except Exception as e:
+        scanner_errors.append(f"iac_extended: {e}")
+
+    # ── K8s Manifest Scanner ─────────────────────────────────────────────────
+    try:
+        from scanners.k8s_scanner.k8s_scanner import ManifestScanner
+        k8s_scanner = ManifestScanner()
+        for path in paths:
+            if os.path.isdir(path):
+                for f in k8s_scanner.scan_directory(path):
+                    d = f.to_dict() if hasattr(f, "to_dict") else dict(f)
+                    k8s_findings_raw.append(d)
+                    all_findings.append({**d, "source": "k8s_scanner"})
+    except Exception as e:
+        scanner_errors.append(f"k8s_scanner: {e}")
+
+    # ── Container / Dockerfile Scanner ───────────────────────────────────────
+    try:
+        from scanners.container_scanner import ContainerScanner
+        ctr_scanner = ContainerScanner()
+        for path in paths:
+            if os.path.isdir(path):
+                result = ctr_scanner.scan_directory(path)
+                for f in result.get("findings", result.get("dockerfile_findings", [])):
+                    container_findings_raw.append(f)
+                    all_findings.append({**f, "source": "container_scanner"})
+            elif os.path.isfile(path) and os.path.basename(path).startswith("Dockerfile"):
+                for f in ctr_scanner.scan_dockerfile(path):
+                    container_findings_raw.append(f)
+                    all_findings.append({**f, "source": "container_scanner"})
+    except Exception as e:
+        scanner_errors.append(f"container_scanner: {e}")
+
+    # ── Security Graph (Unified) ─────────────────────────────────────────────
+    security_graph_stats = None
+    attack_graph_stats = None
+    try:
+        from backend.cloud_security.security_graph import UnifiedSecurityGraph
+        sg = UnifiedSecurityGraph()
+        sg.ingest_sast_findings([f for f in all_findings if f.get("source") not in
+                                  ("iam_scanner", "k8s_scanner", "container_scanner", "iac_scanner", "iac_extended")])
+        sg.ingest_cloud_misconfigs(cloud_findings_raw)
+        sg.ingest_k8s_findings(k8s_findings_raw)
+        sg.ingest_container_findings(container_findings_raw)
+        security_graph_stats = {
+            "nodes": sg.node_count,
+            "edges": sg.edge_count,
+            "exposed_resources": len(sg.find_exposed_resources()),
+            "privilege_escalation_paths": len(sg.find_privilege_escalation_paths()),
+            "cloud_attack_paths": len(sg.find_cloud_attack_paths()),
+        }
+    except Exception as e:
+        scanner_errors.append(f"security_graph: {e}")
+
+    # ── IAM Graph ────────────────────────────────────────────────────────────
+    iam_graph_stats = None
+    try:
+        from backend.cloud_security.iam_graph import IAMGraph
+        iam_g = IAMGraph()
+        for f in iam_findings_raw:
+            # Convert IAMFinding dict to IAMFinding-like object for ingest
+            class _F:
+                pass
+            obj = _F()
+            for k, v in f.items():
+                setattr(obj, k, v)
+            obj.principal  = f.get("principal", "")
+            obj.permission = f.get("permission", "")
+            obj.category   = f.get("category", "")
+            obj.resource_type = f.get("resource_type", "")
+            obj.severity   = f.get("severity", "INFO")
+        iam_g.ingest_findings([type("IAMFinding", (), f)() for f in iam_findings_raw])  # type: ignore
+        iam_graph_stats = {
+            "nodes": iam_g.node_count,
+            "edges": iam_g.edge_count,
+            "privilege_escalation_paths": len(iam_g.find_privilege_escalation_paths()),
+            "overprivileged_identities": len(iam_g.find_overprivileged_identities()),
+        }
+    except Exception as e:
+        scanner_errors.append(f"iam_graph: {e}")
+
+    # ── Enterprise Risk Score ────────────────────────────────────────────────
+    enterprise_risk = None
+    try:
+        from backend.cloud_security.enterprise_risk import EnterpriseRiskScorer
+        scorer = EnterpriseRiskScorer()
+        report = scorer.score(
+            cloud_findings=cloud_findings_raw,
+            iam_findings=iam_findings_raw,
+            k8s_findings=k8s_findings_raw,
+            container_findings=container_findings_raw,
+        )
+        enterprise_risk = report.to_dict()
+    except Exception as e:
+        scanner_errors.append(f"enterprise_risk: {e}")
+
+    # ── Attack Graph ─────────────────────────────────────────────────────────
+    try:
+        from backend.analysis.attack_graph import AttackGraphBuilder, AttackGraph
+        agb = AttackGraphBuilder()
+        ag = agb.build_from_cloud_findings(  # type: ignore[attr-defined]
+            cloud_findings=cloud_findings_raw,
+            iam_findings=iam_findings_raw,
+            k8s_findings=k8s_findings_raw,
+            container_findings=container_findings_raw,
+        )
+        attack_graph_stats = {
+            "nodes":          len(ag.nodes),
+            "edges":          len(ag.edges),
+            "risk_score":     ag.risk_score,
+            "critical_paths": len(ag.critical_paths),
+        }
+    except Exception as e:
+        scanner_errors.append(f"attack_graph: {e}")
+
+    # ── Severity counts ───────────────────────────────────────────────────────
+    counts: Dict[str, int] = {"CRITICAL": 0, "HIGH": 0, "MEDIUM": 0, "LOW": 0, "INFO": 0}
+    for f in all_findings:
+        s = (f.get("severity") or "INFO").upper()
+        counts[s] = counts.get(s, 0) + 1
+
+    raw_risk = counts["CRITICAL"] * 25 + counts["HIGH"] * 15 + counts["MEDIUM"] * 8 + counts["LOW"] * 3
+    risk_score = min(100, raw_risk * 100 // 500 if raw_risk else 0)
+    duration = round(time.time() - t_start, 3)
+
+    return {
+        "status":               "ok",
+        "paths_scanned":        len(paths),
+        "findings":             all_findings,
+        "severity_counts":      counts,
+        "risk_score":           risk_score,
+        "scanner_errors":       scanner_errors,
+        "scan_duration_s":      duration,
+        "iam_report":           {"findings": len(iam_findings_raw),
+                                  "graph": iam_graph_stats},
+        "cloud_report":         {"findings": len(cloud_findings_raw)},
+        "k8s_report":           {"findings": len(k8s_findings_raw)},
+        "container_report":     {"findings": len(container_findings_raw)},
+        "security_graph_stats": security_graph_stats,
+        "enterprise_risk_score": enterprise_risk,
+        "attack_graph_stats":   attack_graph_stats,
+    }
+
+
+# Phase 9 — Cloud options on ScanOptions
+ScanOptions.enable_cloud_security      = False                              # type: ignore[attr-defined]
+ScanOptions.cloud_iac_dirs             = []                                 # type: ignore[attr-defined]
+ScanOptions.cloud_k8s_manifests        = []                                 # type: ignore[attr-defined]
+ScanOptions.cloud_iam_files            = []                                 # type: ignore[attr-defined]
+ScanOptions.cloud_dockerfile_dirs      = []                                 # type: ignore[attr-defined]
+ScanOptions.cloud_enable_iam_graph     = True                               # type: ignore[attr-defined]
+ScanOptions.cloud_enable_enterprise_risk = True                             # type: ignore[attr-defined]
+
+# Register scan_cloud_elite on UnifiedScanEngine
+UnifiedScanEngine.scan_cloud_elite = _use_scan_cloud_elite                  # type: ignore[attr-defined]

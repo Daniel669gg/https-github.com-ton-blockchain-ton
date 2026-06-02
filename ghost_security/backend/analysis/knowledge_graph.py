@@ -1690,3 +1690,463 @@ KnowledgeGraphBuilder.find_ownership_takeovers   = _kg_find_ownership_takeovers 
 KnowledgeGraphBuilder.find_fund_loss_paths       = _kg_find_fund_loss_paths       # type: ignore[attr-defined]
 KnowledgeGraphBuilder.find_affected_assets       = _kg_find_affected_assets       # type: ignore[attr-defined]
 KnowledgeGraphBuilder.build_ton_knowledge_graph  = _kg_build_ton_knowledge_graph  # type: ignore[attr-defined]
+
+
+# ===========================================================================
+# Phase 9 — Cloud Security Graph (appended, no duplicate engines)
+# ===========================================================================
+
+# ── New node types ──────────────────────────────────────────────────────────
+# We extend the existing KGNodeType enum by registering new members via the
+# functional API so we don't touch the class definition above.
+
+def _extend_kg_node_types() -> None:
+    """Add Phase 9 cloud node types to KGNodeType if they don't exist yet."""
+    _new = {
+        "CLOUD_ACCOUNT":    "cloud_account",
+        "IAM_IDENTITY":     "iam_identity",
+        "IAM_ROLE":         "iam_role",
+        "IAM_PERMISSION":   "iam_permission",
+        "CLOUD_STORAGE":    "cloud_storage",
+        "CLOUD_DATABASE":   "cloud_database",
+        "CLOUD_FUNCTION":   "cloud_function",
+        "CLOUD_NETWORK":    "cloud_network",
+        "CLUSTER":          "cluster",
+        "K8S_NAMESPACE":    "k8s_namespace",
+        "K8S_POD":          "k8s_pod",
+        "CONTAINER":        "container",
+        "CONTAINER_IMAGE":  "container_image",
+        "BUSINESS_ASSET":   "business_asset",
+    }
+    for name, value in _new.items():
+        if name not in KGNodeType.__members__:
+            # Extend enum dynamically
+            try:
+                extend_enum(KGNodeType, name, value)
+            except Exception:
+                pass  # may fail if aenum not available; fall through
+
+
+def _safe_extend_kg_node_types() -> None:
+    try:
+        from aenum import extend_enum  # type: ignore
+        _new = {
+            "CLOUD_ACCOUNT":    "cloud_account",
+            "IAM_IDENTITY":     "iam_identity",
+            "IAM_ROLE":         "iam_role",
+            "IAM_PERMISSION":   "iam_permission",
+            "CLOUD_STORAGE":    "cloud_storage",
+            "CLOUD_DATABASE":   "cloud_database",
+            "CLOUD_FUNCTION":   "cloud_function",
+            "CLOUD_NETWORK":    "cloud_network",
+            "CLUSTER":          "cluster",
+            "K8S_NAMESPACE":    "k8s_namespace",
+            "K8S_POD":          "k8s_pod",
+            "CONTAINER":        "container",
+            "CONTAINER_IMAGE":  "container_image",
+            "BUSINESS_ASSET":   "business_asset",
+        }
+        for name, value in _new.items():
+            if name not in KGNodeType.__members__:
+                extend_enum(KGNodeType, name, value)
+    except ImportError:
+        pass
+
+
+_safe_extend_kg_node_types()
+
+# ── Cloud node ingestion ────────────────────────────────────────────────────
+
+_CLOUD_RESOURCE_TYPES = frozenset({
+    "aws_s3_bucket", "aws_rds_instance", "aws_ec2_instance",
+    "aws_lambda_function", "aws_security_group", "aws_iam_role",
+    "azurerm_storage_account", "azurerm_sql_server", "azurerm_virtual_machine",
+    "google_storage_bucket", "google_sql_database_instance", "google_compute_instance",
+    "s3", "rds", "ec2", "lambda", "iam", "storage", "database", "compute",
+})
+
+_SEVERITY_WEIGHT_P9 = {"CRITICAL": 1.0, "HIGH": 0.8, "MEDIUM": 0.6, "LOW": 0.4, "INFO": 0.1}
+
+
+def _kg_ingest_cloud_findings(
+    self: "KnowledgeGraphBuilder",
+    graph: "SecurityKnowledgeGraph",
+    cloud_findings: List[Dict[str, Any]],
+) -> int:
+    """
+    Ingest cloud misconfiguration findings into the Knowledge Graph.
+
+    Each finding dict should have:
+      rule_id, severity, file, resource_type, resource_name, description, category
+    Creates CLOUD_RESOURCE / CLOUD_STORAGE / CLOUD_DATABASE nodes + FINDING nodes.
+    Returns count of nodes added.
+    """
+    added = 0
+    for f in cloud_findings:
+        rule_id    = f.get("rule_id", f.get("id", "CLOUD-UNKNOWN"))
+        severity   = f.get("severity", "INFO").upper()
+        file_path  = f.get("file", "")
+        res_type   = f.get("resource_type", "").lower()
+        res_name   = f.get("resource_name", f.get("resource", file_path))
+        desc       = f.get("description", "")
+        category   = f.get("category", "")
+        public     = f.get("public_access", False) or "public" in desc.lower()
+
+        # Choose node type based on resource type
+        if "storage" in res_type or "s3" in res_type or "blob" in res_type or "gcs" in res_type:
+            ntype = "cloud_storage"
+        elif "database" in res_type or "rds" in res_type or "sql" in res_type:
+            ntype = "cloud_database"
+        elif "iam" in res_type or "role" in res_type or "policy" in res_type:
+            ntype = "iam_identity"
+        elif "network" in res_type or "security_group" in res_type or "firewall" in res_type:
+            ntype = "cloud_network"
+        elif "cluster" in res_type or "k8s" in res_type or "kubernetes" in res_type:
+            ntype = "cluster"
+        elif "container" in res_type or "pod" in res_type:
+            ntype = "container"
+        else:
+            ntype = "cloud_resource"
+
+        # Resource node
+        resource_id = f"cloud:{ntype}:{res_name.lower().replace(' ', '_')[:40]}"
+        if resource_id not in graph.node_index:
+            graph.nodes.append(KGNode(
+                node_id=resource_id,
+                type=KGNodeType.CLOUD_RESOURCE,
+                label=res_name or res_type or "cloud_resource",
+                properties={
+                    "resource_type": res_type,
+                    "provider": f.get("provider", ""),
+                    "public_access": public,
+                    "severity": severity,
+                },
+            ))
+            graph.node_index[resource_id] = len(graph.nodes) - 1
+            added += 1
+
+        # Finding node
+        finding_id = f"cloud:finding:{rule_id}:{file_path}:{f.get('line', 0)}"
+        if finding_id not in graph.node_index:
+            graph.nodes.append(KGNode(
+                node_id=finding_id,
+                type=KGNodeType.FINDING,
+                label=f"{rule_id}: {desc[:60]}",
+                properties={
+                    "severity": severity,
+                    "description": desc,
+                    "category": category,
+                    "file": file_path,
+                    "weight": _SEVERITY_WEIGHT_P9.get(severity, 0.5),
+                },
+            ))
+            graph.node_index[finding_id] = len(graph.nodes) - 1
+            added += 1
+
+        # FINDING → EXPOSED_THROUGH → CLOUD_RESOURCE
+        graph.edges.append(KGEdge(
+            from_id=finding_id,
+            to_id=resource_id,
+            relation="EXPOSED_THROUGH",
+            weight=_SEVERITY_WEIGHT_P9.get(severity, 0.5),
+        ))
+
+        # If public: add EXPOSES edge
+        if public:
+            graph.edges.append(KGEdge(
+                from_id=resource_id,
+                to_id=finding_id,
+                relation="EXPOSES",
+                weight=1.0,
+            ))
+
+    return added
+
+
+def _kg_ingest_iam_findings(
+    self: "KnowledgeGraphBuilder",
+    graph: "SecurityKnowledgeGraph",
+    iam_findings: List[Dict[str, Any]],
+) -> int:
+    """
+    Ingest IAM findings into the Knowledge Graph.
+    Creates IAM_IDENTITY, IAM_ROLE, IAM_PERMISSION nodes.
+    """
+    added = 0
+    for f in iam_findings:
+        principal  = f.get("principal", f.get("resource", ""))
+        permission = f.get("permission", "")
+        severity   = f.get("severity", "INFO").upper()
+        category   = f.get("category", "")
+        rule_id    = f.get("rule_id", "IAM-UNKNOWN")
+        desc       = f.get("description", "")
+
+        # Identity node
+        if principal:
+            identity_id = f"iam:identity:{principal.lower().replace(' ', '_')[:40]}"
+            if identity_id not in graph.node_index:
+                graph.nodes.append(KGNode(
+                    node_id=identity_id,
+                    type=KGNodeType.CLOUD_RESOURCE,
+                    label=principal,
+                    properties={"node_subtype": "iam_identity", "severity": severity},
+                ))
+                graph.node_index[identity_id] = len(graph.nodes) - 1
+                added += 1
+
+            # Permission node
+            if permission:
+                perm_id = f"iam:perm:{permission.lower().replace(':', '_')[:40]}"
+                if perm_id not in graph.node_index:
+                    graph.nodes.append(KGNode(
+                        node_id=perm_id,
+                        type=KGNodeType.CLOUD_RESOURCE,
+                        label=permission,
+                        properties={
+                            "node_subtype": "iam_permission",
+                            "severity": severity,
+                            "category": category,
+                        },
+                    ))
+                    graph.node_index[perm_id] = len(graph.nodes) - 1
+                    added += 1
+
+                graph.edges.append(KGEdge(
+                    from_id=identity_id,
+                    to_id=perm_id,
+                    relation="HAS_PERMISSION",
+                    weight=_SEVERITY_WEIGHT_P9.get(severity, 0.5),
+                ))
+
+                # WILDCARD / escalation edges
+                if "WILDCARD" in category or "*" in permission or "iam:*" in permission.lower():
+                    graph.edges.append(KGEdge(
+                        from_id=perm_id,
+                        to_id=identity_id,
+                        relation="ESCALATES_TO",
+                        weight=1.0,
+                    ))
+
+    return added
+
+
+def _kg_find_cloud_attack_paths(
+    self: "KnowledgeGraphBuilder",
+    graph: "SecurityKnowledgeGraph",
+) -> List[Dict[str, Any]]:
+    """
+    Find attack paths from FINDING nodes to CLOUD_RESOURCE nodes.
+    BFS: FINDING → ... → CLOUD_RESOURCE (via any edge chain, max depth 6).
+    """
+    # Build adjacency list from edges
+    adj: Dict[str, List[str]] = {}
+    for edge in graph.edges:
+        adj.setdefault(edge.from_id, []).append(edge.to_id)
+
+    # Cloud node ids
+    cloud_ids: set = set()
+    finding_ids: set = set()
+    for node in graph.nodes:
+        ntype_val = node.type.value if hasattr(node.type, "value") else str(node.type)
+        if ntype_val in ("cloud_resource", "cloud_storage", "cloud_database",
+                         "cloud_function", "cloud_network", "cloud_account"):
+            cloud_ids.add(node.node_id)
+        if ntype_val in ("finding", "vulnerability", "cve", "runtime_finding"):
+            finding_ids.add(node.node_id)
+
+    paths: List[Dict[str, Any]] = []
+    seen_pairs: set = set()
+    node_map = {n.node_id: n for n in graph.nodes}
+
+    for start_id in finding_ids:
+        # BFS
+        queue: List[List[str]] = [[start_id]]
+        while queue:
+            path = queue.pop(0)
+            if len(path) > 6:
+                continue
+            current = path[-1]
+            if current in cloud_ids and current != start_id:
+                pair = (start_id, current)
+                if pair not in seen_pairs:
+                    seen_pairs.add(pair)
+                    start_node = node_map.get(start_id)
+                    end_node   = node_map.get(current)
+                    paths.append({
+                        "path_id":    f"cloud_path:{start_id[:20]}:{current[:20]}",
+                        "start_node": start_id,
+                        "end_node":   current,
+                        "start_label": start_node.label if start_node else start_id,
+                        "end_label":   end_node.label   if end_node   else current,
+                        "node_count": len(path),
+                        "severity":   (start_node.properties.get("severity", "INFO")
+                                       if start_node else "INFO"),
+                    })
+                continue
+            for neighbour in adj.get(current, []):
+                if neighbour not in path:
+                    queue.append(path + [neighbour])
+
+    return sorted(paths, key=lambda p: -_SEVERITY_WEIGHT_P9.get(p["severity"], 0.1))
+
+
+def _kg_find_exposed_cloud_resources(
+    self: "KnowledgeGraphBuilder",
+    graph: "SecurityKnowledgeGraph",
+) -> List[Dict[str, Any]]:
+    """Return CLOUD_RESOURCE nodes with public_access=True or connected via EXPOSES edges."""
+    exposed_ids: set = set()
+    for edge in graph.edges:
+        if edge.relation == "EXPOSES":
+            exposed_ids.add(edge.to_id)
+            exposed_ids.add(edge.from_id)
+
+    results = []
+    for node in graph.nodes:
+        ntype_val = node.type.value if hasattr(node.type, "value") else str(node.type)
+        if ntype_val in ("cloud_resource", "cloud_storage", "cloud_database", "cloud_network"):
+            if node.properties.get("public_access") or node.node_id in exposed_ids:
+                results.append({
+                    "node_id":       node.node_id,
+                    "label":         node.label,
+                    "resource_type": node.properties.get("resource_type", ntype_val),
+                    "severity":      node.properties.get("severity", "HIGH"),
+                    "public_access": True,
+                })
+    return results
+
+
+def _kg_find_privilege_escalation_paths(
+    self: "KnowledgeGraphBuilder",
+    graph: "SecurityKnowledgeGraph",
+) -> List[Dict[str, Any]]:
+    """Return paths involving ESCALATES_TO edges in the IAM/cloud subgraph."""
+    escalation_edges = [e for e in graph.edges if e.relation == "ESCALATES_TO"]
+    node_map = {n.node_id: n for n in graph.nodes}
+    results = []
+    for edge in escalation_edges:
+        src = node_map.get(edge.from_id)
+        dst = node_map.get(edge.to_id)
+        results.append({
+            "from_id":    edge.from_id,
+            "from_label": src.label if src else edge.from_id,
+            "to_id":      edge.to_id,
+            "to_label":   dst.label if dst else edge.to_id,
+            "severity":   "CRITICAL",
+            "description": f"Privilege escalation: {src.label if src else edge.from_id} → {dst.label if dst else edge.to_id}",
+        })
+    return results
+
+
+def _kg_find_reachable_cloud_assets(
+    self: "KnowledgeGraphBuilder",
+    graph: "SecurityKnowledgeGraph",
+) -> List[Dict[str, Any]]:
+    """Return all CLOUD_* nodes reachable from any FINDING node."""
+    return _kg_find_cloud_attack_paths(self, graph)
+
+
+def _kg_find_container_risks(
+    self: "KnowledgeGraphBuilder",
+    graph: "SecurityKnowledgeGraph",
+) -> List[Dict[str, Any]]:
+    """Return CONTAINER/CONTAINER_IMAGE nodes with HIGH/CRITICAL severity."""
+    results = []
+    for node in graph.nodes:
+        ntype_val = node.type.value if hasattr(node.type, "value") else str(node.type)
+        sub = node.properties.get("node_subtype", "")
+        if ntype_val in ("container", "container_image") or sub in ("container", "container_image"):
+            sev = node.properties.get("severity", "INFO")
+            if sev in ("CRITICAL", "HIGH"):
+                results.append({
+                    "node_id": node.node_id,
+                    "label":   node.label,
+                    "severity": sev,
+                })
+    return results
+
+
+def _kg_find_kubernetes_risks(
+    self: "KnowledgeGraphBuilder",
+    graph: "SecurityKnowledgeGraph",
+) -> List[Dict[str, Any]]:
+    """Return K8S_POD/CLUSTER/K8S_NAMESPACE nodes with HIGH/CRITICAL severity."""
+    results = []
+    for node in graph.nodes:
+        ntype_val = node.type.value if hasattr(node.type, "value") else str(node.type)
+        sub = node.properties.get("node_subtype", "")
+        if ntype_val in ("cluster", "k8s_pod", "k8s_namespace") or "k8s" in sub:
+            sev = node.properties.get("severity", "INFO")
+            if sev in ("CRITICAL", "HIGH"):
+                results.append({
+                    "node_id":      node.node_id,
+                    "label":        node.label,
+                    "severity":     sev,
+                    "resource_type": ntype_val,
+                })
+    return results
+
+
+def _kg_find_business_critical_findings(
+    self: "KnowledgeGraphBuilder",
+    graph: "SecurityKnowledgeGraph",
+) -> List[Dict[str, Any]]:
+    """Return CRITICAL findings in cloud/iam/container layers (BUSINESS_ASSET reachable)."""
+    results = []
+    for node in graph.nodes:
+        ntype_val = node.type.value if hasattr(node.type, "value") else str(node.type)
+        if ntype_val in ("finding", "runtime_finding"):
+            sev = node.properties.get("severity", "INFO")
+            cat = node.properties.get("category", "").lower()
+            if sev == "CRITICAL" and any(kw in cat for kw in ("cloud", "iam", "container", "k8s", "access")):
+                results.append({
+                    "node_id":   node.node_id,
+                    "label":     node.label,
+                    "severity":  sev,
+                    "category":  cat,
+                    "business_critical": True,
+                })
+    return results
+
+
+def _kg_build_cloud_knowledge_graph(
+    self: "KnowledgeGraphBuilder",
+    cloud_findings: List[Dict[str, Any]],
+    iam_findings: Optional[List[Dict[str, Any]]] = None,
+    k8s_findings: Optional[List[Dict[str, Any]]] = None,
+    container_findings: Optional[List[Dict[str, Any]]] = None,
+) -> "SecurityKnowledgeGraph":
+    """
+    Build a SecurityKnowledgeGraph from cloud-layer findings.
+    Ingests: cloud misconfigs + IAM findings + K8s findings + container findings.
+    """
+    graph = SecurityKnowledgeGraph()
+    _kg_ingest_cloud_findings(self, graph, cloud_findings)
+    if iam_findings:
+        _kg_ingest_iam_findings(self, graph, iam_findings)
+    if k8s_findings:
+        for f in k8s_findings:
+            f2 = dict(f)
+            f2.setdefault("resource_type", "k8s_pod")
+            f2.setdefault("resource_name", f2.get("resource_name", f2.get("resource", "pod")))
+            _kg_ingest_cloud_findings(self, graph, [f2])
+    if container_findings:
+        for f in container_findings:
+            f2 = dict(f)
+            f2.setdefault("resource_type", "container_image")
+            f2.setdefault("resource_name", f2.get("image", "container"))
+            _kg_ingest_cloud_findings(self, graph, [f2])
+    return graph
+
+
+# Register Phase 9 methods on KnowledgeGraphBuilder
+KnowledgeGraphBuilder.ingest_cloud_findings          = _kg_ingest_cloud_findings          # type: ignore[attr-defined]
+KnowledgeGraphBuilder.ingest_iam_findings_cloud      = _kg_ingest_iam_findings            # type: ignore[attr-defined]
+KnowledgeGraphBuilder.find_cloud_attack_paths        = _kg_find_cloud_attack_paths        # type: ignore[attr-defined]
+KnowledgeGraphBuilder.find_exposed_cloud_resources   = _kg_find_exposed_cloud_resources   # type: ignore[attr-defined]
+KnowledgeGraphBuilder.find_cloud_privilege_escalation = _kg_find_privilege_escalation_paths  # type: ignore[attr-defined]
+KnowledgeGraphBuilder.find_reachable_cloud_assets    = _kg_find_reachable_cloud_assets    # type: ignore[attr-defined]
+KnowledgeGraphBuilder.find_container_risks           = _kg_find_container_risks           # type: ignore[attr-defined]
+KnowledgeGraphBuilder.find_kubernetes_risks          = _kg_find_kubernetes_risks          # type: ignore[attr-defined]
+KnowledgeGraphBuilder.find_business_critical_findings = _kg_find_business_critical_findings  # type: ignore[attr-defined]
+KnowledgeGraphBuilder.build_cloud_knowledge_graph    = _kg_build_cloud_knowledge_graph    # type: ignore[attr-defined]
