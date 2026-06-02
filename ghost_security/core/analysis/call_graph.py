@@ -258,3 +258,193 @@ class CallGraphGenerator:
             lines.append(f'  {a} -> {b};')
         lines.append("}")
         return "\n".join(lines)
+
+
+# ── Incremental Call Graph (Phase 6) ─────────────────────────────────────────
+
+import hashlib as _hashlib
+import time as _time
+
+
+class IncrementalCallGraph:
+    """
+    Incremental call graph that caches per-file function/call data and only
+    re-parses files that have changed (detected by content SHA-256).
+
+    Usage:
+        icg = IncrementalCallGraph("/path/to/project")
+        graph = icg.build()          # full build
+        icg.update_file("auth.py")   # re-parse one file, update edges
+        graph = icg.current_graph    # always up-to-date
+    """
+
+    def __init__(self, root: str = ".") -> None:
+        self.root = str(Path(root).resolve())
+        self._gen = CallGraphGenerator()
+
+        # Per-file cache: filepath → {sha, nodes: List[dict], edges: List[dict]}
+        self._file_cache: Dict[str, dict] = {}
+
+        # Merged graph (updated incrementally)
+        self.current_graph: dict = {
+            "nodes": [], "edges": [], "entrypoints": [], "dead_code": [],
+            "stats": {},
+        }
+        self._built = False
+
+    # ------------------------------------------------------------------
+    # Public API
+    # ------------------------------------------------------------------
+
+    def build(self) -> dict:
+        """Full build: parse all Python files, populate cache, merge graph."""
+        root = Path(self.root)
+        _SKIP = {"__pycache__", ".git", "node_modules", ".venv", "venv"}
+        files = [
+            str(f) for f in root.rglob("*.py")
+            if not any(s in f.parts for s in _SKIP)
+        ]
+        for fp in files:
+            self._parse_file(fp)
+        self._merge()
+        self._built = True
+        return self.current_graph
+
+    def update_file(self, filepath: str) -> bool:
+        """
+        Re-parse one file. Only does work if content SHA changed.
+        Returns True if the file actually changed and graph was updated.
+        """
+        fp = str(Path(filepath).resolve())
+        new_sha = self._sha(fp)
+        cached = self._file_cache.get(fp, {})
+        if cached.get("sha") == new_sha:
+            return False   # nothing changed
+        self._parse_file(fp)
+        self._merge()
+        return True
+
+    def update_files(self, filepaths: List[str]) -> int:
+        """Update multiple files. Returns count of files that actually changed."""
+        changed = 0
+        for fp in filepaths:
+            if self.update_file(fp):
+                changed += 1
+        return changed
+
+    def remove_file(self, filepath: str) -> bool:
+        """Remove a deleted file from the graph."""
+        fp = str(Path(filepath).resolve())
+        if fp not in self._file_cache:
+            return False
+        del self._file_cache[fp]
+        self._merge()
+        return True
+
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
+
+    def _sha(self, filepath: str) -> str:
+        try:
+            content = Path(filepath).read_bytes()
+            return _hashlib.sha256(content).hexdigest()[:16]
+        except OSError:
+            return ""
+
+    def _parse_file(self, filepath: str) -> None:
+        """Parse one file and store per-file data in cache."""
+        sha = self._sha(filepath)
+        if not sha:
+            return
+        root = self.root
+        module = _module_name(filepath, root)
+        try:
+            tree = ast.parse(
+                Path(filepath).read_text(encoding="utf-8", errors="replace"),
+                filename=filepath,
+            )
+        except (SyntaxError, OSError):
+            self._file_cache[filepath] = {"sha": sha, "nodes": [], "edges": []}
+            return
+
+        # Collect function definitions
+        collector = _FunctionCollector(module, filepath)
+        collector.visit(tree)
+        file_nodes: List[dict] = [fn.to_dict() for fn in collector.functions]
+
+        # Collect calls (intra-file resolution only for speed)
+        known = {fn.qualified_name for fn in collector.functions}
+        caller = _CallCollector(module, known)
+        caller.visit(tree)
+
+        file_edges: List[dict] = []
+        node_map: Dict[str, FuncNode] = {fn.qualified_name: fn for fn in collector.functions}
+        for caller_qname, callees in caller.calls.items():
+            if caller_qname not in node_map:
+                continue
+            for callee in callees:
+                resolved = CallGraphGenerator._resolve(callee, module, known)
+                if resolved:
+                    file_edges.append({"from": caller_qname, "to": resolved})
+
+        self._file_cache[filepath] = {
+            "sha": sha, "nodes": file_nodes, "edges": file_edges,
+        }
+
+    def _merge(self) -> None:
+        """Rebuild merged graph from per-file cache."""
+        all_nodes: Dict[str, dict] = {}
+        all_edges: List[dict] = []
+        called_set: Set[str] = set()
+
+        for data in self._file_cache.values():
+            for n in data["nodes"]:
+                all_nodes[n["qualified"]] = n
+            for e in data["edges"]:
+                all_edges.append(e)
+                called_set.add(e["to"])
+
+        # Cross-file call resolution
+        known = set(all_nodes.keys())
+        resolved_edges: List[dict] = []
+        for edge in all_edges:
+            frm, to = edge["from"], edge["to"]
+            if to not in known:
+                # Try suffix match
+                for q in known:
+                    if q.endswith(f".{to}"):
+                        to = q
+                        break
+            if frm in known:
+                resolved_edges.append({"from": frm, "to": to})
+                called_set.add(to)
+
+        # Mark called_by and entrypoints
+        for qname, node in all_nodes.items():
+            node["called_by"] = []
+            node["is_entry"]  = qname not in called_set
+        for edge in resolved_edges:
+            if edge["to"] in all_nodes:
+                all_nodes[edge["to"]]["called_by"].append(edge["from"])
+
+        entrypoints = [q for q, n in all_nodes.items() if n["is_entry"] and not n.get("is_dead")]
+        dead_code   = [
+            q for q, n in all_nodes.items()
+            if n["is_entry"]
+            and not any(k in n["name"].lower() for k in ("test", "main", "handler", "route", "view"))
+        ]
+
+        self.current_graph = {
+            "nodes":       list(all_nodes.values()),
+            "edges":       resolved_edges,
+            "entrypoints": entrypoints,
+            "dead_code":   dead_code,
+            "stats": {
+                "total_functions": len(all_nodes),
+                "total_edges":     len(resolved_edges),
+                "entrypoints":     len(entrypoints),
+                "dead_code":       len(dead_code),
+                "files_cached":    len(self._file_cache),
+            },
+        }

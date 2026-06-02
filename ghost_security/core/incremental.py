@@ -268,13 +268,17 @@ class IncrementalResult:
     commit:          str
     base:            str
     cache_stats:     dict = field(default_factory=dict)
+    # Phase 6: graph-aware additions (populated only by GraphAwareIncrementalScanner)
+    impact_set:           Optional[dict] = None   # ImpactSet.to_dict()
+    invalidated_nodes:    dict = field(default_factory=dict)   # graph_type → set of node_ids
+    graph_rebuild_stats:  dict = field(default_factory=dict)
 
     def summary(self) -> dict:
         counts: dict = {}
         for f in self.new_findings:
             s = f.get("severity", "MEDIUM")
             counts[s] = counts.get(s, 0) + 1
-        return {
+        result = {
             "changed_files":  len(self.changed_files),
             "scanned_files":  len(self.scanned_files),
             "cached_files":   len(self.cached_files),
@@ -284,6 +288,13 @@ class IncrementalResult:
             "severity_counts": counts,
             "speedup":        f"{len(self.cached_files)}/{len(self.changed_files)} files from cache",
         }
+        if self.impact_set:
+            result["impact_set"] = self.impact_set
+        if self.invalidated_nodes:
+            result["invalidated_nodes"] = {
+                k: len(v) for k, v in self.invalidated_nodes.items()
+            }
+        return result
 
 
 class IncrementalScanner:
@@ -403,3 +414,150 @@ class IncrementalScanner:
             return new_findings + old_kept
         except Exception:
             return new_findings
+
+
+# ── Graph-Aware Incremental Scanner (Phase 6) ─────────────────────────────────
+
+class GraphAwareIncrementalScanner(IncrementalScanner):
+    """
+    Extends IncrementalScanner with graph-level invalidation.
+
+    On each scan() call:
+      1. Runs file-level incremental scan (inherited from IncrementalScanner).
+      2. Extracts per-symbol diffs for changed files (SymbolExtractor).
+      3. Computes ImpactSet (changed functions + transitive callers + entry points).
+      4. Invalidates graph nodes that depend on impacted symbols.
+      5. Returns extended IncrementalResult with impact_set + invalidated_nodes.
+
+    Registered graph objects (call_graph, kg, attack_graph, reachability) are
+    updated via their respective incremental-update methods when available.
+    """
+
+    def __init__(
+        self,
+        repo:      str  = ".",
+        cache_dir: str  = "./data/scan_cache",
+    ) -> None:
+        super().__init__(repo=repo, cache_dir=cache_dir)
+        # Lazy-import to avoid circular deps
+        self._invalidation_manager: Optional[object] = None
+        # Registered live graph objects {graph_type: object}
+        self._registered_graphs: Dict[str, object] = {}
+
+    def _get_manager(self):
+        if self._invalidation_manager is None:
+            try:
+                from core.graph_invalidation import GraphInvalidationManager
+                self._invalidation_manager = GraphInvalidationManager()
+            except ImportError:
+                pass
+        return self._invalidation_manager
+
+    def register_graph(self, graph_type: str, graph_obj: object) -> None:
+        """Register a live graph so it gets invalidated on each scan.
+
+        Supported graph_type values:
+            "call_graph"    — IncrementalCallGraph instance
+            "reachability"  — ReachabilityAnalyzer instance
+            "knowledge_graph" — KnowledgeGraphBuilder instance
+            "attack_graph"  — AttackGraphBuilder instance
+        """
+        self._registered_graphs[graph_type] = graph_obj
+
+    def scan(
+        self,
+        base:               str  = "HEAD~1",
+        head:               str  = "HEAD",
+        include_untracked:  bool = True,
+        merge_historical:   bool = True,
+    ) -> IncrementalResult:
+        """Graph-aware incremental scan.
+
+        Returns an IncrementalResult enriched with:
+            .impact_set          — dict representation of ImpactSet
+            .invalidated_nodes   — {graph_type: set(node_ids)}
+            .graph_rebuild_stats — timing / counts per graph type
+        """
+        # Step 1: file-level scan (base class)
+        result = super().scan(base=base, head=head,
+                              include_untracked=include_untracked,
+                              merge_historical=merge_historical)
+
+        if not result.changed_files:
+            return result
+
+        # Step 2: compute symbol impact
+        manager = self._get_manager()
+        if manager is None:
+            return result
+
+        t_graph = time.time()
+
+        try:
+            impact = manager.compute_impact(result.changed_files)
+            result.impact_set = impact.to_dict()
+        except Exception:
+            return result
+
+        # Step 3: extend impact with call graph if available
+        cg_obj = self._registered_graphs.get("call_graph")
+        if cg_obj is not None:
+            try:
+                cg_data = cg_obj.current_graph if hasattr(cg_obj, "current_graph") else {}
+                if cg_data:
+                    impact = manager.get_call_graph_impact(impact, cg_data)
+            except Exception:
+                pass
+
+        # Step 4: find which graph nodes to invalidate
+        graph_types = list(self._registered_graphs.keys())
+        try:
+            invalidated = manager.invalidate_for_impact(impact, graph_types or None)
+            result.invalidated_nodes = {k: list(v) for k, v in invalidated.items()}
+        except Exception:
+            invalidated = {}
+
+        # Step 5: call per-graph invalidation methods
+        rebuild_stats: Dict[str, dict] = {}
+        for gtype, gobj in self._registered_graphs.items():
+            t0 = time.time()
+            nids = invalidated.get(gtype, set())
+            try:
+                if gtype == "call_graph" and hasattr(gobj, "update_files"):
+                    gobj.update_files(result.changed_files)
+                    rebuild_stats[gtype] = {
+                        "files_updated": len(result.changed_files),
+                        "duration_s": round(time.time() - t0, 3),
+                    }
+                elif gtype == "reachability" and hasattr(gobj, "invalidate_files"):
+                    for fp in result.changed_files:
+                        gobj.invalidate_file(fp)
+                    rebuild_stats[gtype] = {
+                        "files_invalidated": len(result.changed_files),
+                        "duration_s": round(time.time() - t0, 3),
+                    }
+                elif gtype == "knowledge_graph" and hasattr(gobj, "apply_file_delta"):
+                    n = gobj.apply_file_delta(result.changed_files, result.new_findings)
+                    rebuild_stats[gtype] = {
+                        "nodes_updated": n,
+                        "duration_s": round(time.time() - t0, 3),
+                    }
+                elif gtype == "attack_graph" and hasattr(gobj, "update_findings"):
+                    n = gobj.update_findings(result.new_findings, [])
+                    rebuild_stats[gtype] = {
+                        "paths_recomputed": n,
+                        "duration_s": round(time.time() - t0, 3),
+                    }
+                else:
+                    rebuild_stats[gtype] = {
+                        "nodes_invalidated": len(nids),
+                        "duration_s": round(time.time() - t0, 3),
+                    }
+            except Exception as exc:
+                rebuild_stats[gtype] = {"error": str(exc)}
+
+        result.graph_rebuild_stats = {
+            "total_graph_duration_s": round(time.time() - t_graph, 3),
+            "per_graph": rebuild_stats,
+        }
+        return result

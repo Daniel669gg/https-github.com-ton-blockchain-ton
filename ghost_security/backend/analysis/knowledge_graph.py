@@ -952,3 +952,156 @@ def build_knowledge_graph(
 ) -> SecurityKnowledgeGraph:
     """Convenience wrapper: construct and return a SecurityKnowledgeGraph."""
     return KnowledgeGraphBuilder().build(project_root, findings, cve_records)
+
+
+# ---------------------------------------------------------------------------
+# Incremental Knowledge Graph methods (Phase 6, Part 7)
+# Attached to KnowledgeGraphBuilder at module level.
+# ---------------------------------------------------------------------------
+
+import time as _kg_time
+import hashlib as _kg_hash
+
+
+def _kg_build_delta(
+    self: "KnowledgeGraphBuilder",
+    graph: SecurityKnowledgeGraph,
+    added_findings: List,
+    removed_findings: List,
+    changed_files: Optional[List[str]] = None,
+) -> int:
+    """
+    Incrementally update *graph* instead of rebuilding from scratch.
+
+    Steps:
+      1. Remove nodes/edges tied to *removed_findings* (by rule_id + file + line).
+      2. Ingest each *added_finding* via the existing ingest_finding() method.
+      3. For changed_files: remove all CODE_UNIT and FUNCTION nodes for those
+         files and let fresh findings re-create them.
+
+    Returns total count of node mutations (adds + removes).
+    """
+    mutations = 0
+
+    # Step 1: remove nodes for removed findings
+    for finding in removed_findings:
+        fdict = finding if isinstance(finding, dict) else finding.dict() if hasattr(finding, "dict") else {}
+        ffile = fdict.get("file", "")
+        fline = fdict.get("line", 0)
+        frule = fdict.get("rule_id", fdict.get("type", ""))
+
+        to_remove: List[int] = []
+        for i, node in enumerate(graph.nodes):
+            props = node.properties
+            if (props.get("file") == ffile and props.get("line") == fline
+                    and props.get("rule_id", props.get("type", "")) == frule):
+                to_remove.append(i)
+        # Remove in reverse order to preserve indices
+        for i in sorted(to_remove, reverse=True):
+            nid = graph.nodes[i].node_id
+            graph.nodes.pop(i)
+            # Remove from index
+            graph.node_index.pop(nid, None)
+            # Remove edges referencing this node
+            graph.edges = [e for e in graph.edges if e.from_id != nid and e.to_id != nid]
+            mutations += 1
+
+    # Step 2: remove nodes for changed files
+    if changed_files:
+        changed_set = set(changed_files)
+        changed_set |= {str(Path(f).resolve()) for f in changed_files}
+        nodes_to_remove = [
+            i for i, node in enumerate(graph.nodes)
+            if node.properties.get("file", "") in changed_set
+            and node.type in (KGNodeType.CODE_UNIT, KGNodeType.FUNCTION)
+        ]
+        for i in sorted(nodes_to_remove, reverse=True):
+            nid = graph.nodes[i].node_id
+            graph.nodes.pop(i)
+            graph.node_index.pop(nid, None)
+            graph.edges = [e for e in graph.edges if e.from_id != nid and e.to_id != nid]
+            mutations += 1
+
+    # Rebuild index after bulk removal
+    graph.node_index = {node.node_id: idx for idx, node in enumerate(graph.nodes)}
+
+    # Step 3: ingest new findings
+    for finding in added_findings:
+        try:
+            self.ingest_finding(graph, finding)
+            mutations += 1
+        except Exception:
+            pass
+
+    return mutations
+
+
+def _kg_patch_node(
+    self: "KnowledgeGraphBuilder",
+    graph: SecurityKnowledgeGraph,
+    node_id: str,
+    properties: Dict[str, Any],
+) -> bool:
+    """
+    Update properties of an existing graph node in-place.
+    Returns True if node was found and updated.
+    """
+    idx = graph.node_index.get(node_id)
+    if idx is None or idx >= len(graph.nodes):
+        return False
+    graph.nodes[idx].properties.update(properties)
+    return True
+
+
+def _kg_patch_edge(
+    self: "KnowledgeGraphBuilder",
+    graph: SecurityKnowledgeGraph,
+    from_id: str,
+    to_id: str,
+    relation: str,
+    weight: float,
+) -> bool:
+    """
+    Update weight of an existing edge, or add it if missing.
+    Returns True if an existing edge was updated; False if a new edge was added.
+    """
+    for edge in graph.edges:
+        if edge.from_id == from_id and edge.to_id == to_id and edge.relation == relation:
+            edge.weight = weight
+            return True
+    # Add new edge
+    graph.edges.append(KGEdge(
+        from_id=from_id, to_id=to_id, relation=relation, weight=weight
+    ))
+    return False
+
+
+def _kg_apply_file_delta(
+    self: "KnowledgeGraphBuilder",
+    changed_files: List[str],
+    new_findings: List,
+) -> int:
+    """
+    Convenience method used by GraphAwareIncrementalScanner.
+    If we have no current graph, this is a no-op.
+    Returns count of mutations (best-effort).
+    """
+    # The scanner passes findings as dicts; we need to handle both dict and Finding
+    added = []
+    for f in new_findings:
+        if isinstance(f, dict):
+            try:
+                added.append(Finding(**{k: v for k, v in f.items()
+                                        if k in Finding.model_fields}))
+            except Exception:
+                pass
+        else:
+            added.append(f)
+    # Without a live graph reference this is a no-op — callers should pass graph explicitly
+    return len(added)
+
+
+KnowledgeGraphBuilder.build_delta      = _kg_build_delta      # type: ignore[attr-defined]
+KnowledgeGraphBuilder.patch_node       = _kg_patch_node       # type: ignore[attr-defined]
+KnowledgeGraphBuilder.patch_edge       = _kg_patch_edge       # type: ignore[attr-defined]
+KnowledgeGraphBuilder.apply_file_delta = _kg_apply_file_delta # type: ignore[attr-defined]

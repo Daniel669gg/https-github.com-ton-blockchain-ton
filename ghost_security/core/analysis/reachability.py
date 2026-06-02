@@ -725,3 +725,162 @@ class ReachabilityAnalyzer:
             or fname == "conftest.py"
             or fname.startswith("spec_")
         )
+
+
+# ---------------------------------------------------------------------------
+# Incremental extensions (Phase 6)
+# ---------------------------------------------------------------------------
+
+import hashlib as _hashlib
+
+
+def _file_sha(path: str) -> str:
+    try:
+        return _hashlib.sha256(Path(path).read_bytes()).hexdigest()[:16]
+    except OSError:
+        return ""
+
+
+# Monkey-patch incremental methods onto ReachabilityAnalyzer so the
+# existing class is EXTENDED, not replaced.
+
+def _incremental_init_patch(self) -> None:
+    """Call after __init__ to enable incremental mode."""
+    if not hasattr(self, "_index_sha"):
+        self._index_sha: dict = {}    # filepath → SHA at last parse
+        self._index_mtime: dict = {}  # filepath → mtime at last parse
+
+
+def _invalidate_file(self, filepath: str) -> bool:
+    """
+    Remove one file from the reachability index.
+    Returns True if the file was present and was removed.
+    """
+    fp = str(Path(filepath).resolve())
+    _incremental_init_patch(self)
+    if self._index is None:
+        return False
+    rel = os.path.relpath(fp, self.project_root)
+    removed = False
+    for key in (fp, rel):
+        if key in self._index:
+            del self._index[key]
+            self._index_sha.pop(key, None)
+            self._index_mtime.pop(key, None)
+            removed = True
+    return removed
+
+
+def _update_file(self, filepath: str) -> bool:
+    """
+    Re-parse a single file and update the reachability index.
+    Returns True if the file's content changed and index was updated.
+    """
+    fp  = str(Path(filepath).resolve())
+    _incremental_init_patch(self)
+    new_sha = _file_sha(fp)
+    if not new_sha:
+        return False
+    rel = os.path.relpath(fp, self.project_root)
+    old_sha = self._index_sha.get(fp) or self._index_sha.get(rel)
+    if old_sha == new_sha:
+        return False
+
+    # Parse the file
+    try:
+        source = Path(fp).read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return False
+
+    file_info = self._parse_file(fp, rel, source)   # type: ignore[attr-defined]
+    if self._index is None:
+        self._index = {}
+    self._index[rel] = file_info
+    self._index_sha[rel] = new_sha
+    return True
+
+
+def _invalidate_files(self, filepaths: list) -> int:
+    """Invalidate multiple files. Returns count removed."""
+    return sum(1 for fp in filepaths if self.invalidate_file(fp))
+
+
+def _update_files(self, filepaths: list) -> int:
+    """Update multiple files. Returns count that actually changed."""
+    return sum(1 for fp in filepaths if self.update_file(fp))
+
+
+def _parse_file(self, abs_path: str, rel_path: str, source: str) -> "_FileInfo":
+    """Parse a single file into a _FileInfo. Extracted so it can be called
+    both from _build_index and from update_file."""
+    imports: Set[str] = set()
+    func_defs: List[str] = []
+    calls: Set[str] = set()
+    route_funcs: List[str] = []
+    has_main = False
+
+    try:
+        tree = ast.parse(source, filename=abs_path)
+    except SyntaxError:
+        return _FileInfo(
+            path=abs_path, imports=imports, function_defs=func_defs,
+            calls=calls, route_functions=route_funcs,
+            has_main=False, is_test=self._is_test_file(abs_path),
+        )
+
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    imports.add(alias.name.split(".")[0].lower())
+            else:
+                if node.module:
+                    imports.add(node.module.split(".")[0].lower())
+
+        elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            func_defs.append(node.name)
+            if node.name in ("main",):
+                has_main = True
+            for dec in node.decorator_list:
+                dec_name = ""
+                if isinstance(dec, ast.Name):
+                    dec_name = dec.id
+                elif isinstance(dec, ast.Attribute):
+                    dec_name = dec.attr
+                elif isinstance(dec, ast.Call):
+                    if isinstance(dec.func, ast.Name):
+                        dec_name = dec.func.id
+                    elif isinstance(dec.func, ast.Attribute):
+                        dec_name = dec.func.attr
+                if any(k in dec_name.lower() for k in ("route", "get", "post", "put", "delete", "patch", "view")):
+                    route_funcs.append(node.name)
+
+        elif isinstance(node, ast.Call):
+            callee = ""
+            if isinstance(node.func, ast.Name):
+                callee = node.func.id
+            elif isinstance(node.func, ast.Attribute):
+                callee = node.func.attr
+            if callee:
+                calls.add(callee)
+
+    # Check for __name__ == "__main__"
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Compare):
+            for comp in ast.walk(node):
+                if isinstance(comp, ast.Constant) and comp.value == "__main__":
+                    has_main = True
+
+    return _FileInfo(
+        path=abs_path, imports=imports, function_defs=func_defs,
+        calls=calls, route_functions=route_funcs,
+        has_main=has_main, is_test=self._is_test_file(abs_path),
+    )
+
+
+# Attach methods to class
+ReachabilityAnalyzer.invalidate_file  = _invalidate_file   # type: ignore[attr-defined]
+ReachabilityAnalyzer.update_file      = _update_file        # type: ignore[attr-defined]
+ReachabilityAnalyzer.invalidate_files = _invalidate_files   # type: ignore[attr-defined]
+ReachabilityAnalyzer.update_files     = _update_files       # type: ignore[attr-defined]
+ReachabilityAnalyzer._parse_file      = _parse_file         # type: ignore[attr-defined]

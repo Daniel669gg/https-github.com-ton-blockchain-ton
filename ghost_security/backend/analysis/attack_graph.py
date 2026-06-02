@@ -17,7 +17,18 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 
 from pydantic import BaseModel, Field
 
-from backend.core.confidence import Finding
+try:
+    from backend.core.confidence import Finding
+except ImportError:
+    try:
+        from backend.core.engine.finding_normalizer import Finding  # type: ignore[no-redef]
+    except ImportError:
+        from pydantic import BaseModel as _BM  # type: ignore[no-redef]
+        class Finding(_BM):  # type: ignore[no-redef]
+            model_config = {"extra": "allow"}
+            rule_id: str = ""; file: str = ""; line: int = 0
+            severity: str = "MEDIUM"; confidence: float = 0.8
+            cwe_id: str = ""; description: str = ""
 
 logger = logging.getLogger("tythanai.attack_graph")
 
@@ -1305,3 +1316,150 @@ def build_exploit_chain(
     """
     builder = AttackGraphBuilder()
     return builder.build_exploit_chain(findings, entry_points or [], reachability_paths)
+
+
+# ---------------------------------------------------------------------------
+# Incremental Attack Graph methods (Phase 6, Part 6)
+# ---------------------------------------------------------------------------
+
+import time as _ag_time
+
+
+def _ag_update_findings(
+    self: "AttackGraphBuilder",
+    graph: AttackGraph,
+    added_findings: List[Finding],
+    removed_findings: List[Finding],
+) -> int:
+    """
+    Update an existing AttackGraph incrementally.
+
+    For removed findings:  remove their VULNERABILITY nodes and any edges/paths
+                           that reference those nodes.
+    For added findings:    add new VULNERABILITY nodes and re-score affected paths.
+
+    Returns the count of attack paths that were recomputed.
+    """
+    recomputed = 0
+
+    # Step 1: build set of IDs to remove
+    remove_ids: set = set()
+    for f in removed_findings:
+        fid = getattr(f, "rule_id", None) or (f.get("rule_id") if isinstance(f, dict) else None)
+        ffile = getattr(f, "file", None) or (f.get("file") if isinstance(f, dict) else None)
+        for node in graph.nodes:
+            props = node.properties
+            if (node.type == NodeType.VULNERABILITY
+                    and props.get("rule_id") == fid
+                    and props.get("file") == ffile):
+                remove_ids.add(node.node_id)
+
+    if remove_ids:
+        graph.nodes = [n for n in graph.nodes if n.node_id not in remove_ids]
+        graph.edges = [e for e in graph.edges
+                       if e.from_id not in remove_ids and e.to_id not in remove_ids]
+        # Remove paths that traversed any removed node
+        before = len(graph.critical_paths)
+        graph.critical_paths = [
+            p for p in graph.critical_paths
+            if not any(nid in remove_ids for nid in p)
+        ]
+        recomputed += before - len(graph.critical_paths)
+
+    # Step 2: add new VULNERABILITY nodes for added findings
+    existing_node_ids = {n.node_id for n in graph.nodes}
+    _sev_w = {"CRITICAL": 1.0, "HIGH": 0.75, "MEDIUM": 0.5, "LOW": 0.25, "INFO": 0.1}
+
+    for f in added_findings:
+        if isinstance(f, dict):
+            rule_id  = f.get("rule_id", f.get("type", "unknown"))
+            severity = f.get("severity", "MEDIUM").upper()
+            ffile    = f.get("file", "")
+            desc     = f.get("description", rule_id)
+        else:
+            rule_id  = getattr(f, "rule_id", "unknown")
+            severity = getattr(f, "severity", "MEDIUM").upper()
+            ffile    = getattr(f, "file", "")
+            desc     = getattr(f, "description", rule_id)
+
+        nid = f"vuln::{rule_id}::{ffile}"
+        if nid in existing_node_ids:
+            continue
+
+        prob = _sev_w.get(severity, 0.5)
+        new_node = GraphNode(
+            node_id=nid,
+            type=NodeType.VULNERABILITY,
+            label=f"{rule_id} ({severity})",
+            properties={
+                "rule_id":  rule_id,
+                "severity": severity,
+                "file":     ffile,
+                "description": desc,
+            },
+        )
+        graph.nodes.append(new_node)
+        existing_node_ids.add(nid)
+
+        # Connect Internet SOURCE → this VULNERABILITY
+        for src_node in graph.nodes:
+            if src_node.type == NodeType.SOURCE:
+                graph.edges.append(GraphEdge(
+                    from_id=src_node.node_id,
+                    to_id=nid,
+                    label="exposes",
+                    probability=prob,
+                    risk_weight=prob,
+                ))
+                break
+
+        recomputed += 1
+
+    # Step 3: recompute risk score from current state
+    if added_findings or removed_findings:
+        graph.risk_score = self.compute_risk_score(graph)
+
+    return recomputed
+
+
+def _ag_recompute_affected_paths(
+    self: "AttackGraphBuilder",
+    graph: AttackGraph,
+    changed_node_ids: List[str],
+) -> List[ScoredAttackPath]:
+    """
+    Recompute only attack paths that pass through any of *changed_node_ids*.
+    Leaves unaffected paths untouched.
+
+    Returns the list of recomputed ScoredAttackPath objects.
+    """
+    if not changed_node_ids:
+        return []
+
+    changed_set = set(changed_node_ids)
+    recomputed: List[ScoredAttackPath] = []
+
+    # Identify which critical_paths are affected
+    affected_paths = [p for p in graph.critical_paths if any(n in changed_set for n in p)]
+    unaffected     = [p for p in graph.critical_paths if p not in affected_paths]
+
+    # Re-score each affected path
+    node_map = {n.node_id: n for n in graph.nodes}
+    for path_ids in affected_paths:
+        path_nodes = [node_map[nid] for nid in path_ids if nid in node_map]
+        if not path_nodes:
+            continue
+        scored = self._score_path(path_nodes, graph)   # type: ignore[attr-defined]
+        if scored:
+            recomputed.append(scored)
+
+    # Rebuild critical_paths: keep unaffected + re-scored
+    rescored_paths = [sp.path_nodes for sp in recomputed]
+    graph.critical_paths = unaffected + rescored_paths
+    graph.risk_score = self.compute_risk_score(graph)
+
+    return recomputed
+
+
+AttackGraphBuilder.update_findings          = _ag_update_findings          # type: ignore[attr-defined]
+AttackGraphBuilder.recompute_affected_paths = _ag_recompute_affected_paths # type: ignore[attr-defined]
