@@ -5,9 +5,66 @@ FastAPI imports are lazy — core modules work without FastAPI.
 """
 from __future__ import annotations
 import os, time, traceback, uuid
+from typing import Optional
 
 from core.security.rate_limiter    import RATE_LIMITER
 from core.security.structured_logger import LOG
+
+
+# ---------------------------------------------------------------------------
+# FastAPI dependency functions (used with Depends())
+# ---------------------------------------------------------------------------
+# We import FastAPI types lazily so that core modules remain importable
+# without FastAPI installed (unit tests, CLI usage).
+try:
+    from fastapi import HTTPException as _HTTPException, Request as _Request
+    from fastapi.security.utils import get_authorization_scheme_param as _scheme_param
+    _FASTAPI_AVAILABLE = True
+except ImportError:
+    _HTTPException = Exception  # type: ignore[misc,assignment]
+    _Request = None             # type: ignore[assignment,misc]
+    _FASTAPI_AVAILABLE = False
+
+
+async def verify_api_key(request: Optional[_Request] = None) -> bool:  # type: ignore[valid-type]
+    """FastAPI dependency: validate API key from Authorization header.
+
+    When API_KEY_REQUIRED env var is unset or empty, all requests pass
+    (development / self-hosted mode).  In production set API_KEY_REQUIRED=1
+    and provide valid keys via API_KEYS (comma-separated).
+    """
+    if not os.getenv("API_KEY_REQUIRED", "").strip():
+        return True
+    if not _FASTAPI_AVAILABLE or request is None:
+        return True
+
+    auth_header: str = request.headers.get("Authorization", "")
+    scheme, token = _scheme_param(auth_header)
+    if scheme.lower() != "bearer" or not token:
+        raise _HTTPException(status_code=401, detail="Missing or invalid Authorization header")
+    valid_keys = {k.strip() for k in os.getenv("API_KEYS", "").split(",") if k.strip()}
+    if valid_keys and token not in valid_keys:
+        raise _HTTPException(status_code=403, detail="Invalid API key")
+    return True
+
+
+async def rate_limit(request: Optional[_Request] = None) -> bool:  # type: ignore[valid-type]
+    """FastAPI dependency: per-route rate limit check (complements global middleware)."""
+    if not _FASTAPI_AVAILABLE or request is None:
+        return True
+
+    auth: str = request.headers.get("authorization", "")
+    key = auth[7:27] if auth.startswith("Bearer ") else (
+        request.client.host if request.client else "anon"
+    )
+    allowed, remaining, retry = RATE_LIMITER.check(key, request.url.path)
+    if not allowed:
+        raise _HTTPException(
+            status_code=429,
+            detail={"error": "rate_limit_exceeded", "retry_after": retry},
+            headers={"Retry-After": str(retry), "X-RateLimit-Remaining": "0"},
+        )
+    return True
 
 
 def register_middleware(app) -> None:

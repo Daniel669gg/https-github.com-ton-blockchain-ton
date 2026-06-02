@@ -189,42 +189,42 @@ class UnifiedScanEngine:
             try:
                 from scanners.ast_scanner.ast_analyzer import ASTScanner
                 self._ast = ASTScanner()
-            except Exception as exc:
+            except (ImportError, ModuleNotFoundError) as exc:
                 self._load_errors.append(f"AST scanner load failed: {exc}")
 
         if self._opts.enable_semgrep:
             try:
                 from scanners.semgrep_integration import SemgrepScanner
                 self._semgrep = SemgrepScanner()
-            except Exception as exc:
+            except (ImportError, ModuleNotFoundError) as exc:
                 self._load_errors.append(f"Semgrep scanner load failed: {exc}")
 
         if self._opts.enable_osv:
             try:
                 from scanners.osv_scanner import OSVScanner
                 self._osv = OSVScanner()
-            except Exception as exc:
+            except (ImportError, ModuleNotFoundError) as exc:
                 self._load_errors.append(f"OSV scanner load failed: {exc}")
 
         if self._opts.enable_secrets:
             try:
                 from scanners.secret_scanner.secret_detector import SecretDetector
                 self._secrets = SecretDetector()
-            except Exception as exc:
+            except (ImportError, ModuleNotFoundError) as exc:
                 self._load_errors.append(f"Secret scanner load failed: {exc}")
 
         if self._opts.enable_owasp:
             try:
                 from scanners.owasp_scanner import OWASPScanner
                 self._owasp = OWASPScanner()
-            except Exception as exc:
+            except (ImportError, ModuleNotFoundError) as exc:
                 self._load_errors.append(f"OWASP scanner load failed: {exc}")
 
         if self._opts.enable_epss:
             try:
                 from scanners.epss_enricher import EPSSEnricher
                 self._epss = EPSSEnricher()
-            except Exception as exc:
+            except (ImportError, ModuleNotFoundError) as exc:
                 self._load_errors.append(f"EPSS enricher load failed: {exc}")
 
     # ------------------------------------------------------------------

@@ -284,7 +284,7 @@ async def scan_code(request: CodeScanRequest, _: bool = Depends(verify_api_key),
 
 
 @app.post("/api/scan/path")
-async def scan_path(request: ScanRequest):
+async def scan_path(request: ScanRequest, _: bool = Depends(verify_api_key), __: bool = Depends(rate_limit)):
     """Scan a local path for security issues."""
     target = Path(request.path)
     if not target.exists():
@@ -324,7 +324,7 @@ async def scan_path(request: ScanRequest):
 
 
 @app.post("/api/github/watch")
-async def watch_github(request: GitHubRequest):
+async def watch_github(request: GitHubRequest, _: bool = Depends(verify_api_key), __: bool = Depends(rate_limit)):
     """Watch GitHub repository for security issues."""
     result = github_watcher.watch_repository(
         request.owner, request.repo,
@@ -334,7 +334,7 @@ async def watch_github(request: GitHubRequest):
 
 
 @app.get("/api/github/repo/{owner}/{repo}")
-async def get_github_repo(owner: str, repo: str):
+async def get_github_repo(owner: str, repo: str, _: bool = Depends(verify_api_key), __: bool = Depends(rate_limit)):
     """Get GitHub repository security information."""
     info = github_watcher.get_repo_info(owner, repo)
     commits = github_watcher.get_commits(owner, repo, per_page=5)
@@ -342,7 +342,7 @@ async def get_github_repo(owner: str, repo: str):
 
 
 @app.post("/api/agent/task")
-async def run_agent_task(request: AgentTaskRequest):
+async def run_agent_task(request: AgentTaskRequest, _: bool = Depends(verify_api_key), __: bool = Depends(rate_limit)):
     """Run a single agent task with full tool access."""
     from core.agent.agent_loop import AgentLoop
     from core.tools.tool_registry import ToolRegistry
@@ -353,13 +353,13 @@ async def run_agent_task(request: AgentTaskRequest):
 
 
 @app.get("/api/memory/stats")
-async def get_memory_stats():
+async def get_memory_stats(_: bool = Depends(verify_api_key), __: bool = Depends(rate_limit)):
     """Get memory system statistics."""
     return memory.get_stats()
 
 
 @app.get("/api/memory/search")
-async def search_memory(q: str, n: int = 5):
+async def search_memory(q: str, n: int = 5, _: bool = Depends(verify_api_key), __: bool = Depends(rate_limit)):
     """Search memory for similar findings."""
     results = memory.search_similar(q, n_results=n)
     return {"query": q, "results": results}
@@ -368,7 +368,7 @@ async def search_memory(q: str, n: int = 5):
 
 
 @app.post("/api/scan/owasp")
-async def scan_owasp(body: dict):
+async def scan_owasp(body: dict, _: bool = Depends(verify_api_key), __: bool = Depends(rate_limit)):
     """OWASP Top 10 (2021) systematic scan for a directory or file."""
     from scanners.owasp_scanner import OWASPScanner
     from pathlib import Path as _P
@@ -384,7 +384,7 @@ async def scan_owasp(body: dict):
 
 
 @app.post("/api/scan/js")
-async def scan_javascript(body: dict):
+async def scan_javascript(body: dict, _: bool = Depends(verify_api_key), __: bool = Depends(rate_limit)):
     """JavaScript / TypeScript static security analysis."""
     from scanners.js_analyzer import JSAnalyzer
     from pathlib import Path as _P
@@ -406,7 +406,7 @@ async def scan_javascript(body: dict):
 
 
 @app.post("/api/scan/solidity")
-async def scan_solidity(body: dict):
+async def scan_solidity(body: dict, _: bool = Depends(verify_api_key), __: bool = Depends(rate_limit)):
     """Solidity smart contract static security analysis."""
     from scanners.solidity_scanner import SolidityScanner
     from pathlib import Path as _P
@@ -421,7 +421,7 @@ async def scan_solidity(body: dict):
 
 
 @app.post("/api/scan/all")
-async def scan_all(body: dict):
+async def scan_all(body: dict, _: bool = Depends(verify_api_key), __: bool = Depends(rate_limit)):
     """Full pipeline scan using all available scanners."""
     from scanners.security_pipeline import SecurityPipeline
     from pathlib import Path as _P
@@ -441,7 +441,7 @@ async def scan_all(body: dict):
 
 
 @app.post("/api/scan/deps")
-async def scan_dependencies(body: dict):
+async def scan_dependencies(body: dict, _: bool = Depends(verify_api_key), __: bool = Depends(rate_limit)):
     """Scan dependency manifests for known CVEs."""
     from scanners.dependency_scanner import DependencyScanner
     from pathlib import Path as _P
@@ -463,7 +463,7 @@ async def scan_dependencies(body: dict):
 
 
 @app.post("/api/enrich")
-async def enrich_findings(body: dict):
+async def enrich_findings(body: dict, _: bool = Depends(verify_api_key), __: bool = Depends(rate_limit)):
     """Enrich findings with LLM analysis, confidence scores, CVSS vectors."""
     from scanners.llm_analyzer import LLMAnalyzer
     findings = body.get("findings", [])
