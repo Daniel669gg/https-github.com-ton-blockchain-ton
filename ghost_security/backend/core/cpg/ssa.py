@@ -28,6 +28,106 @@ if TYPE_CHECKING:
 
 
 # ---------------------------------------------------------------------------
+# Dominance-computation helpers — Cooper, Harvey & Kennedy 2001
+# "A Simple, Fast Dominance Algorithm"
+# ---------------------------------------------------------------------------
+
+def _cfg_post_order(
+    entry_id: str,
+    cpg: "CodePropertyGraph",
+    cfg_edge_types: Set,
+) -> List[str]:
+    """Return reachable CFG nodes in post-order via iterative DFS."""
+    post_order: List[str] = []
+    visited: Set[str] = set()
+    # Stack entries: (node_id, processed)
+    stack: List[Tuple[str, bool]] = [(entry_id, False)]
+    while stack:
+        node, processed = stack.pop()
+        if processed:
+            post_order.append(node)
+            continue
+        if node in visited:
+            continue
+        visited.add(node)
+        stack.append((node, True))
+        for edge in reversed(cpg._adj.get(node, [])):
+            if edge.edge_type in cfg_edge_types and edge.dst_id not in visited:
+                stack.append((edge.dst_id, False))
+    return post_order
+
+
+def _compute_idom(
+    entry_id: str,
+    rpo: List[str],
+    pred_map: Dict[str, List[str]],
+) -> Dict[str, str]:
+    """
+    Compute immediate dominators via the Cooper-Harvey-Kennedy iterative
+    algorithm.  Returns idom[n] = immediate dominator of n;
+    idom[entry] = entry (fixed point).
+    """
+    rpo_number: Dict[str, int] = {n: i for i, n in enumerate(rpo)}
+    idom: Dict[str, str] = {entry_id: entry_id}
+
+    def _intersect(b1: str, b2: str) -> str:
+        while b1 != b2:
+            while rpo_number.get(b1, len(rpo)) > rpo_number.get(b2, len(rpo)):
+                b1 = idom.get(b1, b1)
+            while rpo_number.get(b2, len(rpo)) > rpo_number.get(b1, len(rpo)):
+                b2 = idom.get(b2, b2)
+        return b1
+
+    changed = True
+    while changed:
+        changed = False
+        for n in rpo[1:]:  # skip entry
+            processed = [p for p in pred_map.get(n, []) if p in idom]
+            if not processed:
+                continue
+            new_idom = processed[0]
+            for other in processed[1:]:
+                new_idom = _intersect(new_idom, other)
+            if idom.get(n) != new_idom:
+                idom[n] = new_idom
+                changed = True
+
+    return idom
+
+
+def _compute_df(
+    rpo: List[str],
+    idom: Dict[str, str],
+    pred_map: Dict[str, List[str]],
+) -> Dict[str, Set[str]]:
+    """
+    Compute dominance frontier for every node.
+    df[n] = { y | ∃ pred p of y: n dominates p, but n ≠ idom(y) }.
+    """
+    df: Dict[str, Set[str]] = {n: set() for n in rpo}
+    rpo_len = len(rpo)
+
+    for y in rpo:
+        preds = pred_map.get(y, [])
+        if len(preds) < 2:
+            continue
+        idom_y = idom.get(y, y)
+        for p in preds:
+            runner = p
+            steps = 0
+            while runner != idom_y and steps < rpo_len:
+                if runner in df:
+                    df[runner].add(y)
+                prev = runner
+                runner = idom.get(runner, runner)
+                if runner == prev:  # entry is its own idom → stop
+                    break
+                steps += 1
+
+    return df
+
+
+# ---------------------------------------------------------------------------
 # Data classes
 # ---------------------------------------------------------------------------
 
@@ -215,7 +315,7 @@ class SSAForm:
         self.version += 1
 
     # ------------------------------------------------------------------
-    # Internal CPG-based build
+    # Internal CPG-based build — proper dominance frontier SSA
     # ------------------------------------------------------------------
 
     def _build_function_from_cpg(
@@ -225,58 +325,136 @@ class SSAForm:
         cpg:             "CodePropertyGraph",
         cfg_edge_types:  Set["CPGEdgeType"],
     ) -> None:
-        """Walk the CFG in BFS order, extract assignments, version variables."""
-        visited: Set[str]  = set()
-        order:   List[str] = []
-        queue:   List[str] = [entry_id]
-        visited.add(entry_id)
+        """
+        Build SSA form for one function using the Cooper-Harvey-Kennedy (2001)
+        dominance frontier algorithm:
 
-        while queue:
-            cur = queue.pop(0)
-            order.append(cur)
-            for edge in cpg._adj.get(cur, []):
-                if edge.edge_type in cfg_edge_types and edge.dst_id not in visited:
-                    visited.add(edge.dst_id)
-                    queue.append(edge.dst_id)
+        1. Compute RPO traversal + immediate dominators (idom)
+        2. Compute dominance frontier (DF) for every node
+        3. Insert phi nodes at the iterated dominance frontier (IDF) of each
+           variable's definition sites
+        4. Rename variables in pre-order DFS of the dominator tree, filling
+           phi-node operands with the correct reaching versions
+        """
+        # Step 1 — RPO + predecessor map
+        post_order = _cfg_post_order(entry_id, cpg, cfg_edge_types)
+        if not post_order:
+            return
+        rpo: List[str]    = list(reversed(post_order))
+        rpo_set: Set[str] = set(rpo)
 
-        # Current version for each var as we walk the BFS order
-        var_versions: Dict[str, int] = {}
+        pred_map: Dict[str, List[str]] = {n: [] for n in rpo}
+        for n in rpo:
+            for edge in cpg._radj.get(n, []):
+                if edge.edge_type in cfg_edge_types and edge.src_id in rpo_set:
+                    pred_map[n].append(edge.src_id)
 
-        for node_id in order:
+        # Step 2 — idom + dominance frontier
+        idom = _compute_idom(entry_id, rpo, pred_map)
+        df   = _compute_df(rpo, idom, pred_map)
+
+        # Step 3 — collect definition sites per variable
+        var_defs: Dict[str, Set[str]] = defaultdict(set)
+        for node_id in rpo:
             node = cpg.nodes.get(node_id)
             if node is None:
                 continue
+            for var_name, _ in self._extract_assignments(node.code):
+                var_defs[var_name].add(node_id)
 
-            # Count CFG predecessors to detect join points
-            preds = [
-                e for e in cpg._radj.get(node_id, [])
-                if e.edge_type in cfg_edge_types
-            ]
-            if len(preds) > 1:
-                # Insert phi nodes for all currently-versioned variables
-                for var_name, cur_ver in list(var_versions.items()):
+        # Step 4 — place phi nodes via iterated DF
+        phi_node_map: Dict[str, Dict[str, PhiNode]] = {}  # node_id → var → phi
+        for var_name, def_nodes in var_defs.items():
+            worklist: Set[str] = set(def_nodes)
+            placed:   Set[str] = set()
+            while worklist:
+                n = worklist.pop()
+                for y in df.get(n, set()):
+                    if y in placed:
+                        continue
+                    placed.add(y)
+                    preds_y = pred_map.get(y, [])
                     phi_ver = self._version_counter[var_name]
                     self._version_counter[var_name] += 1
-                    operand = SSAVariable(var_name, cur_ver, node_id, None)
                     phi = PhiNode(
                         var_name       = var_name,
-                        node_id        = node_id,
-                        operands       = [operand],
+                        node_id        = y,
+                        operands       = [SSAVariable(var_name, -1, p, None) for p in preds_y],
                         result_version = phi_ver,
                     )
-                    self.phi_nodes[node_id].append(phi)
-                    var_versions[var_name] = phi_ver
+                    self.phi_nodes[y].append(phi)
+                    phi_node_map.setdefault(y, {})[var_name] = phi
+                    if y not in def_nodes:
+                        worklist.add(y)
 
-            # Extract assignments from node code
-            for var_name, const_val in self._extract_assignments(node.code):
-                ver = self._version_counter[var_name]
-                self._version_counter[var_name] += 1
-                ssa_var = SSAVariable(var_name, ver, node_id, const_val)
-                self.variables[var_name].append(ssa_var)
-                self._func_vars[func_name].add(var_name)
-                var_versions[var_name] = ver
-                if const_val is not None:
-                    self.constants[ssa_var.ssa_name] = const_val
+        # Step 5 — dominator-tree children map
+        dom_children: Dict[str, List[str]] = defaultdict(list)
+        for n in rpo:
+            p = idom.get(n)
+            if p is not None and p != n:
+                dom_children[p].append(n)
+
+        # Step 6 — rename variables in pre-order DFS of dominator tree.
+        # Uses an explicit stack to avoid Python recursion-limit issues:
+        #   (node_id, is_cleanup, vars_pushed_at_this_node)
+        var_stacks: Dict[str, List[int]] = defaultdict(list)
+        dfs_stack: List[Tuple[str, bool, List[str]]] = [(entry_id, False, [])]
+
+        while dfs_stack:
+            node_id, is_cleanup, vars_to_pop = dfs_stack.pop()
+
+            if is_cleanup:
+                for vname in reversed(vars_to_pop):
+                    if var_stacks[vname]:
+                        var_stacks[vname].pop()
+                continue
+
+            pushed: List[str] = []
+
+            # Phi-node outputs count as definitions at the block entry
+            for phi in self.phi_nodes.get(node_id, []):
+                var_stacks[phi.var_name].append(phi.result_version)
+                pushed.append(phi.var_name)
+                self.variables[phi.var_name].append(
+                    SSAVariable(phi.var_name, phi.result_version, node_id, None)
+                )
+                self._func_vars[func_name].add(phi.var_name)
+
+            # Regular assignments
+            node = cpg.nodes.get(node_id)
+            if node is not None:
+                for var_name, const_val in self._extract_assignments(node.code):
+                    ver = self._version_counter[var_name]
+                    self._version_counter[var_name] += 1
+                    ssa_var = SSAVariable(var_name, ver, node_id, const_val)
+                    self.variables[var_name].append(ssa_var)
+                    self._func_vars[func_name].add(var_name)
+                    var_stacks[var_name].append(ver)
+                    pushed.append(var_name)
+                    if const_val is not None:
+                        self.constants[ssa_var.ssa_name] = const_val
+
+            # Fill phi-operands for CFG successors
+            for edge in cpg._adj.get(node_id, []):
+                if edge.edge_type not in cfg_edge_types:
+                    continue
+                succ_id = edge.dst_id
+                if succ_id not in phi_node_map:
+                    continue
+                for var_name, phi in phi_node_map[succ_id].items():
+                    if not var_stacks[var_name]:
+                        continue
+                    cur_ver = var_stacks[var_name][-1]
+                    for i, op in enumerate(phi.operands):
+                        if op.node_id == node_id and op.version == -1:
+                            phi.operands[i] = SSAVariable(var_name, cur_ver, node_id, None)
+                            break
+
+            # Push cleanup marker (runs after all children are processed)
+            dfs_stack.append((node_id, True, pushed))
+            # Push children in reverse order for correct traversal order
+            for child in reversed(dom_children.get(node_id, [])):
+                dfs_stack.append((child, False, []))
 
     # ------------------------------------------------------------------
     # Internal AST-based build (no CPG)

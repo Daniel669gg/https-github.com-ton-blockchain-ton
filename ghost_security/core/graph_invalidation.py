@@ -18,13 +18,24 @@ from __future__ import annotations
 
 import ast
 import hashlib
+import json
 import os
 import re
+import threading
 import time
+import urllib.error
+import urllib.request
 from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set, Tuple
+
+# ---------------------------------------------------------------------------
+# Module-level OSV API cache — shared across DependencyImpactAnalyzer instances
+# ---------------------------------------------------------------------------
+_OSV_LOCK:    threading.Lock                       = threading.Lock()
+_OSV_CACHE:   Dict[str, Tuple[List[str], float]]  = {}   # "pkg@ver" → ([ids], timestamp)
+_OSV_TTL:     float                                = 3600.0  # 1-hour TTL
 
 # ---------------------------------------------------------------------------
 # Entry-point decorator keywords (case-insensitive substring match)
@@ -496,6 +507,7 @@ class GraphInvalidationManager:
         self,
         impact: ImpactSet,
         call_graph: dict,
+        max_depth: int = 0,
     ) -> ImpactSet:
         """
         Extend *impact* with transitive callers found in *call_graph*.
@@ -504,9 +516,16 @@ class GraphInvalidationManager:
         which has a ``"nodes"`` key containing a list of node dicts each
         with ``"qualified"``, ``"called_by"``, and ``"calls"`` fields.
 
-        The method walks up to 5 hops of the caller graph, adding every
-        caller of a directly-changed symbol to ``impact.callers``.  The
-        original ``impact`` object is mutated in place and also returned.
+        Parameters
+        ----------
+        impact     : ImpactSet to mutate in-place and return.
+        call_graph : Graph dict from CallGraphGenerator.build().
+        max_depth  : Maximum caller-hop depth.  0 (default) means unlimited
+                     traversal — the BFS stops only when no new callers are
+                     reachable.  Positive values cap the depth explicitly.
+
+        Cycle detection is handled by a ``visited`` set so the BFS always
+        terminates regardless of cycles in the call graph.
         """
         nodes: List[dict] = call_graph.get("nodes", [])
         if not nodes:
@@ -517,36 +536,27 @@ class GraphInvalidationManager:
             n["qualified"]: n for n in nodes if "qualified" in n
         }
 
-        # Also build a short-name index for fuzzy matching
-        # (the call_graph uses module-qualified names like "auth.login"
-        #  while our symbol map may just say "login").
-        short_to_qualified: Dict[str, List[str]] = defaultdict(list)
-        for qname in node_map:
-            parts = qname.rsplit(".", 1)
-            short = parts[-1] if len(parts) > 1 else qname
-            short_to_qualified[short].append(qname)
-
         def resolve_symbol(sym: str) -> Set[str]:
             """Map a symbol name to all matching qualified names in the call graph."""
             if sym in node_map:
                 return {sym}
-            # Try suffix match: "MyClass.method" → ends with ".method"
             candidates: Set[str] = set()
             for qname in node_map:
                 if qname.endswith(f".{sym}") or qname == sym:
                     candidates.add(qname)
             return candidates
 
-        # Seed the frontier with call-graph nodes that correspond to
-        # directly-changed symbols.
+        # Seed the frontier with call-graph nodes for directly-changed symbols
         frontier: Set[str] = set()
         for sym in impact.directly_changed:
             frontier.update(resolve_symbol(sym))
 
-        visited: Set[str] = set(frontier)
+        # BFS with cycle detection
+        visited:     Set[str] = set(frontier)
         new_callers: Set[str] = set()
+        depth = 0
 
-        for _hop in range(5):
+        while frontier and (max_depth == 0 or depth < max_depth):
             next_frontier: Set[str] = set()
             for qname in frontier:
                 node = node_map.get(qname)
@@ -560,6 +570,7 @@ class GraphInvalidationManager:
             if not next_frontier:
                 break
             frontier = next_frontier
+            depth += 1
 
         impact.callers.update(new_callers)
 
@@ -636,6 +647,59 @@ class DependencyImpact:
             "affected_symbols": sorted(self.affected_symbols),
             "risk_level":       self.risk_level,
         }
+
+
+def _fetch_osv_vulns(package_name: str, version: str) -> List[str]:
+    """
+    Query the OSV.dev API for vulnerability IDs affecting *package_name*
+    at *version* (PyPI ecosystem).
+
+    Results are cached with a 1-hour TTL (module-level) so repeated calls
+    for the same package@version return immediately without network I/O.
+
+    Returns a list of IDs — OSV IDs (e.g. "GHSA-…") and any CVE aliases.
+    Falls back to an empty list on any network / parse error.
+    """
+    cache_key = f"{package_name}@{version}"
+    now = time.time()
+
+    with _OSV_LOCK:
+        if cache_key in _OSV_CACHE:
+            ids, fetched_at = _OSV_CACHE[cache_key]
+            if now - fetched_at < _OSV_TTL:
+                return list(ids)
+
+    vuln_ids: List[str] = []
+    try:
+        payload = json.dumps({
+            "version": version,
+            "package": {"name": package_name, "ecosystem": "PyPI"},
+        }).encode("utf-8")
+        req = urllib.request.Request(
+            "https://api.osv.dev/v1/query",
+            data=payload,
+            headers={
+                "Content-Type": "application/json",
+                "User-Agent":   "TythanAI-SecurityScanner/6.5",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read())
+        for vuln in data.get("vulns", []):
+            vid = vuln.get("id", "")
+            if vid and vid not in vuln_ids:
+                vuln_ids.append(vid)
+            for alias in vuln.get("aliases", []):
+                if alias and alias not in vuln_ids:
+                    vuln_ids.append(alias)
+    except Exception:
+        pass
+
+    with _OSV_LOCK:
+        _OSV_CACHE[cache_key] = (list(vuln_ids), time.time())
+
+    return vuln_ids
 
 
 class DependencyImpactAnalyzer:
@@ -734,8 +798,11 @@ class DependencyImpactAnalyzer:
             if not is_test:
                 reachable_files.append(fpath)
 
-        # 2. Correlate with findings to find affected CVEs
-        affected_cves: List[str] = []
+        # 2. Query OSV API for live CVE data (old_version is the affected one)
+        osv_ids = _fetch_osv_vulns(package_name, old_version)
+
+        # 3. Correlate with findings to find additional CVEs
+        affected_cves: List[str] = list(osv_ids)  # seed with live OSV data
         if findings:
             affected_set = set(affected_files)
             for f in findings:
@@ -744,17 +811,35 @@ class DependencyImpactAnalyzer:
                     cve = f.get("cve_id") or f.get("cve") or ""
                     if cve and cve not in affected_cves:
                         affected_cves.append(cve)
-                # Also check by package name in finding description
                 desc = (f.get("description", "") + f.get("message", "")).lower()
                 if package_name.lower() in desc:
                     cve = f.get("cve_id") or f.get("cve") or ""
                     if cve and cve not in affected_cves:
                         affected_cves.append(cve)
 
-        # 3. Compute risk level
+        # 4. Enrich CVE list with EPSS scores to refine risk level
+        epss_scores: Dict[str, float] = {}
+        cve_only = [c for c in affected_cves if c.upper().startswith("CVE-")]
+        if cve_only:
+            try:
+                from scanners.epss_enricher import EPSSEnricher
+                enricher = EPSSEnricher()
+                dummy_findings = [{"cve_id": c, "severity": "HIGH"} for c in cve_only]
+                enriched = enricher.enrich(dummy_findings)
+                for ef in enriched:
+                    cid = ef.get("cve_id", "")
+                    if cid:
+                        epss_scores[cid] = float(ef.get("epss_score", 0.0))
+            except Exception:
+                pass
+
+        # 5. Compute risk level (EPSS-aware when scores are available)
+        max_epss = max(epss_scores.values(), default=0.0)
         if len(reachable_files) == 0:
             risk = "NONE"
-        elif any(c for c in affected_cves):
+        elif max_epss >= 0.7:
+            risk = "CRITICAL"
+        elif affected_cves or max_epss >= 0.3:
             risk = "HIGH"
         elif len(reachable_files) > 5:
             risk = "MEDIUM"

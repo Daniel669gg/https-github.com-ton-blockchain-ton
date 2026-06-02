@@ -556,6 +556,11 @@ class PythonCPGBuilder:
         if isinstance(stmt, (ast.If, ast.While, ast.For)):
             return self._build_branch(stmt, filepath, lines, func_name, cpg, defined_vars)
 
+        # Python 3.10+ match/case (ast.Match is absent on older interpreters)
+        _ast_Match = getattr(ast, "Match", None)
+        if _ast_Match is not None and isinstance(stmt, _ast_Match):
+            return self._build_match(stmt, filepath, lines, func_name, cpg, defined_vars)
+
         # Extract source code line
         line_no = getattr(stmt, "lineno", 0)
         idx     = line_no - 1
@@ -625,6 +630,16 @@ class PythonCPGBuilder:
             ))
             cpg.add_edge(CPGEdge(node_id, call_id, CPGEdgeType.CG_CALL))
             break  # one call node per statement to keep the graph tractable
+
+        # Build sub-graphs for any comprehension / generator expression
+        # embedded in this statement (each creates an implicit scope)
+        _COMP_TYPES = (ast.ListComp, ast.SetComp, ast.DictComp, ast.GeneratorExp)
+        for child in ast.walk(stmt):
+            if isinstance(child, _COMP_TYPES):
+                self._build_comprehension(
+                    child, filepath, lines, func_name, cpg, defined_vars, node_id
+                )
+                break  # one comprehension sub-graph per statement
 
         return node_id, [node_id]
 
@@ -698,6 +713,136 @@ class PythonCPGBuilder:
             exit_ids.append(branch_id)
 
         return branch_id, exit_ids
+
+    # ------------------------------------------------------------------
+    # Comprehension builder (ListComp / SetComp / DictComp / GeneratorExp)
+    # ------------------------------------------------------------------
+
+    def _build_comprehension(
+        self,
+        comp:         ast.expr,
+        filepath:     str,
+        lines:        List[str],
+        func_name:    str,
+        cpg:          CodePropertyGraph,
+        defined_vars: Dict[str, str],
+        parent_id:    str,
+    ) -> Optional[str]:
+        """
+        Build a CFG sub-graph for a comprehension / generator expression.
+
+        Each comprehension creates an implicit scope (PEP 289).  We model it
+        as a CFG_BRANCH node (the implicit loop) connected to the parent
+        statement, plus DFG_DEF nodes for each iteration variable.
+        Returns the branch node_id (or None on error).
+        """
+        line_no   = getattr(comp, "lineno", 0)
+        idx       = line_no - 1
+        comp_type = type(comp).__name__
+        code      = lines[idx].strip()[:200] if 0 <= idx < len(lines) else f"<{comp_type}>"
+
+        branch_id = self._nid()
+        cpg.add_node(CPGNode(
+            node_id    = branch_id,
+            node_type  = CPGNodeType.CFG_BRANCH,
+            code       = code,
+            ast_type   = comp_type,
+            file       = filepath,
+            line       = line_no,
+            function   = func_name,
+            properties = {"comprehension_type": comp_type},
+        ))
+        cpg.add_edge(CPGEdge(parent_id, branch_id, CPGEdgeType.CFG_NEXT))
+
+        for gen in getattr(comp, "generators", []):
+            # Resolve the iterable's source code for taint detection
+            try:
+                iter_code = ast.unparse(gen.iter) if hasattr(ast, "unparse") else ""
+            except Exception:
+                iter_code = ""
+
+            # Iteration variable definition node
+            if isinstance(gen.target, ast.Name):
+                var_name = gen.target.id
+                iter_id  = self._nid()
+                ntype = CPGNodeType.DFG_SOURCE if _is_source(iter_code) else CPGNodeType.DFG_DEF
+                cpg.add_node(CPGNode(
+                    node_id    = iter_id,
+                    node_type  = ntype,
+                    code       = f"{var_name} = <iter>",
+                    ast_type   = "comprehension",
+                    file       = filepath,
+                    line       = line_no,
+                    function   = func_name,
+                    properties = {"var_name": var_name, "is_comp_var": True},
+                ))
+                cpg.add_edge(CPGEdge(branch_id, iter_id, CPGEdgeType.CFG_BRANCH_TRUE))
+                defined_vars[var_name] = iter_id
+
+        return branch_id
+
+    # ------------------------------------------------------------------
+    # Match/case builder (Python 3.10+ ast.Match)
+    # ------------------------------------------------------------------
+
+    def _build_match(
+        self,
+        stmt:         ast.stmt,
+        filepath:     str,
+        lines:        List[str],
+        func_name:    str,
+        cpg:          CodePropertyGraph,
+        defined_vars: Dict[str, str],
+    ) -> Tuple[str, List[str]]:
+        """
+        Build CFG nodes for a match/case statement (Python 3.10+ ast.Match).
+        Creates a CFG_BRANCH node for the match subject and arms for each case.
+        Returns (match_node_id, exit_node_ids).
+        """
+        line_no = getattr(stmt, "lineno", 0)
+        idx     = line_no - 1
+        code    = lines[idx].strip()[:200] if 0 <= idx < len(lines) else "match ..."
+
+        match_id = self._nid()
+        cpg.add_node(CPGNode(
+            node_id    = match_id,
+            node_type  = CPGNodeType.CFG_BRANCH,
+            code       = code,
+            ast_type   = "Match",
+            file       = filepath,
+            line       = line_no,
+            function   = func_name,
+            properties = {"is_match": True},
+        ))
+
+        exit_ids:   List[str] = []
+        first_case: bool      = True
+
+        for case in (getattr(stmt, "cases", []) or []):
+            case_prev = [match_id]
+            for body_stmt in (getattr(case, "body", []) or []):
+                sid, sexits = self._build_stmt(
+                    body_stmt, filepath, lines, func_name, cpg, defined_vars
+                )
+                if sid:
+                    for pid in case_prev:
+                        if pid == match_id:
+                            etype = (
+                                CPGEdgeType.CFG_BRANCH_TRUE
+                                if first_case
+                                else CPGEdgeType.CFG_BRANCH_FALSE
+                            )
+                        else:
+                            etype = CPGEdgeType.CFG_NEXT
+                        cpg.add_edge(CPGEdge(pid, sid, etype))
+                    case_prev = sexits if sexits else [sid]
+            exit_ids.extend(case_prev)
+            first_case = False
+
+        if not exit_ids:
+            exit_ids.append(match_id)
+
+        return match_id, exit_ids
 
     # ------------------------------------------------------------------
     # Cross-file call resolution (second pass)
