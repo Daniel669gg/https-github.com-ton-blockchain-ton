@@ -132,11 +132,14 @@ class CommunityScanner:
 
     def _run_sast(self) -> None:
         try:
-            from scanners.semgrep_scanner.runner import SemgrepRunner
-            runner = SemgrepRunner(rule_limit=COMMUNITY_LIMITS["max_rules"])
-            findings = runner.scan(self.target)
+            from scanners.semgrep_integration import SemgrepScanner
+            scanner = SemgrepScanner()
+            result = scanner.scan_directory(
+                self.target,
+                max_findings=COMMUNITY_LIMITS["max_rules"],
+            )
             self._result.sast_findings = [
-                _normalise(f, source="sast") for f in (findings or [])
+                _normalise(f, source="sast") for f in _extract(result)
             ]
         except Exception as exc:
             self._result.errors.append(f"SAST: {exc}")
@@ -147,19 +150,24 @@ class CommunityScanner:
     def _run_sca(self) -> None:
         try:
             from scanners.osv_scanner import OSVScanner
-            scanner = OSVScanner(max_packages=COMMUNITY_LIMITS["max_sca_packages"])
-            findings = scanner.scan_directory(self.target)
+            scanner = OSVScanner()
+            result = scanner.scan_directory(self.target)
+            findings = _extract(result)
+            # OSV needs network; if it returned nothing, supplement with the
+            # offline known-CVE database so the community user still gets value.
+            if not findings:
+                raise RuntimeError("OSV returned no data (offline?)")
             self._result.sca_findings = [
-                _normalise(f, source="sca") for f in (findings or [])
+                _normalise(f, source="sca") for f in findings
             ]
-        except Exception as exc:
-            # Fallback: try the built-in dependency_scanner
+        except Exception:
+            # Fallback: built-in offline dependency_scanner
             try:
                 from scanners.dependency_scanner import DependencyScanner
                 scanner2 = DependencyScanner()
-                findings2 = scanner2.scan_directory(self.target)
+                result2 = scanner2.scan_directory(self.target)
                 self._result.sca_findings = [
-                    _normalise(f, source="sca") for f in (findings2 or [])
+                    _normalise(f, source="sca") for f in _extract(result2)
                 ]
             except Exception as exc2:
                 self._result.errors.append(f"SCA: {exc2}")
@@ -169,24 +177,15 @@ class CommunityScanner:
 
     def _run_secrets(self) -> None:
         try:
-            from scanners.secret_scanner.detector import SecretDetector
+            from scanners.secret_scanner.secret_detector import SecretDetector
             detector = SecretDetector()
-            findings = detector.scan_directory(self.target)
+            result = detector.scan_directory(self.target)
             self._result.secrets_findings = [
-                _normalise(f, source="secrets") for f in (findings or [])
+                _normalise(f, source="secrets") for f in _extract(result)
             ]
         except Exception as exc:
-            # Fallback: git_secrets scanner
-            try:
-                from backend.scanners.git_secrets import GitSecretsScanner
-                scanner2 = GitSecretsScanner()
-                findings2 = scanner2.scan(self.target)
-                self._result.secrets_findings = [
-                    _normalise(f, source="secrets") for f in (findings2 or [])
-                ]
-            except Exception as exc2:
-                self._result.errors.append(f"Secrets: {exc2}")
-                logger.debug("Secrets error: %s", exc2, exc_info=True)
+            self._result.errors.append(f"Secrets: {exc}")
+            logger.debug("Secrets error: %s", exc, exc_info=True)
 
     # ── IaC ───────────────────────────────────────────────────────────────────
 
@@ -194,9 +193,9 @@ class CommunityScanner:
         try:
             from backend.scanners.iac_scanner import IaCScanner
             scanner = IaCScanner()
-            findings = scanner.scan_directory(self.target)
+            result = scanner.scan_directory(self.target)
             self._result.iac_findings = [
-                _normalise(f, source="iac") for f in (findings or [])
+                _normalise(f, source="iac") for f in _extract(result)
             ]
         except Exception as exc:
             self._result.errors.append(f"IaC: {exc}")
@@ -212,9 +211,11 @@ class CommunityScanner:
         try:
             from blockchain.smart_contract_auditor import SmartContractAuditor
             auditor = SmartContractAuditor()
-            raw = auditor.audit_directory(self.target) or []
-            ton = [_normalise(f, source="web3:ton") for f in raw]
-            findings.extend(ton[:rule_cap])
+            ton = [
+                _normalise(f, source="web3:ton")
+                for f in _extract(auditor.audit_directory(self.target))
+            ]
+            findings.extend(ton[: rule_cap * 2])  # TON is the wedge — show more
         except Exception as exc:
             self._result.errors.append(f"Web3/TON: {exc}")
 
@@ -222,24 +223,26 @@ class CommunityScanner:
         try:
             from scanners.solidity_scanner import SolidityScanner
             scanner = SolidityScanner()
-            raw = scanner.scan_directory(self.target) or []
-            sol = [_normalise(f, source="web3:solidity") for f in raw]
+            sol = [
+                _normalise(f, source="web3:solidity")
+                for f in _extract(scanner.scan_directory(self.target))
+            ]
             findings.extend(sol[:rule_cap])
         except Exception as exc:
             self._result.errors.append(f"Web3/Solidity: {exc}")
 
-        # Solana + CosmWasm
+        # Solana + CosmWasm (one auditor, findings carry a `chain` field)
         try:
             from blockchain.multichain_auditor import MultiChainAuditor
             auditor = MultiChainAuditor()
-            result = auditor.audit_directory(self.target) or {}
-            for chain_key in ("solana_findings", "cosmwasm_findings"):
-                chain_raw = result.get(chain_key) or []
-                chain_findings = [
-                    _normalise(f, source=f"web3:{chain_key.split('_')[0]}")
-                    for f in chain_raw
-                ]
-                findings.extend(chain_findings[:rule_cap])
+            raw = _extract(auditor.audit_directory(self.target))
+            per_chain: Dict[str, int] = {}
+            for f in raw:
+                chain = str(f.get("chain", "MULTICHAIN")).upper()
+                if per_chain.get(chain, 0) >= rule_cap:
+                    continue
+                per_chain[chain] = per_chain.get(chain, 0) + 1
+                findings.append(_normalise(f, source=f"web3:{chain.lower()}"))
         except Exception as exc:
             self._result.errors.append(f"Web3/MultiChain: {exc}")
 
@@ -268,10 +271,30 @@ class CommunityScanner:
             self._result.gated_features.append(gate("dast"))
 
 
-# ─── Normalisation helper ─────────────────────────────────────────────────────
+# ─── Extraction + normalisation helpers ───────────────────────────────────────
+
+def _extract(result: Any) -> List[Any]:
+    """
+    Pull the findings list out of a scanner result, which may be either a
+    bare list or a dict with a "findings" key. Always returns a list.
+    """
+    if result is None:
+        return []
+    if isinstance(result, dict):
+        return list(result.get("findings", []) or [])
+    if isinstance(result, (list, tuple)):
+        return list(result)
+    return []
+
+
+# Common alternative severity field names used across the bundled scanners.
+_SEV_KEYS = ("severity", "sev", "level", "severity_level")
+_TITLE_KEYS = ("title", "message", "desc", "description", "name")
+_VALID_SEV = {"CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO"}
+
 
 def _normalise(finding: Any, source: str) -> dict:
-    """Ensure every finding is a plain dict with required keys."""
+    """Ensure every finding is a plain dict with required, canonical keys."""
     if hasattr(finding, "to_dict"):
         d = finding.to_dict()
     elif isinstance(finding, dict):
@@ -279,7 +302,24 @@ def _normalise(finding: Any, source: str) -> dict:
     else:
         d = {"raw": str(finding)}
 
-    d.setdefault("severity", "INFO")
-    d.setdefault("title",    d.get("message", d.get("rule_id", "Finding")))
-    d.setdefault("source",   source)
+    # Canonical severity — map sev/level/etc. and normalise casing.
+    sev = "INFO"
+    for k in _SEV_KEYS:
+        v = d.get(k)
+        if v:
+            sev = str(v).upper()
+            break
+    d["severity"] = sev if sev in _VALID_SEV else "INFO"
+
+    # Canonical title — first non-empty of the known title keys.
+    if not d.get("title"):
+        for k in _TITLE_KEYS:
+            v = d.get(k)
+            if v:
+                d["title"] = str(v)
+                break
+        else:
+            d["title"] = d.get("rule_id", d.get("cve", "Finding"))
+
+    d.setdefault("source", source)
     return d
