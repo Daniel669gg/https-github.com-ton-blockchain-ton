@@ -60,7 +60,15 @@ The transaction-executor changes (`transaction.cpp`) are attacker-reachable in p
 
 ## 5. Reproduction requirement
 
-The bounty requires reproduction artifacts (`ton-bug-triage`) for any crash/consensus claim. I have **none**, because I have no confirmed crash/consensus bug to reproduce. Separately, I could not stand up the full node in this environment to fuzz the network paths end-to-end (submodules `rocksdb`/`openssl`/`abseil`/`blst`/… are not vendored in the working tree and a from-scratch build blows past the disk/time budget here). For BoC/cell parsing — the one thing that is realistically fuzzable standalone — the recent diff is `const`-correctness plus the already-shipped hardening above, not a new bug to target. So there is nothing to attach an artifact to. This alone is enough to keep the verdict at REJECTED even if a candidate had looked stronger.
+The bounty requires reproduction artifacts (`ton-bug-triage`) for any crash/consensus claim. I have **none**, because I have no confirmed crash/consensus bug to reproduce.
+
+I did not just take the "no bug" answer on faith for the parsing surfaces. I built the node's crypto libraries from source (`ton_crypto`, `ton_block`, `ton_crypto_core`, `tdutils`) with `-fsanitize=address` and wrote three standalone fuzz harnesses against the exact code an attacker feeds untrusted bytes to (`fuzz/` in this branch):
+
+- `fuzz_boc` — `vm::std_boc_deserialize` + cell traversal + reserialize + `std_boc_deserialize_multi` (every bag-of-cells: external message, liteserver query, block/state download).
+- `fuzz_msg` — the `ExtMessageQ::create_ext_message` path: `t_Message_Any.validate_ref`, the hand-written `t_Message.validate_ref`, `t_MsgEnvelope` unpack/validate (the code `9c07336d` just changed), ext_in header unpack, `extract_std_address`.
+- `fuzz_bocz` — `boc_decompress` / `boc_decompress_baseline_lz4` / `boc_decompress_improved_structure_lz4` (compressed broadcast / block transfer; the structural codec rebuilds the cell DAG from a compact bit format by hand — the likeliest place for an OOB).
+
+Mutation fuzzing off a `CellBuilder`-generated seed corpus, 4-wide on 4 cores at ~127k exec/s. Totals: **~1.5e8 execs (`fuzz_boc`) + 1.6e8 (`fuzz_msg`) + 1.6e8 (`fuzz_bocz`) ≈ 4.7e8 executions, zero crashes and zero ASan reports.** That is a clean negative for the standalone-reachable parsers, not proof of absence — but it means I have nothing to attach an artifact to. What I could not stand up here is the full validator/overlay (needs rocksdb/abseil and a running network), so the Plumtree state machine and consensus paths stay un-fuzzed. Either way, no artifact ⇒ verdict stays REJECTED.
 
 ## 6. Behavior vs. vulnerability (counterintuitive ≠ exploitable)
 
@@ -99,9 +107,9 @@ No smart-contract (FunC/Tolk) finding in this pass. If a contract-level report c
 
 ## Bottom line
 
-I did a genuine pass over the fresh in-scope network/parsing/consensus code. It holds up. The recent commits are mostly the maintainers *removing* footguns (UB shift, null-derefs, missing exception catches, missing envelope-canonicity check) and shipping version-gated consensus tweaks that behave correctly. I found nothing that is simultaneously attacker-controlled, impactful, present on latest, and reproducible — and with no reproduction artifact there's no case to make.
+I did a genuine pass over the fresh in-scope network/parsing/consensus code, and then backed it with real fuzzing: built the node crypto libs under ASan and threw ~4.7e8 mutated inputs at the BoC deserializer, the external-message TL-B validators, and the compressed-BoC decompressors — the exact code untrusted bytes hit. Zero crashes. The recent commits are mostly the maintainers *removing* footguns (UB shift, null-derefs, missing exception catches, missing envelope-canonicity check) and shipping version-gated consensus tweaks that behave correctly. I found nothing that is simultaneously attacker-controlled, impactful, present on latest, and reproducible — and with no reproduction artifact there's no case to make.
 
 **Status:** `incorrect` — no confirmed finding.
 **Verdict:** `REJECTED`.
 
-Do not submit anything from this pass. If we want a real shot, the highest-value next step is standing up a full node build with the submodules and fuzzing the live plumtree message handlers (`process_fec_payload` / `process_ihave` / `process_repair_response`) with a signing oracle, because that's the newest code and the only place where a subtle state-machine bug could still be hiding behind the signature checks. That needs an environment that can actually build and run the node.
+Do not submit anything from this pass. The standalone-reachable parsers are now fuzzed and clean (see §5 and `fuzz/`). The remaining highest-value next step is a full node build (rocksdb/abseil + a running overlay) and fuzzing the live Plumtree message handlers (`process_fec_payload` / `process_ihave` / `process_repair_response`) behind a signing oracle — that's the newest code and the one place a subtle state-machine bug could still hide behind the signature checks. It needs an environment that can build and run the networked node, which this one can't.
